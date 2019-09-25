@@ -49,7 +49,7 @@ namespace Coyote.Examples.FailureDetector
 
             this.FailureDetector = new FailureDetector(this.Nodes, this.Logger);
             this.FailureDetector.RegisterClient(this);
-            this.FailureDetector.Init();
+            await this.FailureDetector.Init();
 
             await this.InjectFailures();
         }

@@ -83,7 +83,7 @@ namespace Coyote.Examples.FailureDetector
         /// </summary>
         private Timer Timer;
 
-        public void Init()
+        public async Task Init()
         {
             this.Alive.Clear();
             this.Responses.Clear();
@@ -98,21 +98,21 @@ namespace Coyote.Examples.FailureDetector
             this.Timer = new Timer(this);
 
             // Transitions to the 'SendPing' state after everything has initialized.
-            this.PushState(FailureDetectorStates.SendPing);
+            await this.PushState(FailureDetectorStates.SendPing);
         }
 
-        private void PushState(FailureDetectorStates state)
+        private async Task PushState(FailureDetectorStates state)
         {
             this.Stack.Push(this.State);
-            this.EnterState(state);
+            await this.EnterState(state);
         }
 
-        private void Goto(FailureDetectorStates state)
+        private async Task Goto(FailureDetectorStates state)
         {
-            this.EnterState(state);
+            await this.EnterState(state);
         }
 
-        private void EnterState(FailureDetectorStates state)
+        private async Task EnterState(FailureDetectorStates state)
         {
             this.Logger.WriteLine("FailureDetector entering {0} state", state);
 
@@ -129,27 +129,27 @@ namespace Coyote.Examples.FailureDetector
             switch (state)
             {
                 case FailureDetectorStates.Init:
-                    this.Init();
+                    await this.Init();
                     break;
                 case FailureDetectorStates.SendPing:
-                    this.SendPingOnEntry();
+                    await this.SendPingOnEntry();
                     break;
                 case FailureDetectorStates.WaitForCancelResponse:
                     break;
                 case FailureDetectorStates.Reset:
-                    this.ResetOnEntry();
+                    await this.ResetOnEntry();
                     break;
             }
         }
 
-        private void PopState()
+        private async Task PopState()
         {
             if (this.Stack.Count == 0)
             {
                 throw new Exception("Stack is empty!");
             }
 
-            this.EnterState(this.Stack.Pop());
+            await this.EnterState(this.Stack.Pop());
         }
 
         internal void RegisterClient(IFailureDetectorClient client)
@@ -165,7 +165,7 @@ namespace Coyote.Examples.FailureDetector
             }
         }
 
-        private async void SendPingOnEntry()
+        private async Task SendPingOnEntry()
         {
             foreach (var node in this.Nodes)
             {
@@ -195,7 +195,7 @@ namespace Coyote.Examples.FailureDetector
             if (this.TimeoutDeferred)
             {
                 this.TimeoutDeferred = false;
-                this.TimeoutAction();
+                await this.TimeoutAction();
             }
         }
 
@@ -219,13 +219,13 @@ namespace Coyote.Examples.FailureDetector
             {
                 this.Logger.WriteLine("FailureDetector sending CancelTimer in State {0}", this.State);
 
-                this.PushState(FailureDetectorStates.WaitForCancelResponse);
+                await this.PushState(FailureDetectorStates.WaitForCancelResponse);
 
                 await this.Timer.CancelTimer();
             }
         }
 
-        private void TimeoutAction()
+        private async Task TimeoutAction()
         {
             // One attempt is done for this round.
             this.Attempts++;
@@ -235,7 +235,7 @@ namespace Coyote.Examples.FailureDetector
             {
                 this.Logger.WriteLine("FailureDetector reached maximum number of attempts");
                 // Retry by looping back to same state.
-                this.Goto(FailureDetectorStates.SendPing);
+                await this.Goto(FailureDetectorStates.SendPing);
             }
             else
             {
@@ -259,28 +259,28 @@ namespace Coyote.Examples.FailureDetector
                     // Send failure notification to any clients.
                     foreach (var client in this.Clients)
                     {
-                        client.OnNodeFailed(node);
+                        await client.OnNodeFailed(node);
                     }
                 }
 
-                this.Goto(FailureDetectorStates.Reset);
+                await this.Goto(FailureDetectorStates.Reset);
             }
         }
 
-        private void CancelSuccessAction()
+        private async Task CancelSuccessAction()
         {
-            this.Goto(FailureDetectorStates.Reset);
+            await this.Goto(FailureDetectorStates.Reset);
         }
 
-        private void CancelFailure()
+        private async Task CancelFailure()
         {
-            this.PopState();
+            await this.PopState();
         }
 
         /// <summary>
         /// Prepares the failure detector for the next round.
         /// </summary>
-        private void ResetOnEntry()
+        private async Task ResetOnEntry()
         {
             this.Attempts = 0;
             this.Responses.Clear();
@@ -292,7 +292,7 @@ namespace Coyote.Examples.FailureDetector
 
             if (this.TimeoutDeferred)
             {
-                this.Goto(FailureDetectorStates.SendPing);
+                await this.Goto(FailureDetectorStates.SendPing);
             }
         }
 
@@ -307,13 +307,13 @@ namespace Coyote.Examples.FailureDetector
                     // error.
                     break;
                 case FailureDetectorStates.SendPing:
-                    this.TimeoutAction();
+                    await this.TimeoutAction();
                     break;
                 case FailureDetectorStates.WaitForCancelResponse:
                     this.TimeoutDeferred = true;
                     break;
                 case FailureDetectorStates.Reset:
-                    this.Goto(FailureDetectorStates.SendPing);
+                    await this.Goto(FailureDetectorStates.SendPing);
                     break;
                 default:
                     break;
@@ -326,7 +326,7 @@ namespace Coyote.Examples.FailureDetector
             await Task.Yield();
             if (this.State == FailureDetectorStates.WaitForCancelResponse)
             {
-                this.CancelSuccessAction();
+                await this.CancelSuccessAction();
             }
         }
 
@@ -336,7 +336,7 @@ namespace Coyote.Examples.FailureDetector
             await Task.Yield();
             if (this.State == FailureDetectorStates.WaitForCancelResponse)
             {
-                this.CancelFailure();
+                await this.CancelFailure();
             }
         }
 
