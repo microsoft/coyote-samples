@@ -6,6 +6,7 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Coyote;
+using Microsoft.Coyote.Specifications;
 using Task = Microsoft.Coyote.Threading.Tasks.ControlledTask;
 
 namespace Coyote.Examples.FailureDetector
@@ -75,7 +76,7 @@ namespace Coyote.Examples.FailureDetector
         {
             // The async programming model doesn't have the concept of "Default" events.
             // So we invent the concept here.
-            await Task.Delay(Specification.ChooseRandomInteger(10) + 1);
+            await Task.Delay(RandomValueGenerator.GetNextInteger(10) + 1);
             if (this.State == TimerState.WaitForCancel)
             {
                 this.State = TimerState.WaitForReq;
@@ -112,7 +113,7 @@ namespace Coyote.Examples.FailureDetector
         private async Task CancelTimerAction()
         {
             // A nondeterministic choice that is controlled by the Coyote runtime during testing.
-            if (Specification.ChooseRandomBoolean())
+            if (RandomValueGenerator.GetNextBoolean())
             {
                 // this.Send(this.Target, new CancelSuccess());
                 await this.Target.OnCancelSuccess();

@@ -5,6 +5,7 @@
 
 using System;
 using System.Threading.Tasks;
+using Microsoft.Coyote;
 using Microsoft.Coyote.Machines;
 
 namespace Coyote.Examples.PingPong.AsyncAwait

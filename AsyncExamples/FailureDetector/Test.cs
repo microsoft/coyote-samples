@@ -6,6 +6,8 @@
 using System;
 using System.Threading;
 using Microsoft.Coyote;
+using Microsoft.Coyote.IO;
+using Microsoft.Coyote.Specifications;
 using Task = Microsoft.Coyote.Threading.Tasks.ControlledTask;
 
 namespace Coyote.Examples.FailureDetector
@@ -30,7 +32,7 @@ namespace Coyote.Examples.FailureDetector
             var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
-            var runtime = CoyoteRuntime.Create(configuration);
+            var runtime = MachineRuntimeFactory.Create(configuration);
 
             // Executes the Coyote program.
             _ = Execute(runtime);
@@ -43,7 +45,7 @@ namespace Coyote.Examples.FailureDetector
         }
 
         [Microsoft.Coyote.Test]
-        public static async Task Execute(ICoyoteRuntime runtime)
+        public static async Task Execute(IMachineRuntime runtime)
         {
             // Monitors must be registered before the first Coyote machine
             // gets created (which will kickstart the runtime).

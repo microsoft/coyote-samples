@@ -6,7 +6,7 @@
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Coyote;
-using Microsoft.Coyote.Machines;
+using Microsoft.Coyote.Specifications;
 
 namespace Coyote.Examples.ReplicatingStorage
 {

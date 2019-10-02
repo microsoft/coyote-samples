@@ -26,7 +26,7 @@ namespace Coyote.Examples.ChainReplication
             var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
-            var runtime = CoyoteRuntime.Create(configuration);
+            var runtime = MachineRuntimeFactory.Create(configuration);
 
             // Executes the Coyote program.
             Execute(runtime);
@@ -38,7 +38,7 @@ namespace Coyote.Examples.ChainReplication
         }
 
         [Microsoft.Coyote.Test]
-        public static void Execute(ICoyoteRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(InvariantMonitor));
             runtime.RegisterMonitor(typeof(ServerResponseSeqMonitor));

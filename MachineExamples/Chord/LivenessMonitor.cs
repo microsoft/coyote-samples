@@ -5,6 +5,7 @@
 
 using Microsoft.Coyote;
 using Microsoft.Coyote.Machines;
+using Microsoft.Coyote.Specifications;
 
 namespace Coyote.Examples.Chord
 {

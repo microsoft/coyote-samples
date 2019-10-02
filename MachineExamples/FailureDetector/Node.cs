@@ -4,6 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
+using Microsoft.Coyote;
 using Microsoft.Coyote.Machines;
 
 namespace Coyote.Examples.FailureDetector

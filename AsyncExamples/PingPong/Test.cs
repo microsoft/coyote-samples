@@ -4,8 +4,6 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-using System.Threading.Tasks;
-using Microsoft.Coyote;
 using Microsoft.Coyote.Threading.Tasks;
 
 namespace Coyote.Examples.PingPong

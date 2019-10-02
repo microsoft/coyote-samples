@@ -6,6 +6,7 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using Microsoft.Coyote;
 using Microsoft.Coyote.Machines;
 
 namespace Coyote.Examples.Chord

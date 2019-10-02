@@ -15,7 +15,7 @@ namespace Coyote.Examples.SendAndReceive
     {
         public static void Main()
         {
-            var runtime = CoyoteRuntime.Create();
+            var runtime = MachineRuntimeFactory.Create();
 
             // Create a machine.
             var mid = runtime.CreateMachine(typeof(M1));
@@ -34,7 +34,7 @@ namespace Coyote.Examples.SendAndReceive
         /// </summary>
         /// <param name="runtime">The Coyote runtime.</param>
         /// <param name="mid">Machine to get response from.</param>
-        private static async Task GetDataAndPrint(ICoyoteRuntime runtime, MachineId mid)
+        private static async Task GetDataAndPrint(IMachineRuntime runtime, MachineId mid)
         {
             var resp = await GetReponseMachine<M1.Response>.GetResponse(runtime, mid, m => new M1.Get(m));
             Console.WriteLine("Got response: {0}", resp.V);

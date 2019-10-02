@@ -7,6 +7,7 @@ using System;
 using Microsoft.Coyote;
 using Microsoft.Coyote.IO;
 using Microsoft.Coyote.Machines;
+using Microsoft.Coyote.Specifications;
 using Task = Microsoft.Coyote.Threading.Tasks.ControlledTask;
 
 namespace Coyote.Examples.FailureDetector

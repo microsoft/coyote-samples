@@ -29,7 +29,7 @@ namespace Coyote.Examples.PingPong
             // add .WithVerbosityEnabled() on the configuration object.
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
-            var runtime = CoyoteRuntime.Create(configuration);
+            var runtime = MachineRuntimeFactory.Create(configuration);
 
             // Executes the Coyote program.
             Execute(runtime);
@@ -52,7 +52,7 @@ namespace Coyote.Examples.PingPong
         /// </summary>
         /// <param name="runtime">The machine runtime.</param>
         [Microsoft.Coyote.Test]
-        public static void Execute(ICoyoteRuntime runtime)
+        public static void Execute(IMachineRuntime runtime)
         {
             // This is the root machine to the PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).
