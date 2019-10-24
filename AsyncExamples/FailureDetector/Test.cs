@@ -6,7 +6,6 @@
 using System;
 using System.Threading;
 using Microsoft.Coyote;
-using Microsoft.Coyote.IO;
 using Microsoft.Coyote.Specifications;
 using Task = Microsoft.Coyote.Threading.Tasks.ControlledTask;
 
