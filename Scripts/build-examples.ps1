@@ -33,6 +33,6 @@ function BuildDir([String]$dir, [String]$name) {
 
 # gci -r | select -exp FullName
 
-BuildDir -dir "MachineExamples" -name "Coyote State Machine Examples"
+BuildDir -dir "StateMachineExamples" -name "Coyote State Machine Examples"
 
-BuildDir -dir "AsyncExamples" -name "Coyote Async Examples"
+BuildDir -dir "AsyncTaskExamples" -name "Coyote Async Task Examples"
