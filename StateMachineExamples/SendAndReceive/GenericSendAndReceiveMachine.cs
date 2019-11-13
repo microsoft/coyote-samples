@@ -31,7 +31,7 @@ namespace Coyote.Examples.SendAndReceive
         {
             var conf = new Config(mid, ev);
             // This method awaits until the GetResponseMachine finishes its Execute method
-            await runtime.CreateStateMachineAndExecuteAsync(typeof(GetReponseMachine<T>), conf);
+            await runtime.CreateActorAndExecuteAsync(typeof(GetReponseMachine<T>), conf);
             // Safely return the result back (no race condition here)
             return conf.ReceivedEvent;
         }
@@ -68,7 +68,7 @@ namespace Coyote.Examples.SendAndReceive
             // Stash in the shared config event.
             config.ReceivedEvent = rv as T;
             // Finally, halt.
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
     }
 }

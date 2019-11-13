@@ -151,7 +151,7 @@ namespace Coyote.Examples.ChainReplication
 
             if (this.Next >= 3)
             {
-                this.RaiseEvent(new Halt());
+                this.RaiseEvent(new HaltEvent());
             }
             else
             {

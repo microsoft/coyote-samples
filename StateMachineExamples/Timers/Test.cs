@@ -31,7 +31,7 @@ namespace Coyote.Examples.Timers
         [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            runtime.CreateStateMachine(typeof(Client));
+            runtime.CreateActor(typeof(Client));
         }
     }
 }

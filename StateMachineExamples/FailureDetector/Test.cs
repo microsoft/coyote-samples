@@ -47,7 +47,7 @@ namespace Coyote.Examples.FailureDetector
             // gets created (which will kickstart the runtime).
             runtime.RegisterMonitor(typeof(Safety));
             runtime.RegisterMonitor(typeof(Liveness));
-            runtime.CreateStateMachine(typeof(Driver), new Driver.Config(2));
+            runtime.CreateActor(typeof(Driver), new Driver.Config(2));
         }
     }
 }

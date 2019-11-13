@@ -71,10 +71,10 @@ namespace Coyote.Examples.Raft
 
             for (int idx = 0; idx < this.NumberOfServers; idx++)
             {
-                this.Servers[idx] = this.CreateStateMachine(typeof(Server));
+                this.Servers[idx] = this.CreateActor(typeof(Server));
             }
 
-            this.Client = this.CreateStateMachine(typeof(Client));
+            this.Client = this.CreateActor(typeof(Client));
 
             this.RaiseEvent(new LocalEvent());
         }
@@ -143,7 +143,7 @@ namespace Coyote.Examples.Raft
                 this.SendEvent(this.Servers[idx], new Server.ShutDown());
             }
 
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
 
         #endregion

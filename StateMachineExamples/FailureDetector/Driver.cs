@@ -66,14 +66,14 @@ namespace Coyote.Examples.FailureDetector
             this.Nodes = new HashSet<ActorId>();
             for (int i = 0; i < this.NumOfNodes; i++)
             {
-                var node = this.CreateStateMachine(typeof(Node));
+                var node = this.CreateActor(typeof(Node));
                 this.Nodes.Add(node);
             }
 
             // Notifies the liveness monitor that the nodes are initialized.
             this.Monitor<Liveness>(new Liveness.RegisterNodes(this.Nodes));
 
-            this.FailureDetector = this.CreateStateMachine(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
+            this.FailureDetector = this.CreateActor(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
             this.SendEvent(this.FailureDetector, new RegisterClient(this.Id));
 
             this.Goto<InjectFailures>();
@@ -90,7 +90,7 @@ namespace Coyote.Examples.FailureDetector
         {
             foreach (var node in this.Nodes)
             {
-                this.SendEvent(node, new Halt());
+                this.SendEvent(node, new HaltEvent());
             }
         }
 

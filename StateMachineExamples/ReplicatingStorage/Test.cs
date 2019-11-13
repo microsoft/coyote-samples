@@ -45,7 +45,7 @@ namespace Coyote.Examples.ReplicatingStorage
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(LivenessMonitor));
-            runtime.CreateStateMachine(typeof(Environment));
+            runtime.CreateActor(typeof(Environment));
         }
     }
 }

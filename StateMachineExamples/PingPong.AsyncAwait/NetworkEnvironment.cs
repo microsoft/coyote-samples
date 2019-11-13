@@ -36,11 +36,11 @@ namespace Coyote.Examples.PingPong.AsyncAwait
         private void InitOnEntry()
         {
             // Creates (asynchronously) a server machine.
-            var server = this.CreateStateMachine(typeof(Server));
+            var server = this.CreateActor(typeof(Server));
             // Creates (asynchronously) a client machine, and passes the
             // 'Config' event as payload. 'Config' contains a reference
             // to the server machine.
-            this.CreateStateMachine(typeof(Client), new Client.Config(server));
+            this.CreateActor(typeof(Client), new Client.Config(server));
         }
     }
 }

@@ -70,10 +70,10 @@ namespace Coyote.Examples.MultiPaxos
 
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
 
-            this.CommunicateLeaderTimeout = this.CreateStateMachine(typeof(Timer));
+            this.CommunicateLeaderTimeout = this.CreateActor(typeof(Timer));
             this.SendEvent(this.CommunicateLeaderTimeout, new Timer.Config(this.Id, 100));
 
-            this.BroadCastTimeout = this.CreateStateMachine(typeof(Timer));
+            this.BroadCastTimeout = this.CreateActor(typeof(Timer));
             this.SendEvent(this.BroadCastTimeout, new Timer.Config(this.Id, 10));
 
             this.RaiseEvent(new Local());

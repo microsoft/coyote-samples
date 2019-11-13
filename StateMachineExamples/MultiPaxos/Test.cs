@@ -42,7 +42,7 @@ namespace Coyote.Examples.MultiPaxos
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(ValidityCheck));
-            runtime.CreateStateMachine(typeof(GodMachine));
+            runtime.CreateActor(typeof(GodMachine));
         }
     }
 }

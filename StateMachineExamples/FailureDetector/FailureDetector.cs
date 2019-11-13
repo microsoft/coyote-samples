@@ -93,7 +93,7 @@ namespace Coyote.Examples.FailureDetector
             }
 
             // Initializes the timer.
-            this.Timer = this.CreateStateMachine(typeof(Timer), new Timer.Config(this.Id));
+            this.Timer = this.CreateActor(typeof(Timer), new Timer.Config(this.Id));
 
             // Transitions to the 'SendPing' state after everything has initialized.
             this.RaiseEvent(new Unit());

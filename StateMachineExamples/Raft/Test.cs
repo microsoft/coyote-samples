@@ -41,7 +41,7 @@ namespace Coyote.Examples.Raft
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));
-            runtime.CreateStateMachine(typeof(ClusterManager));
+            runtime.CreateActor(typeof(ClusterManager));
         }
     }
 }

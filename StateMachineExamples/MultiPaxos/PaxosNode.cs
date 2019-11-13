@@ -179,7 +179,7 @@ namespace Coyote.Examples.MultiPaxos
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
             this.MaxRound = 0;
 
-            this.Timer = this.CreateStateMachine(typeof(Timer));
+            this.Timer = this.CreateActor(typeof(Timer));
             this.SendEvent(this.Timer, new Timer.Config(this.Id, 10));
 
             this.LastExecutedSlot = -1;
@@ -323,7 +323,7 @@ namespace Coyote.Examples.MultiPaxos
             this.Majority = (this.Acceptors.Count / 2) + 1;
             this.Assert(this.Majority == 2, "Majority is not 2");
 
-            this.LeaderElectionService = this.CreateStateMachine(typeof(LeaderElection));
+            this.LeaderElectionService = this.CreateActor(typeof(LeaderElection));
             this.SendEvent(this.LeaderElectionService, new LeaderElection.Config(this.Acceptors, this.Id, this.MyRank));
 
             this.RaiseEvent(new Local());

@@ -41,7 +41,7 @@ namespace Coyote.Examples.TwoPhaseCommit
         [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            runtime.CreateStateMachine(typeof(TwoPhaseCommit));
+            runtime.CreateActor(typeof(TwoPhaseCommit));
         }
     }
 }

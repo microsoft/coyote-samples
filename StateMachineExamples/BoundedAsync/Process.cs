@@ -127,7 +127,7 @@ namespace Coyote.Examples.BoundedAsync
             // When the count reaches the value 10, the machine halts.
             if (this.Count == 10)
             {
-                this.RaiseEvent(new Halt());
+                this.RaiseEvent(new HaltEvent());
             }
         }
 

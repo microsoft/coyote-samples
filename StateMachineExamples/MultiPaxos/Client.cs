@@ -80,7 +80,7 @@ namespace Coyote.Examples.MultiPaxos
 
         private void DoneOnEntry()
         {
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
     }
 }

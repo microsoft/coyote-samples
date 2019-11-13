@@ -53,7 +53,7 @@ namespace Coyote.Examples.BoundedAsync
             this.Processes = new ActorId[processNum];
             for (int i = 0; i < processNum; i++)
             {
-                this.Processes[i] = this.CreateStateMachine(typeof(Process), new Process.Configure(this.Id));
+                this.Processes[i] = this.CreateActor(typeof(Process), new Process.Configure(this.Id));
             }
 
             for (int i = 0; i < processNum; i++)

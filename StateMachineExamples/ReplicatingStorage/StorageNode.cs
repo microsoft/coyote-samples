@@ -113,7 +113,7 @@ namespace Coyote.Examples.ReplicatingStorage
         private void EntryOnInit()
         {
             this.Data = 0;
-            this.SyncTimer = this.CreateStateMachine(typeof(SyncTimer));
+            this.SyncTimer = this.CreateActor(typeof(SyncTimer));
             this.SendEvent(this.SyncTimer, new SyncTimer.ConfigureEvent(this.Id));
         }
 
@@ -161,8 +161,8 @@ namespace Coyote.Examples.ReplicatingStorage
         private void Terminate()
         {
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeFail(this.NodeId));
-            this.SendEvent(this.SyncTimer, new Halt());
-            this.RaiseEvent(new Halt());
+            this.SendEvent(this.SyncTimer, new HaltEvent());
+            this.RaiseEvent(new HaltEvent());
         }
 
         #endregion

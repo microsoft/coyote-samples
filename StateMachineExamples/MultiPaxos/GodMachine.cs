@@ -22,13 +22,13 @@ namespace Coyote.Examples.MultiPaxos
         {
             this.PaxosNodes = new List<ActorId>();
 
-            this.PaxosNodes.Insert(0, this.CreateStateMachine(typeof(PaxosNode)));
+            this.PaxosNodes.Insert(0, this.CreateActor(typeof(PaxosNode)));
             this.SendEvent(this.PaxosNodes[0], new PaxosNode.Config(3));
 
-            this.PaxosNodes.Insert(0, this.CreateStateMachine(typeof(PaxosNode)));
+            this.PaxosNodes.Insert(0, this.CreateActor(typeof(PaxosNode)));
             this.SendEvent(this.PaxosNodes[0], new PaxosNode.Config(2));
 
-            this.PaxosNodes.Insert(0, this.CreateStateMachine(typeof(PaxosNode)));
+            this.PaxosNodes.Insert(0, this.CreateActor(typeof(PaxosNode)));
             this.SendEvent(this.PaxosNodes[0], new PaxosNode.Config(1));
 
             foreach (var node in this.PaxosNodes)
@@ -36,7 +36,7 @@ namespace Coyote.Examples.MultiPaxos
                 this.SendEvent(node, new PaxosNode.AllNodes(this.PaxosNodes));
             }
 
-            this.Client = this.CreateStateMachine(typeof(Client));
+            this.Client = this.CreateActor(typeof(Client));
             this.SendEvent(this.Client, new Client.Config(this.PaxosNodes));
         }
     }

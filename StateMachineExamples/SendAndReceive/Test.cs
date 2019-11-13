@@ -19,7 +19,7 @@ namespace Coyote.Examples.SendAndReceive
             var runtime = ActorRuntimeFactory.Create();
 
             // Create a machine.
-            var mid = runtime.CreateStateMachine(typeof(M1));
+            var mid = runtime.CreateActor(typeof(M1));
 
             // Do some work.
             runtime.SendEvent(mid, new M1.Inc());

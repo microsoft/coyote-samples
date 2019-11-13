@@ -248,10 +248,10 @@ namespace Coyote.Examples.Raft
             this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
             this.ClusterManager = (this.ReceivedEvent as ConfigureEvent).ClusterManager;
 
-            this.ElectionTimer = this.CreateStateMachine(typeof(ElectionTimer));
+            this.ElectionTimer = this.CreateActor(typeof(ElectionTimer));
             this.SendEvent(this.ElectionTimer, new ElectionTimer.ConfigureEvent(this.Id));
 
-            this.PeriodicTimer = this.CreateStateMachine(typeof(PeriodicTimer));
+            this.PeriodicTimer = this.CreateActor(typeof(PeriodicTimer));
             this.SendEvent(this.PeriodicTimer, new PeriodicTimer.ConfigureEvent(this.Id));
 
             this.RaiseEvent(new BecomeFollower());
@@ -804,10 +804,10 @@ namespace Coyote.Examples.Raft
 
         private void ShuttingDown()
         {
-            this.SendEvent(this.ElectionTimer, new Halt());
-            this.SendEvent(this.PeriodicTimer, new Halt());
+            this.SendEvent(this.ElectionTimer, new HaltEvent());
+            this.SendEvent(this.PeriodicTimer, new HaltEvent());
 
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
 
         #endregion

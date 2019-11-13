@@ -43,7 +43,7 @@ namespace Coyote.Examples.ChainReplication
         {
             runtime.RegisterMonitor(typeof(InvariantMonitor));
             runtime.RegisterMonitor(typeof(ServerResponseSeqMonitor));
-            runtime.CreateStateMachine(typeof(Environment));
+            runtime.CreateActor(typeof(Environment));
         }
     }
 }

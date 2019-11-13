@@ -34,17 +34,17 @@ namespace Coyote.Examples.ChainReplication
 
                 if (i == 0)
                 {
-                    server = this.CreateStateMachine(typeof(ChainReplicationServer),
+                    server = this.CreateActor(typeof(ChainReplicationServer),
                         new ChainReplicationServer.Config(i, true, false));
                 }
                 else if (i == this.NumOfServers - 1)
                 {
-                    server = this.CreateStateMachine(typeof(ChainReplicationServer),
+                    server = this.CreateActor(typeof(ChainReplicationServer),
                         new ChainReplicationServer.Config(i, false, true));
                 }
                 else
                 {
-                    server = this.CreateStateMachine(typeof(ChainReplicationServer),
+                    server = this.CreateActor(typeof(ChainReplicationServer),
                         new ChainReplicationServer.Config(i, false, false));
                 }
 
@@ -82,16 +82,16 @@ namespace Coyote.Examples.ChainReplication
                 this.SendEvent(this.Servers[i], new ChainReplicationServer.PredSucc(pred, succ));
             }
 
-            this.Clients.Add(this.CreateStateMachine(typeof(Client),
+            this.Clients.Add(this.CreateActor(typeof(Client),
                 new Client.Config(0, this.Servers[0], this.Servers[this.NumOfServers - 1], 1)));
 
-            this.Clients.Add(this.CreateStateMachine(typeof(Client),
+            this.Clients.Add(this.CreateActor(typeof(Client),
                 new Client.Config(1, this.Servers[0], this.Servers[this.NumOfServers - 1], 100)));
 
-            this.ChainReplicationMaster = this.CreateStateMachine(typeof(ChainReplicationMaster),
+            this.ChainReplicationMaster = this.CreateActor(typeof(ChainReplicationMaster),
                 new ChainReplicationMaster.Config(this.Servers, this.Clients));
 
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
     }
 }

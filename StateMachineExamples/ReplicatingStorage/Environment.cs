@@ -65,8 +65,8 @@ namespace Coyote.Examples.ReplicatingStorage
 
             this.Monitor<LivenessMonitor>(new LivenessMonitor.ConfigureEvent(this.NumberOfReplicas));
 
-            this.NodeManager = this.CreateStateMachine(typeof(NodeManager));
-            this.Client = this.CreateStateMachine(typeof(Client));
+            this.NodeManager = this.CreateActor(typeof(NodeManager));
+            this.Client = this.CreateActor(typeof(Client));
 
             this.RaiseEvent(new LocalEvent());
         }
@@ -95,7 +95,7 @@ namespace Coyote.Examples.ReplicatingStorage
             if (this.AliveNodes.Count == this.NumberOfReplicas &&
                 this.FailureTimer == null)
             {
-                this.FailureTimer = this.CreateStateMachine(typeof(FailureTimer));
+                this.FailureTimer = this.CreateActor(typeof(FailureTimer));
                 this.SendEvent(this.FailureTimer, new FailureTimer.ConfigureEvent(this.Id));
             }
         }
@@ -120,7 +120,7 @@ namespace Coyote.Examples.ReplicatingStorage
             this.NumberOfFaults--;
             if (this.NumberOfFaults == 0)
             {
-                this.SendEvent(this.FailureTimer, new Halt());
+                this.SendEvent(this.FailureTimer, new HaltEvent());
             }
         }
 

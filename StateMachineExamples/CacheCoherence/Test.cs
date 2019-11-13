@@ -41,7 +41,7 @@ namespace Coyote.Examples.CacheCoherence
         [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            runtime.CreateStateMachine(typeof(Host));
+            runtime.CreateActor(typeof(Host));
         }
     }
 }

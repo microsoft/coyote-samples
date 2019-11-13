@@ -425,7 +425,7 @@ namespace Coyote.Examples.Chord
 
         private void ProcessTerminate()
         {
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
 
         private static int GetSuccessorNodeId(int start, List<int> nodeIds)

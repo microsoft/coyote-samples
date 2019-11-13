@@ -15,13 +15,13 @@ namespace Coyote.Examples.TwoPhaseCommit
 
         private void InitOnEntry()
         {
-            var coordinator = this.CreateStateMachine(typeof(Coordinator));
+            var coordinator = this.CreateActor(typeof(Coordinator));
             this.SendEvent(coordinator, new Coordinator.Config(2));
 
-            var client1 = this.CreateStateMachine(typeof(Client));
+            var client1 = this.CreateActor(typeof(Client));
             this.SendEvent(client1, new Client.Config(coordinator));
 
-            var client2 = this.CreateStateMachine(typeof(Client));
+            var client2 = this.CreateActor(typeof(Client));
             this.SendEvent(client2, new Client.Config(coordinator));
         }
     }

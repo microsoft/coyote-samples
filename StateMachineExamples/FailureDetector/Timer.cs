@@ -90,7 +90,7 @@ namespace Coyote.Examples.FailureDetector
         /// </summary>
         [IgnoreEvents(typeof(StartTimerEvent))]
         [OnEventGotoState(typeof(CancelTimerEvent), typeof(WaitForReq), nameof(CancelTimerAction2))]
-        [OnEventGotoState(typeof(Default), typeof(WaitForReq), nameof(DefaultAction))]
+        [OnEventGotoState(typeof(DefaultEvent), typeof(WaitForReq), nameof(DefaultAction))]
         private class WaitForCancel : State { }
 
         private void DefaultAction()

@@ -111,7 +111,7 @@ namespace Coyote.Examples.PingPong.AsyncAwait
             // will terminate the machine and release any resources. Note that the
             // 'Halt' event is handled automatically, the user does not need to
             // declare an event handler in the state declaration.
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
     }
 }

@@ -98,7 +98,7 @@ namespace Coyote.Examples.ChainReplication
             this.Servers = (this.ReceivedEvent as Config).Servers;
             this.Clients = (this.ReceivedEvent as Config).Clients;
 
-            this.FailureDetector = this.CreateStateMachine(typeof(FailureDetector),
+            this.FailureDetector = this.CreateActor(typeof(FailureDetector),
                 new FailureDetector.Config(this.Id, this.Servers));
 
             this.Head = this.Servers[0];

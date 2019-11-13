@@ -159,7 +159,7 @@ namespace Coyote.Examples.PingPong
             // will terminate the machine and release any resources. Note that the
             // 'Halt' event is handled automatically, the user does not need to
             // declare an event handler in the state declarations.
-            this.RaiseEvent(new Halt());
+            this.RaiseEvent(new HaltEvent());
         }
     }
 }

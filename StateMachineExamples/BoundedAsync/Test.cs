@@ -42,7 +42,7 @@ namespace Coyote.Examples.BoundedAsync
         [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            runtime.CreateStateMachine(typeof(Scheduler), new Scheduler.Config(3));
+            runtime.CreateActor(typeof(Scheduler), new Scheduler.Config(3));
         }
     }
 }

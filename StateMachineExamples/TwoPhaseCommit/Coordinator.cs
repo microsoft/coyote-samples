@@ -100,7 +100,7 @@ namespace Coyote.Examples.TwoPhaseCommit
 
             for (int i = 0; i < numReplicas; i++)
             {
-                var replica = this.CreateStateMachine(typeof(Replica));
+                var replica = this.CreateActor(typeof(Replica));
                 this.Replicas.Add(replica);
                 this.SendEvent(replica, new Replica.Config(this.Id));
             }
@@ -108,7 +108,7 @@ namespace Coyote.Examples.TwoPhaseCommit
             this.CurrSeqNum = 0;
             this.Counter = numReplicas;
 
-            this.Timer = this.CreateStateMachine(typeof(Timer));
+            this.Timer = this.CreateActor(typeof(Timer));
             this.SendEvent(this.Timer, new Timer.Config(this.Id));
 
             this.RaiseEvent(new Unit());

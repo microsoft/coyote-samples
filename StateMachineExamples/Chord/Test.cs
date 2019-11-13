@@ -42,7 +42,7 @@ namespace Coyote.Examples.Chord
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(LivenessMonitor));
-            runtime.CreateStateMachine(typeof(ClusterManager));
+            runtime.CreateActor(typeof(ClusterManager));
         }
     }
 }

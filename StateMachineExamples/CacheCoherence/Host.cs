@@ -42,16 +42,16 @@ namespace Coyote.Examples.CacheCoherence
             this.SharerList = new List<ActorId>();
 
             this.Clients = Tuple.Create(
-                this.CreateStateMachine(typeof(Client)),
-                this.CreateStateMachine(typeof(Client)),
-                this.CreateStateMachine(typeof(Client)));
+                this.CreateActor(typeof(Client)),
+                this.CreateActor(typeof(Client)),
+                this.CreateActor(typeof(Client)));
 
             this.SendEvent(this.Clients.Item1, new Client.Config(this.Id, false));
             this.SendEvent(this.Clients.Item2, new Client.Config(this.Id, false));
             this.SendEvent(this.Clients.Item3, new Client.Config(this.Id, false));
 
             this.CurrentClient = null;
-            this.CurrentCPU = this.CreateStateMachine(typeof(CPU));
+            this.CurrentCPU = this.CreateActor(typeof(CPU));
             this.SendEvent(this.CurrentCPU, new CPU.Config(this.Clients));
 
             this.RaiseEvent(new Unit());

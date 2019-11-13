@@ -54,7 +54,7 @@ namespace Coyote.Examples.PingPong.AsyncAwait
         {
             // This is the root machine to the PingPong program. CreateMachine
             // executes asynchronously (i.e. non-blocking).
-            runtime.CreateStateMachine(typeof(NetworkEnvironment));
+            runtime.CreateActor(typeof(NetworkEnvironment));
         }
     }
 }

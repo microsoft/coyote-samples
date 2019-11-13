@@ -89,7 +89,7 @@ namespace Coyote.Examples.ReplicatingStorage
 
             if (this.Counter == 1)
             {
-                this.RaiseEvent(new Halt());
+                this.RaiseEvent(new HaltEvent());
             }
             else
             {

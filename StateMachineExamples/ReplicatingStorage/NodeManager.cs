@@ -104,7 +104,7 @@ namespace Coyote.Examples.ReplicatingStorage
             this.StorageNodeMap = new Dictionary<int, bool>();
             this.DataMap = new Dictionary<int, int>();
 
-            this.RepairTimer = this.CreateStateMachine(typeof(RepairTimer));
+            this.RepairTimer = this.CreateActor(typeof(RepairTimer));
             this.SendEvent(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
         }
 
@@ -124,7 +124,7 @@ namespace Coyote.Examples.ReplicatingStorage
         private void CreateNewNode()
         {
             var idx = this.StorageNodes.Count;
-            var node = this.CreateStateMachine(typeof(StorageNode));
+            var node = this.CreateActor(typeof(StorageNode));
             this.StorageNodes.Add(node);
             this.StorageNodeMap.Add(idx, true);
             this.SendEvent(node, new StorageNode.ConfigureEvent(this.Environment, this.Id, idx));

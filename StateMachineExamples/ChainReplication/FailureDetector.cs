@@ -104,7 +104,7 @@ namespace Coyote.Examples.ChainReplication
         {
             if (this.Failures < 1)
             {
-                this.RaiseEvent(new Halt());
+                this.RaiseEvent(new HaltEvent());
             }
             else
             {

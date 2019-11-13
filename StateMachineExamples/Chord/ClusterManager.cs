@@ -54,7 +54,7 @@ namespace Coyote.Examples.Chord
 
             for (int idx = 0; idx < this.NodeIds.Count; idx++)
             {
-                this.ChordNodes.Add(this.CreateStateMachine(typeof(ChordNode)));
+                this.ChordNodes.Add(this.CreateActor(typeof(ChordNode)));
             }
 
             var nodeKeys = this.AssignKeysToNodes();
@@ -65,7 +65,7 @@ namespace Coyote.Examples.Chord
                     new List<ActorId>(this.ChordNodes), new List<int>(this.NodeIds), this.Id));
             }
 
-            this.Client = this.CreateStateMachine(typeof(Client),
+            this.Client = this.CreateActor(typeof(Client),
                 new Client.Config(this.Id, new List<int>(this.Keys)));
 
             this.RaiseEvent(new Local());
@@ -99,7 +99,7 @@ namespace Coyote.Examples.Chord
 
             this.Assert(newId >= 0, "Cannot create a new node, no ids available.");
 
-            var newNode = this.CreateStateMachine(typeof(ChordNode));
+            var newNode = this.CreateActor(typeof(ChordNode));
 
             this.NumOfNodes++;
             this.NodeIds.Add(newId);

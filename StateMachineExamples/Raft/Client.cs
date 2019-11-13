@@ -98,7 +98,7 @@ namespace Coyote.Examples.Raft
             if (this.Counter == 3)
             {
                 this.SendEvent(this.Cluster, new ClusterManager.ShutDown());
-                this.RaiseEvent(new Halt());
+                this.RaiseEvent(new HaltEvent());
             }
             else
             {
