@@ -38,7 +38,7 @@ namespace Coyote.Examples.MultiPaxos
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(ValidityCheck));

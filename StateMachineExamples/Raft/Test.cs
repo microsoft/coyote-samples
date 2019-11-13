@@ -37,7 +37,7 @@ namespace Coyote.Examples.Raft
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(SafetyMonitor));

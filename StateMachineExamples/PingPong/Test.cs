@@ -52,7 +52,7 @@ namespace Coyote.Examples.PingPong
         /// specified number of iterations to detect bugs.
         /// </summary>
         /// <param name="runtime">The machine runtime.</param>
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             // This is the root machine to the PingPong program. CreateMachine

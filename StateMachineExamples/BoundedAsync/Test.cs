@@ -39,7 +39,7 @@ namespace Coyote.Examples.BoundedAsync
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.CreateStateMachine(typeof(Scheduler), new Scheduler.Config(3));

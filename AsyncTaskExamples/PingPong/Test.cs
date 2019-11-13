@@ -39,7 +39,7 @@ namespace Coyote.Examples.PingPong
         /// Coyote non-determinstic choices) and systematically executes the test method a user
         /// specified number of iterations to detect bugs.
         /// </summary>
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static async ControlledTask Execute()
         {
             // This is the root machine to the PingPong program. CreateMachine

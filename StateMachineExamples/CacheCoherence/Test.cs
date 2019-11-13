@@ -38,7 +38,7 @@ namespace Coyote.Examples.CacheCoherence
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.CreateStateMachine(typeof(Host));

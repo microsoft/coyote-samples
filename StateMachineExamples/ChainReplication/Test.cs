@@ -38,7 +38,7 @@ namespace Coyote.Examples.ChainReplication
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.RegisterMonitor(typeof(InvariantMonitor));

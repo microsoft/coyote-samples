@@ -40,7 +40,7 @@ namespace Coyote.Examples.FailureDetector
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.Test]
+        [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
             // Monitors must be registered before the first Coyote machine
