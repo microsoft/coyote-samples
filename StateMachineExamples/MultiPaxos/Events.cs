@@ -8,8 +8,6 @@ using Microsoft.Coyote.Actors;
 
 namespace Coyote.Examples.MultiPaxos
 {
-    #region Events
-
     internal class Local : Event { }
 
     internal class Success : Event { }
@@ -17,6 +15,4 @@ namespace Coyote.Examples.MultiPaxos
     internal class GoPropose : Event { }
 
     internal class Response : Event { }
-
-    #endregion
 }

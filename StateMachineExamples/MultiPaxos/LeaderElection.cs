@@ -59,14 +59,14 @@ namespace Coyote.Examples.MultiPaxos
 
         [Start]
         [OnEventGotoState(typeof(Local), typeof(ProcessPings))]
-        [OnEventDoAction(typeof(LeaderElection.Config), nameof(Configure))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Servers = (this.ReceivedEvent as LeaderElection.Config).Servers;
-            this.ParentServer = (this.ReceivedEvent as LeaderElection.Config).ParentServer;
-            this.MyRank = (this.ReceivedEvent as LeaderElection.Config).MyRank;
+            this.Servers = (e as Config).Servers;
+            this.ParentServer = (e as Config).ParentServer;
+            this.MyRank = (e as Config).MyRank;
 
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
 
@@ -76,42 +76,42 @@ namespace Coyote.Examples.MultiPaxos
             this.BroadCastTimeout = this.CreateActor(typeof(Timer));
             this.SendEvent(this.BroadCastTimeout, new Timer.Config(this.Id, 10));
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(ProcessPingsOnEntry))]
         [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProcessPings), nameof(ProcessPingsAction))]
-        [OnEventDoAction(typeof(LeaderElection.Ping), nameof(CalculateLeader))]
+        [OnEventDoAction(typeof(Ping), nameof(CalculateLeader))]
         private class ProcessPings : State { }
 
         private void ProcessPingsOnEntry()
         {
             foreach (var server in this.Servers)
             {
-                this.SendEvent(server, new LeaderElection.Ping(this.Id, this.MyRank));
+                this.SendEvent(server, new Ping(this.Id, this.MyRank));
             }
 
             this.SendEvent(this.BroadCastTimeout, new Timer.StartTimerEvent());
         }
 
-        private void ProcessPingsAction()
+        private void ProcessPingsAction(Event e)
         {
-            var id = (this.ReceivedEvent as Timer.TimeoutEvent).Timer;
+            var id = (e as Timer.TimeoutEvent).Timer;
 
             if (this.CommunicateLeaderTimeout.Equals(id))
             {
                 this.Assert(this.CurrentLeader.Item1 <= this.MyRank, "this.CurrentLeader <= this.MyRank");
-                this.SendEvent(this.ParentServer, new LeaderElection.NewLeader(this.CurrentLeader.Item2, this.CurrentLeader.Item1));
+                this.SendEvent(this.ParentServer, new NewLeader(this.CurrentLeader.Item2, this.CurrentLeader.Item1));
                 this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
                 this.SendEvent(this.CommunicateLeaderTimeout, new Timer.StartTimerEvent());
                 this.SendEvent(this.BroadCastTimeout, new Timer.CancelTimerEvent());
             }
         }
 
-        private void CalculateLeader()
+        private void CalculateLeader(Event e)
         {
-            var rank = (this.ReceivedEvent as LeaderElection.Ping).Rank;
-            var leader = (this.ReceivedEvent as LeaderElection.Ping).LeaderElection;
+            var rank = (e as Ping).Rank;
+            var leader = (e as Ping).LeaderElection;
 
             if (rank < this.MyRank)
             {

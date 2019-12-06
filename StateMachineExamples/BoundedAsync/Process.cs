@@ -77,28 +77,28 @@ namespace Coyote.Examples.BoundedAsync
         [OnEventDoAction(typeof(Initialize), nameof(InitializeAction))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private void InitOnEntry(Event e)
         {
             // Receives a reference to the scheduler machine (as a payload of
             // the 'Config' event).
-            this.Scheduler = (this.ReceivedEvent as Configure).Scheduler;
+            this.Scheduler = (e as Configure).Scheduler;
             this.Count = 0;
         }
 
-        private void InitializeAction()
+        private Transition InitializeAction(Event e)
         {
             // Receives a reference to the left process machine (as a payload of
             // the 'Initialize' event).
-            this.Left = (this.ReceivedEvent as Initialize).Left;
+            this.Left = (e as Initialize).Left;
             // Receives a reference to the right process machine (as a payload of
             // the 'Initialize' event).
-            this.Right = (this.ReceivedEvent as Initialize).Right;
+            this.Right = (e as Initialize).Right;
 
             // Send a 'Req' event to the scheduler machine.
             this.SendEvent(this.Scheduler, new Req());
 
             // Transition to the 'Syncing' state in the end of this action.
-            this.Goto<Syncing>();
+            return this.GotoState<Syncing>();
         }
 
         /// <summary>
@@ -116,7 +116,7 @@ namespace Coyote.Examples.BoundedAsync
         [OnEventDoAction(typeof(MyCount), nameof(ConfirmInSync))]
         private class Syncing : State { }
 
-        private void Sync()
+        private Transition Sync()
         {
             this.Count++;
 
@@ -127,13 +127,15 @@ namespace Coyote.Examples.BoundedAsync
             // When the count reaches the value 10, the machine halts.
             if (this.Count == 10)
             {
-                this.RaiseEvent(new HaltEvent());
+                return this.Halt();
             }
+
+            return default;
         }
 
-        private void ConfirmInSync()
+        private void ConfirmInSync(Event e)
         {
-            int count = (this.ReceivedEvent as MyCount).Count;
+            int count = (e as MyCount).Count;
 
             // Asserts that the count value is the expected one.
             this.Assert(this.Count == count || this.Count == count - 1,

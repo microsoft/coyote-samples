@@ -11,8 +11,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class Client : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public int Id;
@@ -75,10 +73,6 @@ namespace Coyote.Examples.ChainReplication
 
         private class Done : Event { }
 
-        #endregion
-
-        #region fields
-
         private int ClientId;
 
         private ActorId HeadNode;
@@ -89,32 +83,30 @@ namespace Coyote.Examples.ChainReplication
 
         private Dictionary<int, int> KeyValueStore;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(PumpUpdateRequests))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            this.ClientId = (this.ReceivedEvent as Config).Id;
+            this.ClientId = (e as Config).Id;
 
-            this.HeadNode = (this.ReceivedEvent as Config).HeadNode;
-            this.TailNode = (this.ReceivedEvent as Config).TailNode;
+            this.HeadNode = (e as Config).HeadNode;
+            this.TailNode = (e as Config).TailNode;
 
-            this.StartIn = (this.ReceivedEvent as Config).Value;
+            this.StartIn = (e as Config).Value;
             this.Next = 1;
 
-            this.KeyValueStore = new Dictionary<int, int>();
-            this.KeyValueStore.Add(1 * this.StartIn, 100);
-            this.KeyValueStore.Add(2 * this.StartIn, 200);
-            this.KeyValueStore.Add(3 * this.StartIn, 300);
-            this.KeyValueStore.Add(4 * this.StartIn, 400);
+            this.KeyValueStore = new Dictionary<int, int>
+            {
+                { 1 * this.StartIn, 100 },
+                { 2 * this.StartIn, 200 },
+                { 3 * this.StartIn, 300 },
+                { 4 * this.StartIn, 400 }
+            };
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(PumpUpdateRequestsOnEntry))]
@@ -124,19 +116,17 @@ namespace Coyote.Examples.ChainReplication
             typeof(ChainReplicationServer.ResponseToQuery))]
         private class PumpUpdateRequests : State { }
 
-        private void PumpUpdateRequestsOnEntry()
+        private Transition PumpUpdateRequestsOnEntry()
         {
             this.SendEvent(this.HeadNode, new Update(this.Id, this.Next * this.StartIn,
                 this.KeyValueStore[this.Next * this.StartIn]));
 
             if (this.Next >= 3)
             {
-                this.RaiseEvent(new Done());
+                return this.RaiseEvent(new Done());
             }
-            else
-            {
-                this.RaiseEvent(new Local());
-            }
+
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(PumpQueryRequestsOnEntry))]
@@ -145,18 +135,16 @@ namespace Coyote.Examples.ChainReplication
             typeof(ChainReplicationServer.ResponseToQuery))]
         private class PumpQueryRequests : State { }
 
-        private void PumpQueryRequestsOnEntry()
+        private Transition PumpQueryRequestsOnEntry()
         {
             this.SendEvent(this.TailNode, new Query(this.Id, this.Next * this.StartIn));
 
             if (this.Next >= 3)
             {
-                this.RaiseEvent(new HaltEvent());
+                return this.Halt();
             }
-            else
-            {
-                this.RaiseEvent(new Local());
-            }
+
+            return this.RaiseEvent(new Local());
         }
 
         private void PumpRequestsLocalAction()
@@ -168,7 +156,5 @@ namespace Coyote.Examples.ChainReplication
         {
             this.Next = 1;
         }
-
-        #endregion
     }
 }

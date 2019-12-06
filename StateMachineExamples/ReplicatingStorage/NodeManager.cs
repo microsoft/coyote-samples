@@ -13,8 +13,6 @@ namespace Coyote.Examples.ReplicatingStorage
 {
     internal class NodeManager : StateMachine
     {
-        #region events
-
         /// <summary>
         /// Used to configure the node manager.
         /// </summary>
@@ -45,10 +43,6 @@ namespace Coyote.Examples.ReplicatingStorage
         internal class ShutDown : Event { }
 
         private class LocalEvent : Event { }
-
-        #endregion
-
-        #region fields
 
         /// <summary>
         /// The environment.
@@ -87,10 +81,6 @@ namespace Coyote.Examples.ReplicatingStorage
         /// </summary>
         private ActorId Client;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
@@ -108,17 +98,17 @@ namespace Coyote.Examples.ReplicatingStorage
             this.SendEvent(this.RepairTimer, new RepairTimer.ConfigureEvent(this.Id));
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
-            this.NumberOfReplicas = (this.ReceivedEvent as ConfigureEvent).NumberOfReplicas;
+            this.Environment = (e as ConfigureEvent).Environment;
+            this.NumberOfReplicas = (e as ConfigureEvent).NumberOfReplicas;
 
             for (int idx = 0; idx < this.NumberOfReplicas; idx++)
             {
                 this.CreateNewNode();
             }
 
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         private void CreateNewNode()
@@ -136,10 +126,10 @@ namespace Coyote.Examples.ReplicatingStorage
         [OnEventDoAction(typeof(NotifyFailure), nameof(ProcessFailure))]
         private class Active : State { }
 
-        private void ProcessClientRequest()
+        private void ProcessClientRequest(Event e)
         {
-            this.Client = (this.ReceivedEvent as Client.Request).Client;
-            var command = (this.ReceivedEvent as Client.Request).Command;
+            this.Client = (e as Client.Request).Client;
+            var command = (e as Client.Request).Command;
 
             var aliveNodeIds = this.StorageNodeMap.Where(n => n.Value).Select(n => n.Key);
             foreach (var nodeId in aliveNodeIds)
@@ -178,10 +168,10 @@ namespace Coyote.Examples.ReplicatingStorage
             }
         }
 
-        private void ProcessSyncReport()
+        private void ProcessSyncReport(Event e)
         {
-            var nodeId = (this.ReceivedEvent as StorageNode.SyncReport).NodeId;
-            var data = (this.ReceivedEvent as StorageNode.SyncReport).Data;
+            var nodeId = (e as StorageNode.SyncReport).NodeId;
+            var data = (e as StorageNode.SyncReport).Data;
 
             // LIVENESS BUG: can fail to ever repair again as it thinks there
             // are enough replicas. Enable to introduce a bug fix.
@@ -198,9 +188,9 @@ namespace Coyote.Examples.ReplicatingStorage
             this.DataMap[nodeId] = data;
         }
 
-        private void ProcessFailure()
+        private void ProcessFailure(Event e)
         {
-            var node = (this.ReceivedEvent as NotifyFailure).Node;
+            var node = (e as NotifyFailure).Node;
             var nodeId = this.StorageNodes.IndexOf(node);
             this.StorageNodeMap.Remove(nodeId);
             this.DataMap.Remove(nodeId);
@@ -209,7 +199,5 @@ namespace Coyote.Examples.ReplicatingStorage
 
             this.CreateNewNode();
         }
-
-        #endregion
     }
 }

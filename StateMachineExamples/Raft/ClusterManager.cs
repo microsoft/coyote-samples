@@ -11,8 +11,6 @@ namespace Coyote.Examples.Raft
 {
     internal class ClusterManager : StateMachine
     {
-        #region events
-
         internal class NotifyLeaderUpdate : Event
         {
             public ActorId Leader;
@@ -41,10 +39,6 @@ namespace Coyote.Examples.Raft
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId[] Servers;
         private int NumberOfServers;
 
@@ -53,16 +47,12 @@ namespace Coyote.Examples.Raft
 
         private ActorId Client;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
         private class Init : State { }
 
-        private void EntryOnInit()
+        private Transition EntryOnInit()
         {
             this.NumberOfServers = 5;
             this.LeaderTerm = 0;
@@ -76,14 +66,14 @@ namespace Coyote.Examples.Raft
 
             this.Client = this.CreateActor(typeof(Client));
 
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEntry(nameof(ConfiguringOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Availability.Unavailable))]
         private class Configuring : State { }
 
-        private void ConfiguringOnInit()
+        private Transition ConfiguringOnInit()
         {
             for (int idx = 0; idx < this.NumberOfServers; idx++)
             {
@@ -92,7 +82,7 @@ namespace Coyote.Examples.Raft
 
             this.SendEvent(this.Client, new Client.ConfigureEvent(this.Id));
 
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         private class Availability : StateGroup
@@ -111,44 +101,36 @@ namespace Coyote.Examples.Raft
             public class Available : State { }
         }
 
-        private void BecomeAvailable()
+        private Transition BecomeAvailable(Event e)
         {
-            this.UpdateLeader(this.ReceivedEvent as NotifyLeaderUpdate);
-            this.RaiseEvent(new LocalEvent());
+            this.UpdateLeader(e as NotifyLeaderUpdate);
+            return this.RaiseEvent(new LocalEvent());
         }
 
-        private void SendClientRequestToLeader()
+        private void SendClientRequestToLeader(Event e)
         {
-            this.SendEvent(this.Leader, this.ReceivedEvent);
+            this.SendEvent(this.Leader, e);
         }
 
-        private void RedirectClientRequest()
+        private void RedirectClientRequest(Event e)
         {
-            this.SendEvent(this.Id, (this.ReceivedEvent as RedirectRequest).Request);
+            this.SendEvent(this.Id, (e as RedirectRequest).Request);
         }
 
-        private void RefreshLeader()
+        private void RefreshLeader(Event e)
         {
-            this.UpdateLeader(this.ReceivedEvent as NotifyLeaderUpdate);
+            this.UpdateLeader(e as NotifyLeaderUpdate);
         }
 
-        private void BecomeUnavailable()
-        {
-        }
-
-        private void ShuttingDown()
+        private Transition ShuttingDown()
         {
             for (int idx = 0; idx < this.NumberOfServers; idx++)
             {
                 this.SendEvent(this.Servers[idx], new Server.ShutDown());
             }
 
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
-
-        #endregion
-
-        #region core methods
 
         /// <summary>
         /// Updates the leader.
@@ -162,7 +144,5 @@ namespace Coyote.Examples.Raft
                 this.LeaderTerm = request.Term;
             }
         }
-
-        #endregion
     }
 }

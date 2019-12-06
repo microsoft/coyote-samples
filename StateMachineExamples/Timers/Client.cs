@@ -4,7 +4,7 @@
 // ------------------------------------------------------------------------------------------------
 
 using System;
-
+using Microsoft.Coyote;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
 
@@ -57,9 +57,9 @@ namespace Coyote.Examples.Timers
         /// <summary>
         /// Handle timeout events from the ping timer.
         /// </summary>
-        private void HandleTimeoutForPing()
+        private Transition HandleTimeoutForPing(Event e)
         {
-            var timeout = this.ReceivedEvent as TimerElapsedEvent;
+            var timeout = e as TimerElapsedEvent;
 
             // Ensure that we are handling a valid timeout event.
             this.Assert(timeout.Info == this.PingTimerInfo, "Handling timeout event from an invalid timer.");
@@ -75,8 +75,10 @@ namespace Coyote.Examples.Timers
                 // Stop the ping timer after handling 10 timeout events.
                 // This will cause any enqueued events from this timer to be ignored.
                 this.StopTimer(this.PingTimerInfo);
-                this.Goto<Pong>();
+                return this.GotoState<Pong>();
             }
+
+            return default;
         }
 
         /// <summary>
@@ -92,9 +94,9 @@ namespace Coyote.Examples.Timers
             this.PongTimerInfo = this.StartPeriodicTimer(TimeSpan.FromMilliseconds(500), TimeSpan.FromMilliseconds(500), payload: new object());
         }
 
-        private void HandleTimeoutForPong()
+        private Transition HandleTimeoutForPong(Event e)
         {
-            var timeout = this.ReceivedEvent as TimerElapsedEvent;
+            var timeout = e as TimerElapsedEvent;
 
             // Ensure that we are handling a valid timeout event.
             this.Assert(timeout.Info == this.PongTimerInfo, "Handling timeout event from an invalid timer.");
@@ -110,8 +112,10 @@ namespace Coyote.Examples.Timers
                 // Stop the pong timer after handling 10 timeout events.
                 // This will cause any enqueued events from this timer to be ignored.
                 this.StopTimer(this.PongTimerInfo);
-                this.Goto<Ping>();
+                return this.GotoState<Ping>();
             }
+
+            return default;
         }
     }
 }

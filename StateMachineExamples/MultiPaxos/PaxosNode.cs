@@ -155,13 +155,12 @@ namespace Coyote.Examples.MultiPaxos
         private Dictionary<int, Tuple<int, int, int>> AcceptorSlots;
 
         private Dictionary<int, Tuple<int, int, int>> LearnerSlots;
-        private int LastExecutedSlot;
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(PerformOperation))]
-        [OnEventDoAction(typeof(PaxosNode.Config), nameof(Configure))]
-        [OnEventDoAction(typeof(PaxosNode.AllNodes), nameof(UpdateAcceptors))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
+        [OnEventDoAction(typeof(AllNodes), nameof(UpdateAcceptors))]
         [DeferEvents(typeof(LeaderElection.Ping))]
         private class Init : State { }
 
@@ -172,9 +171,9 @@ namespace Coyote.Examples.MultiPaxos
             this.LearnerSlots = new Dictionary<int, Tuple<int, int, int>>();
         }
 
-        private void Configure()
+        private void Configure(Event e)
         {
-            this.MyRank = (this.ReceivedEvent as PaxosNode.Config).MyRank;
+            this.MyRank = (e as Config).MyRank;
 
             this.CurrentLeader = Tuple.Create(this.MyRank, this.Id);
             this.MaxRound = 0;
@@ -182,26 +181,25 @@ namespace Coyote.Examples.MultiPaxos
             this.Timer = this.CreateActor(typeof(Timer));
             this.SendEvent(this.Timer, new Timer.Config(this.Id, 10));
 
-            this.LastExecutedSlot = -1;
             this.NextSlotForProposer = 0;
         }
 
         [OnEventPushState(typeof(GoPropose), typeof(ProposeValuePhase1))]
-        [OnEventPushState(typeof(PaxosNode.Chosen), typeof(RunLearner))]
-        [OnEventDoAction(typeof(PaxosNode.Update), nameof(CheckIfLeader))]
-        [OnEventDoAction(typeof(PaxosNode.Prepare), nameof(PrepareAction))]
-        [OnEventDoAction(typeof(PaxosNode.Accept), nameof(AcceptAction))]
+        [OnEventPushState(typeof(Chosen), typeof(RunLearner))]
+        [OnEventDoAction(typeof(Update), nameof(CheckIfLeader))]
+        [OnEventDoAction(typeof(Prepare), nameof(PrepareAction))]
+        [OnEventDoAction(typeof(Accept), nameof(AcceptAction))]
         [OnEventDoAction(typeof(LeaderElection.Ping), nameof(ForwardToLE))]
         [OnEventDoAction(typeof(LeaderElection.NewLeader), nameof(UpdateLeader))]
-        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.TimeoutEvent), typeof(PaxosNode.Reject))]
+        [IgnoreEvents(typeof(Agree), typeof(Accepted), typeof(Timer.TimeoutEvent), typeof(Reject))]
         private class PerformOperation : State { }
 
         [OnEntry(nameof(ProposeValuePhase1OnEntry))]
-        [OnEventGotoState(typeof(PaxosNode.Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase1RejectAction))]
+        [OnEventGotoState(typeof(Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase1RejectAction))]
         [OnEventGotoState(typeof(Success), typeof(ProposeValuePhase2), nameof(ProposeValuePhase1SuccessAction))]
         [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProposeValuePhase1))]
-        [OnEventDoAction(typeof(PaxosNode.Agree), nameof(CountAgree))]
-        [IgnoreEvents(typeof(PaxosNode.Accepted))]
+        [OnEventDoAction(typeof(Agree), nameof(CountAgree))]
+        [IgnoreEvents(typeof(Accepted))]
         private class ProposeValuePhase1 : State { }
 
         private void ProposeValuePhase1OnEntry()
@@ -212,16 +210,16 @@ namespace Coyote.Examples.MultiPaxos
 
             foreach (var acceptor in this.Acceptors)
             {
-                this.SendEvent(acceptor, new PaxosNode.Prepare(this.Id, this.NextSlotForProposer, this.NextProposal, this.MyRank));
+                this.SendEvent(acceptor, new Prepare(this.Id, this.NextSlotForProposer, this.NextProposal, this.MyRank));
             }
 
             this.Monitor<ValidityCheck>(new ValidityCheck.MonitorProposerSent(this.ProposeVal));
             this.SendEvent(this.Timer, new Timer.StartTimerEvent());
         }
 
-        private void ProposeValuePhase1RejectAction()
+        private void ProposeValuePhase1RejectAction(Event e)
         {
-            var round = (this.ReceivedEvent as PaxosNode.Reject).Round;
+            var round = (e as Reject).Round;
 
             if (this.NextProposal.Item1 <= round)
             {
@@ -238,10 +236,10 @@ namespace Coyote.Examples.MultiPaxos
 
         [OnEntry(nameof(ProposeValuePhase2OnEntry))]
         [OnExit(nameof(ProposeValuePhase2OnExit))]
-        [OnEventGotoState(typeof(PaxosNode.Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase2RejectAction))]
+        [OnEventGotoState(typeof(Reject), typeof(ProposeValuePhase1), nameof(ProposeValuePhase2RejectAction))]
         [OnEventGotoState(typeof(Timer.TimeoutEvent), typeof(ProposeValuePhase1))]
-        [OnEventDoAction(typeof(PaxosNode.Accepted), nameof(CountAccepted))]
-        [IgnoreEvents(typeof(PaxosNode.Agree))]
+        [OnEventDoAction(typeof(Accepted), nameof(CountAccepted))]
+        [IgnoreEvents(typeof(Agree))]
         private class ProposeValuePhase2 : State { }
 
         private void ProposeValuePhase2OnEntry()
@@ -255,15 +253,15 @@ namespace Coyote.Examples.MultiPaxos
 
             foreach (var acceptor in this.Acceptors)
             {
-                this.SendEvent(acceptor, new PaxosNode.Accept(this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal));
+                this.SendEvent(acceptor, new Accept(this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal));
             }
 
             this.SendEvent(this.Timer, new Timer.StartTimerEvent());
         }
 
-        private void ProposeValuePhase2OnExit()
+        private void ProposeValuePhase2OnExit(Event e)
         {
-            if (this.ReceivedEvent.GetType() == typeof(PaxosNode.Chosen))
+            if (e.GetType() == typeof(Chosen))
             {
                 this.Monitor<BasicPaxosInvariant_P2b>(new BasicPaxosInvariant_P2b.MonitorValueChosen(
                     this.Id, this.NextSlotForProposer, this.NextProposal, this.ProposeVal));
@@ -276,9 +274,9 @@ namespace Coyote.Examples.MultiPaxos
             }
         }
 
-        private void ProposeValuePhase2RejectAction()
+        private void ProposeValuePhase2RejectAction(Event e)
         {
-            var round = (this.ReceivedEvent as PaxosNode.Reject).Round;
+            var round = (e as Reject).Round;
 
             if (this.NextProposal.Item1 <= round)
             {
@@ -289,34 +287,32 @@ namespace Coyote.Examples.MultiPaxos
         }
 
         [OnEntry(nameof(RunLearnerOnEntry))]
-        [IgnoreEvents(typeof(PaxosNode.Agree), typeof(PaxosNode.Accepted), typeof(Timer.TimeoutEvent),
-            typeof(PaxosNode.Prepare), typeof(PaxosNode.Reject), typeof(PaxosNode.Accept))]
+        [IgnoreEvents(typeof(Agree), typeof(Accepted), typeof(Timer.TimeoutEvent),
+            typeof(Prepare), typeof(Reject), typeof(Accept))]
         [DeferEvents(typeof(LeaderElection.NewLeader))]
         private class RunLearner : State { }
 
-        private void RunLearnerOnEntry()
+        private Transition RunLearnerOnEntry(Event e)
         {
-            var slot = (this.ReceivedEvent as PaxosNode.Chosen).Slot;
-            var round = (this.ReceivedEvent as PaxosNode.Chosen).Round;
-            var server = (this.ReceivedEvent as PaxosNode.Chosen).Server;
-            var value = (this.ReceivedEvent as PaxosNode.Chosen).Value;
+            var slot = (e as Chosen).Slot;
+            var round = (e as Chosen).Round;
+            var server = (e as Chosen).Server;
+            var value = (e as Chosen).Value;
 
             this.LearnerSlots[slot] = Tuple.Create(round, server, value);
 
             if (this.CommitValue == value)
             {
-                this.Pop();
+                return this.PopState();
             }
-            else
-            {
-                this.ProposeVal = this.CommitValue;
-                this.RaiseEvent(new GoPropose());
-            }
+
+            this.ProposeVal = this.CommitValue;
+            return this.RaiseEvent(new GoPropose());
         }
 
-        private void UpdateAcceptors()
+        private Transition UpdateAcceptors(Event e)
         {
-            var acceptors = (this.ReceivedEvent as PaxosNode.AllNodes).Nodes;
+            var acceptors = (e as AllNodes).Nodes;
 
             this.Acceptors = acceptors;
 
@@ -326,92 +322,91 @@ namespace Coyote.Examples.MultiPaxos
             this.LeaderElectionService = this.CreateActor(typeof(LeaderElection));
             this.SendEvent(this.LeaderElectionService, new LeaderElection.Config(this.Acceptors, this.Id, this.MyRank));
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
-        private void CheckIfLeader()
+        private Transition CheckIfLeader(Event e)
         {
-            var e = this.ReceivedEvent as PaxosNode.Update;
+            var updateEvent = e as Update;
             if (this.CurrentLeader.Item1 == this.MyRank)
             {
-                this.CommitValue = e.V2;
+                this.CommitValue = updateEvent.V2;
                 this.ProposeVal = this.CommitValue;
-                this.RaiseEvent(new GoPropose());
+                return this.RaiseEvent(new GoPropose());
             }
-            else
-            {
-                this.SendEvent(this.CurrentLeader.Item2, new PaxosNode.Update(e.V1, e.V2));
-            }
+
+            this.SendEvent(this.CurrentLeader.Item2, new Update(updateEvent.V1, updateEvent.V2));
+            return default;
         }
 
-        private void PrepareAction()
+        private void PrepareAction(Event e)
         {
-            var proposer = (this.ReceivedEvent as PaxosNode.Prepare).Node;
-            var slot = (this.ReceivedEvent as PaxosNode.Prepare).NextSlotForProposer;
-            var round = (this.ReceivedEvent as PaxosNode.Prepare).NextProposal.Item1;
-            var server = (this.ReceivedEvent as PaxosNode.Prepare).NextProposal.Item2;
+            var proposer = (e as Prepare).Node;
+            var slot = (e as Prepare).NextSlotForProposer;
+            var round = (e as Prepare).NextProposal.Item1;
+            var server = (e as Prepare).NextProposal.Item2;
 
             if (!this.AcceptorSlots.ContainsKey(slot))
             {
-                this.SendEvent(proposer, new PaxosNode.Agree(slot, -1, -1, -1));
+                this.SendEvent(proposer, new Agree(slot, -1, -1, -1));
                 return;
             }
 
             if (LessThan(round, server, this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
             {
-                this.SendEvent(proposer, new PaxosNode.Reject(slot, Tuple.Create(this.AcceptorSlots[slot].Item1,
+                this.SendEvent(proposer, new Reject(slot, Tuple.Create(this.AcceptorSlots[slot].Item1,
                     this.AcceptorSlots[slot].Item2)));
             }
             else
             {
-                this.SendEvent(proposer, new PaxosNode.Agree(slot, this.AcceptorSlots[slot].Item1,
+                this.SendEvent(proposer, new Agree(slot, this.AcceptorSlots[slot].Item1,
                     this.AcceptorSlots[slot].Item2, this.AcceptorSlots[slot].Item3));
                 this.AcceptorSlots[slot] = Tuple.Create(this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2, -1);
             }
         }
 
-        private void AcceptAction()
+        private void AcceptAction(Event e)
         {
-            var e = this.ReceivedEvent as PaxosNode.Accept;
+            var acceptEvent = e as Accept;
 
-            var proposer = e.Node;
-            var slot = e.NextSlotForProposer;
-            var round = e.NextProposal.Item1;
-            var server = e.NextProposal.Item2;
-            var value = e.ProposeVal;
+            var proposer = acceptEvent.Node;
+            var slot = acceptEvent.NextSlotForProposer;
+            var round = acceptEvent.NextProposal.Item1;
+            var server = acceptEvent.NextProposal.Item2;
+            var value = acceptEvent.ProposeVal;
 
             if (this.AcceptorSlots.ContainsKey(slot))
             {
                 if (!IsEqual(round, server, this.AcceptorSlots[slot].Item1, this.AcceptorSlots[slot].Item2))
                 {
-                    this.SendEvent(proposer, new PaxosNode.Reject(slot, Tuple.Create(this.AcceptorSlots[slot].Item1,
+                    this.SendEvent(proposer, new Reject(slot, Tuple.Create(this.AcceptorSlots[slot].Item1,
                         this.AcceptorSlots[slot].Item2)));
                 }
                 else
                 {
                     this.AcceptorSlots[slot] = Tuple.Create(round, server, value);
-                    this.SendEvent(proposer, new PaxosNode.Accepted(slot, round, server, value));
+                    this.SendEvent(proposer, new Accepted(slot, round, server, value));
                 }
             }
         }
 
-        private void ForwardToLE()
+        private void ForwardToLE(Event e)
         {
-            this.SendEvent(this.LeaderElectionService, this.ReceivedEvent);
+            this.SendEvent(this.LeaderElectionService, e);
         }
 
-        private void UpdateLeader()
+        private void UpdateLeader(Event e)
         {
-            var e = this.ReceivedEvent as LeaderElection.NewLeader;
-            this.CurrentLeader = Tuple.Create(e.Rank, e.CurrentLeader);
+            var newLeaderEvent = e as LeaderElection.NewLeader;
+            this.CurrentLeader = Tuple.Create(newLeaderEvent.Rank, newLeaderEvent.CurrentLeader);
         }
 
-        private void CountAgree()
+        private Transition CountAgree(Event e)
         {
-            var slot = (this.ReceivedEvent as PaxosNode.Agree).Slot;
-            var round = (this.ReceivedEvent as PaxosNode.Agree).Round;
-            var server = (this.ReceivedEvent as PaxosNode.Agree).Server;
-            var value = (this.ReceivedEvent as PaxosNode.Agree).Value;
+            var slot = (e as Agree).Slot;
+            var round = (e as Agree).Round;
+            var server = (e as Agree).Server;
+            var value = (e as Agree).Value;
 
             if (slot == this.NextSlotForProposer)
             {
@@ -423,18 +418,20 @@ namespace Coyote.Examples.MultiPaxos
 
                 if (this.AgreeCount == this.Majority)
                 {
-                    this.RaiseEvent(new Success());
+                    return this.RaiseEvent(new Success());
                 }
             }
+
+            return default;
         }
 
-        private void CountAccepted()
+        private Transition CountAccepted(Event e)
         {
-            var e = this.ReceivedEvent as PaxosNode.Accepted;
+            var acceptedEvent = e as Accepted;
 
-            var slot = e.Slot;
-            var round = e.Round;
-            var server = e.Server;
+            var slot = acceptedEvent.Slot;
+            var round = acceptedEvent.Round;
+            var server = acceptedEvent.Server;
 
             if (slot == this.NextSlotForProposer)
             {
@@ -445,24 +442,12 @@ namespace Coyote.Examples.MultiPaxos
 
                 if (this.AcceptCount == this.Majority)
                 {
-                    this.RaiseEvent(new PaxosNode.Chosen(e.Slot, e.Round, e.Server, e.Value));
+                    return this.RaiseEvent(new Chosen(acceptedEvent.Slot, acceptedEvent.Round,
+                        acceptedEvent.Server, acceptedEvent.Value));
                 }
             }
-        }
 
-        private void RunReplicatedMachine()
-        {
-            while (true)
-            {
-                if (this.LearnerSlots.ContainsKey(this.LastExecutedSlot + 1))
-                {
-                    this.LastExecutedSlot++;
-                }
-                else
-                {
-                    return;
-                }
-            }
+            return default;
         }
 
         private int GetHighestProposedValue()

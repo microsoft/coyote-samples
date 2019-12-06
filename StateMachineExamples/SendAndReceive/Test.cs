@@ -93,9 +93,9 @@ namespace Coyote.Examples.SendAndReceive
         /// <summary>
         /// Sends the current value of the counter.
         /// </summary>
-        private void DoGet()
+        private void DoGet(Event e)
         {
-            var sender = (this.ReceivedEvent as Get).Mid;
+            var sender = (e as Get).Mid;
             this.SendEvent(sender, new Response(this.X));
         }
     }

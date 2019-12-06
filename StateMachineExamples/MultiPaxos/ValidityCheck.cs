@@ -50,27 +50,27 @@ namespace Coyote.Examples.MultiPaxos
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry()
         {
             this.ClientSet = new Dictionary<int, int>();
             this.ProposedSet = new Dictionary<int, int>();
-            this.Goto<Wait>();
+            return this.GotoState<Wait>();
         }
 
-        [OnEventDoAction(typeof(ValidityCheck.MonitorClientSent), nameof(AddClientSet))]
-        [OnEventDoAction(typeof(ValidityCheck.MonitorProposerSent), nameof(AddProposerSet))]
-        [OnEventDoAction(typeof(ValidityCheck.MonitorProposerChosen), nameof(CheckChosenValmachineity))]
+        [OnEventDoAction(typeof(MonitorClientSent), nameof(AddClientSet))]
+        [OnEventDoAction(typeof(MonitorProposerSent), nameof(AddProposerSet))]
+        [OnEventDoAction(typeof(MonitorProposerChosen), nameof(CheckChosenValmachineity))]
         private class Wait : State { }
 
-        private void AddClientSet()
+        private void AddClientSet(Event e)
         {
-            var index = (this.ReceivedEvent as ValidityCheck.MonitorClientSent).Request;
+            var index = (e as MonitorClientSent).Request;
             this.ClientSet.Add(index, 0);
         }
 
-        private void AddProposerSet()
+        private void AddProposerSet(Event e)
         {
-            var index = (this.ReceivedEvent as ValidityCheck.MonitorProposerSent).ProposeVal;
+            var index = (e as MonitorProposerSent).ProposeVal;
             this.Assert(this.ClientSet.ContainsKey(index), "Client set does not contain {0}", index);
 
             if (this.ProposedSet.ContainsKey(index))
@@ -83,9 +83,9 @@ namespace Coyote.Examples.MultiPaxos
             }
         }
 
-        private void CheckChosenValmachineity()
+        private void CheckChosenValmachineity(Event e)
         {
-            var index = (this.ReceivedEvent as ValidityCheck.MonitorProposerChosen).ChosenVal;
+            var index = (e as MonitorProposerChosen).ChosenVal;
             this.Assert(this.ProposedSet.ContainsKey(index), "Proposed set does not contain {0}", index);
         }
     }

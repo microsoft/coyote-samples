@@ -80,16 +80,16 @@ namespace Coyote.Examples.PingPong
         /// <summary>
         /// Called when the Client enters the "Init" state.
         /// </summary>
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
             // Receives a reference to a server machine (as a payload of
             // the 'Config' event).
-            this.Server = (this.ReceivedEvent as Config).Server;
+            this.Server = (e as Config).Server;
             this.Counter = 0;
 
             // Notifies the Coyote runtime that the machine must transition
             // to the 'Active' state when 'InitOnEntry' returns.
-            this.Goto<Active>();
+            return this.GotoState<Active>();
         }
 
         /// <summary>
@@ -118,7 +118,7 @@ namespace Coyote.Examples.PingPong
         /// This method is called from two places, first from ActiveOnEntry and also
         /// when the Server sends a Pong event.
         /// </summary>
-        private void SendPing()
+        private Transition SendPing()
         {
             this.Counter++;
 
@@ -139,9 +139,11 @@ namespace Coyote.Examples.PingPong
                 // that corresponds to this event in the current state, when the calling method
                 // returns.  In this case the event handler is the "OnEventGotoState" attribute
                 // which will transition us to the Terminating state.  This is equivalent to
-                // using this.Goto<Terminating>().
-                this.RaiseEvent(new TerminateEvent());
+                // using return this.GotoState<Terminating>().
+                return this.RaiseEvent(new TerminateEvent());
             }
+
+            return default;
         }
 
         /// <summary>
@@ -151,7 +153,7 @@ namespace Coyote.Examples.PingPong
         [OnEntry(nameof(TerminatingOnEntry))]
         private class Terminating : State { }
 
-        private void TerminatingOnEntry()
+        private Transition TerminatingOnEntry()
         {
             this.Logger.WriteLine("Client halting");
 
@@ -159,7 +161,7 @@ namespace Coyote.Examples.PingPong
             // will terminate the machine and release any resources. Note that the
             // 'Halt' event is handled automatically, the user does not need to
             // declare an event handler in the state declarations.
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
     }
 }

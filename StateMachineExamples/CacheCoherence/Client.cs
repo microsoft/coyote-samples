@@ -61,11 +61,11 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(Invalid))]
         internal class Init : State { }
 
-        internal void Configure()
+        internal Transition Configure(Event e)
         {
-            this.Host = (this.ReceivedEvent as Config).Host;
-            this.Pending = (this.ReceivedEvent as Config).Pending;
-            this.RaiseEvent(new Unit());
+            this.Host = (e as Config).Host;
+            this.Pending = (e as Config).Pending;
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventGotoState(typeof(CPU.AskShare), typeof(AskedShare))]
@@ -79,22 +79,22 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(InvalidWait))]
         internal class AskedShare : State { }
 
-        internal void AskedShareOnEntry()
+        internal Transition AskedShareOnEntry()
         {
             this.SendEvent(this.Host, new ReqShare(this.Id));
             this.Pending = true;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(AskedExclOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(InvalidWait))]
         internal class AskedExcl : State { }
 
-        internal void AskedExclOnEntry()
+        internal Transition AskedExclOnEntry()
         {
             this.SendEvent(this.Host, new ReqExcl(this.Id));
             this.Pending = true;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventGotoState(typeof(Host.Invalidate), typeof(Invalidating))]
@@ -107,11 +107,11 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(SharingWait))]
         internal class Excluding : State { }
 
-        internal void ExcludingOnEntry()
+        internal Transition ExcludingOnEntry()
         {
             this.SendEvent(this.Host, new ReqExcl(this.Id));
             this.Pending = true;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(SharingOnEntry))]
@@ -150,18 +150,16 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Normal), typeof(Invalid))]
         internal class Invalidating : State { }
 
-        internal void InvalidatingOnEntry()
+        internal Transition InvalidatingOnEntry()
         {
             this.SendEvent(this.Host, new InvalidateAck());
 
             if (this.Pending)
             {
-                this.RaiseEvent(new Wait());
+                return this.RaiseEvent(new Wait());
             }
-            else
-            {
-                this.RaiseEvent(new Normal());
-            }
+
+            return this.RaiseEvent(new Normal());
         }
     }
 }

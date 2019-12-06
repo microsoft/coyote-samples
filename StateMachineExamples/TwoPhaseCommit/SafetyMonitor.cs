@@ -76,10 +76,10 @@ namespace Coyote.Examples.TwoPhaseCommit
             this.Data = new Dictionary<int, int>();
         }
 
-        private void MonitorWriteAction()
+        private void MonitorWriteAction(Event e)
         {
-            var idx = (this.ReceivedEvent as MonitorWrite).Idx;
-            var val = (this.ReceivedEvent as MonitorWrite).Val;
+            var idx = (e as MonitorWrite).Idx;
+            var val = (e as MonitorWrite).Val;
 
             if (!this.Data.ContainsKey(idx))
             {
@@ -91,17 +91,17 @@ namespace Coyote.Examples.TwoPhaseCommit
             }
         }
 
-        private void MonitorReadSuccessAction()
+        private void MonitorReadSuccessAction(Event e)
         {
-            var idx = (this.ReceivedEvent as MonitorReadSuccess).Idx;
-            var val = (this.ReceivedEvent as MonitorReadSuccess).Val;
+            var idx = (e as MonitorReadSuccess).Idx;
+            var val = (e as MonitorReadSuccess).Val;
             this.Assert(this.Data.ContainsKey(idx));
             this.Assert(this.Data[idx] == val);
         }
 
-        private void MonitorReadUnavailableAction()
+        private void MonitorReadUnavailableAction(Event e)
         {
-            var idx = (this.ReceivedEvent as MonitorReadUnavailable).Idx;
+            var idx = (e as MonitorReadUnavailable).Idx;
             this.Assert(!this.Data.ContainsKey(idx));
         }
     }

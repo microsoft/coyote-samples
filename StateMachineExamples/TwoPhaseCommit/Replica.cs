@@ -62,11 +62,11 @@ namespace Coyote.Examples.TwoPhaseCommit
             this.Data = new Dictionary<int, int>();
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Coordinator = (this.ReceivedEvent as Config).Coordinator;
+            this.Coordinator = (e as Config).Coordinator;
             this.LastSeqNum = 0;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventDoAction(typeof(Coordinator.GlobalAbort), nameof(GlobalAbortAction))]
@@ -74,9 +74,9 @@ namespace Coyote.Examples.TwoPhaseCommit
         [OnEventDoAction(typeof(Coordinator.ReqReplica), nameof(HandleReplica))]
         private class Loop : State { }
 
-        private void GlobalAbortAction()
+        private void GlobalAbortAction(Event e)
         {
-            var lastSeqNum = (this.ReceivedEvent as Coordinator.GlobalAbort).SeqNum;
+            var lastSeqNum = (e as Coordinator.GlobalAbort).SeqNum;
             this.Assert(this.PendingWriteReq.SeqNum >= lastSeqNum);
             if (this.PendingWriteReq.SeqNum == lastSeqNum)
             {
@@ -84,9 +84,9 @@ namespace Coyote.Examples.TwoPhaseCommit
             }
         }
 
-        private void GlobalCommitAction()
+        private void GlobalCommitAction(Event e)
         {
-            var lastSeqNum = (this.ReceivedEvent as Coordinator.GlobalCommit).SeqNum;
+            var lastSeqNum = (e as Coordinator.GlobalCommit).SeqNum;
             this.Assert(this.PendingWriteReq.SeqNum >= lastSeqNum);
             if (this.PendingWriteReq.SeqNum == lastSeqNum)
             {
@@ -103,9 +103,9 @@ namespace Coyote.Examples.TwoPhaseCommit
             }
         }
 
-        private void HandleReplica()
+        private void HandleReplica(Event e)
         {
-            this.PendingWriteReq = (this.ReceivedEvent as Coordinator.ReqReplica).PendingWriteReq;
+            this.PendingWriteReq = (e as Coordinator.ReqReplica).PendingWriteReq;
             this.Assert(this.PendingWriteReq.SeqNum > this.LastSeqNum);
             if (this.Random())
             {

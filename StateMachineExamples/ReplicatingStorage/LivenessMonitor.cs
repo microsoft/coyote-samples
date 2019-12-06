@@ -12,8 +12,6 @@ namespace Coyote.Examples.ReplicatingStorage
 {
     internal class LivenessMonitor : Monitor
     {
-        #region events
-
         /// <summary>
         /// Used to configure the liveness monitor.
         /// </summary>
@@ -65,10 +63,6 @@ namespace Coyote.Examples.ReplicatingStorage
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         /// <summary>
         /// Map from node ids to data.
         /// </summary>
@@ -79,10 +73,6 @@ namespace Coyote.Examples.ReplicatingStorage
         /// be sustained.
         /// </summary>
         private int NumberOfReplicas;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -95,10 +85,10 @@ namespace Coyote.Examples.ReplicatingStorage
             this.DataMap = new Dictionary<int, int>();
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.NumberOfReplicas = (this.ReceivedEvent as ConfigureEvent).NumberOfReplicas;
-            this.RaiseEvent(new LocalEvent());
+            this.NumberOfReplicas = (e as ConfigureEvent).NumberOfReplicas;
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [Cold]
@@ -108,22 +98,22 @@ namespace Coyote.Examples.ReplicatingStorage
         [OnEventGotoState(typeof(LocalEvent), typeof(Repairing))]
         private class Repaired : State { }
 
-        private void ProcessNodeCreated()
+        private void ProcessNodeCreated(Event e)
         {
-            var nodeId = (this.ReceivedEvent as NotifyNodeCreated).NodeId;
+            var nodeId = (e as NotifyNodeCreated).NodeId;
             this.DataMap.Add(nodeId, 0);
         }
 
-        private void FailAndCheckRepair()
+        private Transition FailAndCheckRepair(Event e)
         {
-            this.ProcessNodeFail();
-            this.RaiseEvent(new LocalEvent());
+            this.ProcessNodeFail(e);
+            return this.RaiseEvent(new LocalEvent());
         }
 
-        private void ProcessNodeUpdate()
+        private void ProcessNodeUpdate(Event e)
         {
-            var nodeId = (this.ReceivedEvent as NotifyNodeUpdate).NodeId;
-            var data = (this.ReceivedEvent as NotifyNodeUpdate).Data;
+            var nodeId = (e as NotifyNodeUpdate).NodeId;
+            var data = (e as NotifyNodeUpdate).Data;
             this.DataMap[nodeId] = data;
         }
 
@@ -134,25 +124,25 @@ namespace Coyote.Examples.ReplicatingStorage
         [OnEventGotoState(typeof(LocalEvent), typeof(Repaired))]
         private class Repairing : State { }
 
-        private void ProcessNodeFail()
+        private void ProcessNodeFail(Event e)
         {
-            var nodeId = (this.ReceivedEvent as NotifyNodeFail).NodeId;
+            var nodeId = (e as NotifyNodeFail).NodeId;
             this.DataMap.Remove(nodeId);
         }
 
-        private void CheckIfRepaired()
+        private Transition CheckIfRepaired(Event e)
         {
-            this.ProcessNodeUpdate();
+            this.ProcessNodeUpdate(e);
             var consensus = this.DataMap.Select(kvp => kvp.Value).GroupBy(v => v).
                 OrderByDescending(v => v.Count()).FirstOrDefault();
 
             var numOfReplicas = consensus.Count();
             if (numOfReplicas >= this.NumberOfReplicas)
             {
-                this.RaiseEvent(new LocalEvent());
+                return this.RaiseEvent(new LocalEvent());
             }
-        }
 
-        #endregion
+            return default;
+        }
     }
 }

@@ -41,9 +41,9 @@ namespace Coyote.Examples.FailureDetector
         [OnEventDoAction(typeof(Ping), nameof(SendPong))]
         private class WaitPing : State { }
 
-        private void SendPong()
+        private void SendPong(Event e)
         {
-            var client = (this.ReceivedEvent as Ping).Client;
+            var client = (e as Ping).Client;
             this.Monitor<Safety>(new Safety.Pong(this.Id));
             this.SendEvent(client, new Pong(this.Id));
         }

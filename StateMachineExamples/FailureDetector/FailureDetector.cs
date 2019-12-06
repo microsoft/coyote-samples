@@ -77,9 +77,9 @@ namespace Coyote.Examples.FailureDetector
         [OnEventPushState(typeof(Unit), typeof(SendPing))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            var nodes = (this.ReceivedEvent as Config).Nodes;
+            var nodes = (e as Config).Nodes;
 
             this.Nodes = new HashSet<ActorId>(nodes);
             this.Clients = new HashSet<ActorId>();
@@ -96,18 +96,18 @@ namespace Coyote.Examples.FailureDetector
             this.Timer = this.CreateActor(typeof(Timer), new Timer.Config(this.Id));
 
             // Transitions to the 'SendPing' state after everything has initialized.
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
-        private void RegisterClientAction()
+        private void RegisterClientAction(Event e)
         {
-            var client = (this.ReceivedEvent as Driver.RegisterClient).Client;
+            var client = (e as Driver.RegisterClient).Client;
             this.Clients.Add(client);
         }
 
-        private void UnregisterClientAction()
+        private void UnregisterClientAction(Event e)
         {
-            var client = (this.ReceivedEvent as Driver.UnregisterClient).Client;
+            var client = (e as Driver.UnregisterClient).Client;
             if (this.Clients.Contains(client))
             {
                 this.Clients.Remove(client);
@@ -144,9 +144,9 @@ namespace Coyote.Examples.FailureDetector
         /// <summary>
         /// This action is triggered whenever a node replies with a 'Pong' event.
         /// </summary>
-        private void PongAction()
+        private Transition PongAction(Event e)
         {
-            var node = (this.ReceivedEvent as Node.Pong).Node;
+            var node = (e as Node.Pong).Node;
             if (this.Alive.Contains(node))
             {
                 this.Responses.Add(node);
@@ -155,12 +155,14 @@ namespace Coyote.Examples.FailureDetector
                 if (this.Responses.Count == this.Alive.Count)
                 {
                     this.SendEvent(this.Timer, new Timer.CancelTimerEvent());
-                    this.RaiseEvent(new TimerCancelled());
+                    return this.RaiseEvent(new TimerCancelled());
                 }
             }
+
+            return default;
         }
 
-        private void TimeoutAction()
+        private Transition TimeoutAction()
         {
             // One attempt is done for this round.
             this.Attempts++;
@@ -169,26 +171,24 @@ namespace Coyote.Examples.FailureDetector
             if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
             {
                 // Retry by looping back to same state.
-                this.Goto<SendPing>();
+                return this.GotoState<SendPing>();
             }
-            else
-            {
-                foreach (var node in this.Nodes)
-                {
-                    if (this.Alive.Contains(node) && !this.Responses.Contains(node))
-                    {
-                        this.Alive.Remove(node);
 
-                        // Send failure notification to any clients.
-                        foreach (var client in this.Clients)
-                        {
-                            this.SendEvent(client, new NodeFailed(node));
-                        }
+            foreach (var node in this.Nodes)
+            {
+                if (this.Alive.Contains(node) && !this.Responses.Contains(node))
+                {
+                    this.Alive.Remove(node);
+
+                    // Send failure notification to any clients.
+                    foreach (var client in this.Clients)
+                    {
+                        this.SendEvent(client, new NodeFailed(node));
                     }
                 }
-
-                this.RaiseEvent(new RoundDone());
             }
+
+            return this.RaiseEvent(new RoundDone());
         }
 
         [OnEventDoAction(typeof(Timer.CancelSuccess), nameof(CancelSuccessAction))]
@@ -196,14 +196,14 @@ namespace Coyote.Examples.FailureDetector
         [DeferEvents(typeof(Timer.TimeoutEvent), typeof(Node.Pong))]
         private class WaitForCancelResponse : State { }
 
-        private void CancelSuccessAction()
+        private Transition CancelSuccessAction()
         {
-            this.RaiseEvent(new RoundDone());
+            return this.RaiseEvent(new RoundDone());
         }
 
-        private void CancelFailure()
+        private Transition CancelFailure()
         {
-            this.Pop();
+            return this.PopState();
         }
 
         [OnEntry(nameof(ResetOnEntry))]

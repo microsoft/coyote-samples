@@ -11,8 +11,6 @@ namespace Coyote.Examples.ReplicatingStorage
 {
     internal class StorageNode : StateMachine
     {
-        #region events
-
         /// <summary>
         /// Used to configure the storage node.
         /// </summary>
@@ -70,10 +68,6 @@ namespace Coyote.Examples.ReplicatingStorage
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         /// <summary>
         /// The environment.
         /// </summary>
@@ -99,10 +93,6 @@ namespace Coyote.Examples.ReplicatingStorage
         /// </summary>
         private ActorId SyncTimer;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
@@ -117,18 +107,18 @@ namespace Coyote.Examples.ReplicatingStorage
             this.SendEvent(this.SyncTimer, new SyncTimer.ConfigureEvent(this.Id));
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Environment = (this.ReceivedEvent as ConfigureEvent).Environment;
-            this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
-            this.NodeId = (this.ReceivedEvent as ConfigureEvent).Id;
+            this.Environment = (e as ConfigureEvent).Environment;
+            this.NodeManager = (e as ConfigureEvent).NodeManager;
+            this.NodeId = (e as ConfigureEvent).Id;
 
             this.Logger.WriteLine("\n [StorageNode-{0}] is up and running.\n", this.NodeId);
 
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeCreated(this.NodeId));
             this.SendEvent(this.Environment, new Environment.NotifyNode(this.Id));
 
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEventDoAction(typeof(StoreRequest), nameof(Store))]
@@ -137,17 +127,17 @@ namespace Coyote.Examples.ReplicatingStorage
         [OnEventDoAction(typeof(Environment.FaultInject), nameof(Terminate))]
         private class Active : State { }
 
-        private void Store()
+        private void Store(Event e)
         {
-            var cmd = (this.ReceivedEvent as StoreRequest).Command;
+            var cmd = (e as StoreRequest).Command;
             this.Data += cmd;
             this.Logger.WriteLine("\n [StorageNode-{0}] is applying command {1}.\n", this.NodeId, cmd);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
         }
 
-        private void Sync()
+        private void Sync(Event e)
         {
-            var data = (this.ReceivedEvent as SyncRequest).Data;
+            var data = (e as SyncRequest).Data;
             this.Data = data;
             this.Logger.WriteLine("\n [StorageNode-{0}] is syncing with data {1}.\n", this.NodeId, this.Data);
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeUpdate(this.NodeId, this.Data));
@@ -158,13 +148,11 @@ namespace Coyote.Examples.ReplicatingStorage
             this.SendEvent(this.NodeManager, new SyncReport(this.NodeId, this.Data));
         }
 
-        private void Terminate()
+        private Transition Terminate()
         {
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyNodeFail(this.NodeId));
-            this.SendEvent(this.SyncTimer, new HaltEvent());
-            this.RaiseEvent(new HaltEvent());
+            this.SendEvent(this.SyncTimer, HaltEvent.Instance);
+            return this.Halt();
         }
-
-        #endregion
     }
 }

@@ -11,8 +11,6 @@ namespace Coyote.Examples.Chord
 {
     internal class LivenessMonitor : Monitor
     {
-        #region events
-
         public class NotifyClientRequest : Event
         {
             public int Key;
@@ -35,17 +33,13 @@ namespace Coyote.Examples.Chord
             }
         }
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry()
         {
-            this.Goto<Responded>();
+            return this.GotoState<Responded>();
         }
 
         [Cold]
@@ -55,7 +49,5 @@ namespace Coyote.Examples.Chord
         [Hot]
         [OnEventGotoState(typeof(NotifyClientResponse), typeof(Responded))]
         private class Requested : State { }
-
-        #endregion
     }
 }

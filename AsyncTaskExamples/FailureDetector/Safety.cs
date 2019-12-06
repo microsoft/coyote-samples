@@ -3,10 +3,8 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Microsoft.Coyote;
-using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Specifications;
 
 namespace Coyote.Examples.FailureDetector
@@ -56,9 +54,9 @@ namespace Coyote.Examples.FailureDetector
             this.Pending = new Dictionary<Node, int>();
         }
 
-        private void PingAction()
+        private void PingAction(Event e)
         {
-            var client = (this.ReceivedEvent as Ping).Client;
+            var client = (e as Ping).Client;
             lock (this.Pending)
             {
                 if (!this.Pending.ContainsKey(client))
@@ -72,9 +70,9 @@ namespace Coyote.Examples.FailureDetector
             this.Assert(this.Pending[client] <= 3, $"'{client}' ping count must be <= 3.");
         }
 
-        private void PongAction()
+        private void PongAction(Event e)
         {
-            var node = (this.ReceivedEvent as Pong).Node;
+            var node = (e as Pong).Node;
             this.Assert(this.Pending.ContainsKey(node), $"'{node}' is not in pending set.");
             this.Assert(this.Pending[node] > 0, $"'{node}' ping count must be > 0.");
             lock (this.Pending)

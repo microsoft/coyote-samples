@@ -12,8 +12,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class InvariantMonitor : Monitor
     {
-        #region events
-
         internal class Config : Event
         {
             public List<ActorId> Servers;
@@ -64,10 +62,6 @@ namespace Coyote.Examples.ChainReplication
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private List<ActorId> Servers;
 
         private Dictionary<ActorId, List<int>> History;
@@ -77,23 +71,18 @@ namespace Coyote.Examples.ChainReplication
         private ActorId Next;
         private ActorId Prev;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEventGotoState(typeof(Local), typeof(WaitForUpdateMessage))]
         [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Servers = (this.ReceivedEvent as Config).Servers;
+            this.Servers = (e as Config).Servers;
             this.History = new Dictionary<ActorId, List<int>>();
             this.SentHistory = new Dictionary<ActorId, List<int>>();
             this.TempSeq = new List<int>();
-
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEventDoAction(typeof(HistoryUpdate), nameof(CheckUpdatePropagationInvariant))]
@@ -101,10 +90,10 @@ namespace Coyote.Examples.ChainReplication
         [OnEventDoAction(typeof(UpdateServers), nameof(ProcessUpdateServers))]
         private class WaitForUpdateMessage : State { }
 
-        private void CheckUpdatePropagationInvariant()
+        private void CheckUpdatePropagationInvariant(Event e)
         {
-            var server = (this.ReceivedEvent as HistoryUpdate).Server;
-            var history = (this.ReceivedEvent as HistoryUpdate).History;
+            var server = (e as HistoryUpdate).Server;
+            var history = (e as HistoryUpdate).History;
 
             this.IsSorted(history);
 
@@ -132,12 +121,12 @@ namespace Coyote.Examples.ChainReplication
             }
         }
 
-        private void CheckInprocessRequestsInvariant()
+        private void CheckInprocessRequestsInvariant(Event e)
         {
             this.ClearTempSeq();
 
-            var server = (this.ReceivedEvent as SentUpdate).Server;
-            var sentHistory = (this.ReceivedEvent as SentUpdate).SentHistory;
+            var server = (e as SentUpdate).Server;
+            var sentHistory = (e as SentUpdate).SentHistory;
 
             this.ExtractSeqId(sentHistory);
 
@@ -297,11 +286,9 @@ namespace Coyote.Examples.ChainReplication
             this.Assert(this.TempSeq.Count == 0, "Temp sequence is not cleared.");
         }
 
-        private void ProcessUpdateServers()
+        private void ProcessUpdateServers(Event e)
         {
-            this.Servers = (this.ReceivedEvent as UpdateServers).Servers;
+            this.Servers = (e as UpdateServers).Servers;
         }
-
-        #endregion
     }
 }

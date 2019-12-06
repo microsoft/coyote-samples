@@ -37,7 +37,7 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(Receiving))]
         internal class Init : State { }
 
-        internal void InitOnEntry()
+        internal Transition InitOnEntry()
         {
             this.SharerList = new List<ActorId>();
 
@@ -54,7 +54,7 @@ namespace Coyote.Examples.CacheCoherence
             this.CurrentCPU = this.CreateActor(typeof(CPU));
             this.SendEvent(this.CurrentCPU, new CPU.Config(this.Clients));
 
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventGotoState(typeof(Client.ReqShare), typeof(ShareRequest))]
@@ -66,22 +66,22 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(ProcessingRequest))]
         internal class ShareRequest : State { }
 
-        internal void ShareRequestOnEntry()
+        internal Transition ShareRequestOnEntry(Event e)
         {
-            this.CurrentClient = (this.ReceivedEvent as Client.ReqShare).Client;
+            this.CurrentClient = (e as Client.ReqShare).Client;
             this.IsCurrentReqExcl = false;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(ExclRequestOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(ProcessingRequest))]
         internal class ExclRequest : State { }
 
-        internal void ExclRequestOnEntry()
+        internal Transition ExclRequestOnEntry(Event e)
         {
-            this.CurrentClient = (this.ReceivedEvent as Client.ReqExcl).Client;
+            this.CurrentClient = (e as Client.ReqExcl).Client;
             this.IsCurrentReqExcl = true;
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(ProcessRequestOnEntry))]
@@ -89,16 +89,14 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(GrantAccess), typeof(GrantingAccess))]
         internal class ProcessingRequest : State { }
 
-        internal void ProcessRequestOnEntry()
+        internal Transition ProcessRequestOnEntry()
         {
             if (this.IsCurrentReqExcl || this.IsExclGranted)
             {
-                this.RaiseEvent(new NeedInvalidate());
+                return this.RaiseEvent(new NeedInvalidate());
             }
-            else
-            {
-                this.RaiseEvent(new GrantAccess());
-            }
+
+            return this.RaiseEvent(new GrantAccess());
         }
 
         [OnEntry(nameof(InvalidatingOnEntry))]
@@ -107,33 +105,37 @@ namespace Coyote.Examples.CacheCoherence
         [DeferEvents(typeof(Client.ReqShare), typeof(Client.ReqExcl))]
         internal class Invalidating : State { }
 
-        internal void InvalidatingOnEntry()
+        internal Transition InvalidatingOnEntry()
         {
             if (this.SharerList.Count == 0)
             {
-                this.RaiseEvent(new GrantAccess());
+                return this.RaiseEvent(new GrantAccess());
             }
 
             foreach (var m in this.SharerList)
             {
                 this.SendEvent(m, new Invalidate());
             }
+
+            return default;
         }
 
-        internal void RecAck()
+        internal Transition RecAck()
         {
             this.SharerList.RemoveAt(0);
             if (this.SharerList.Count == 0)
             {
-                this.RaiseEvent(new GrantAccess());
+                return this.RaiseEvent(new GrantAccess());
             }
+
+            return default;
         }
 
         [OnEntry(nameof(GrantingAccessOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(Receiving))]
         internal class GrantingAccess : State { }
 
-        internal void GrantingAccessOnEntry()
+        internal Transition GrantingAccessOnEntry()
         {
             if (this.IsCurrentReqExcl)
             {
@@ -146,7 +148,7 @@ namespace Coyote.Examples.CacheCoherence
             }
 
             this.SharerList.Insert(0, this.CurrentClient);
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
     }
 }

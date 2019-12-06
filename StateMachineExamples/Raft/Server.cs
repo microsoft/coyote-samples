@@ -16,8 +16,6 @@ namespace Coyote.Examples.Raft
     /// </summary>
     internal class Server : StateMachine
     {
-        #region events
-
         /// <summary>
         /// Used to configure the server.
         /// </summary>
@@ -131,10 +129,6 @@ namespace Coyote.Examples.Raft
 
         internal class ShutDown : Event { }
 
-        #endregion
-
-        #region fields
-
         /// <summary>
         /// The id of this server.
         /// </summary>
@@ -215,10 +209,6 @@ namespace Coyote.Examples.Raft
         /// </summary>
         private Client.Request LastClientRequest;
 
-        #endregion
-
-        #region initialization
-
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventDoAction(typeof(ConfigureEvent), nameof(Configure))]
@@ -242,11 +232,11 @@ namespace Coyote.Examples.Raft
             this.MatchIndex = new Dictionary<ActorId, int>();
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.ServerId = (this.ReceivedEvent as ConfigureEvent).Id;
-            this.Servers = (this.ReceivedEvent as ConfigureEvent).Servers;
-            this.ClusterManager = (this.ReceivedEvent as ConfigureEvent).ClusterManager;
+            this.ServerId = (e as ConfigureEvent).Id;
+            this.Servers = (e as ConfigureEvent).Servers;
+            this.ClusterManager = (e as ConfigureEvent).ClusterManager;
 
             this.ElectionTimer = this.CreateActor(typeof(ElectionTimer));
             this.SendEvent(this.ElectionTimer, new ElectionTimer.ConfigureEvent(this.Id));
@@ -254,12 +244,8 @@ namespace Coyote.Examples.Raft
             this.PeriodicTimer = this.CreateActor(typeof(PeriodicTimer));
             this.SendEvent(this.PeriodicTimer, new PeriodicTimer.ConfigureEvent(this.Id));
 
-            this.RaiseEvent(new BecomeFollower());
+            return this.RaiseEvent(new BecomeFollower());
         }
-
-        #endregion
-
-        #region follower
 
         [OnEntry(nameof(FollowerOnInit))]
         [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
@@ -282,60 +268,38 @@ namespace Coyote.Examples.Raft
             this.SendEvent(this.ElectionTimer, new ElectionTimer.StartTimerEvent());
         }
 
-        private void RedirectClientRequest()
+        private void RedirectClientRequest(Event e)
         {
             if (this.LeaderId != null)
             {
-                this.SendEvent(this.LeaderId, this.ReceivedEvent);
+                this.SendEvent(this.LeaderId, e);
             }
             else
             {
-                this.SendEvent(this.ClusterManager, new ClusterManager.RedirectRequest(this.ReceivedEvent));
+                this.SendEvent(this.ClusterManager, new ClusterManager.RedirectRequest(e));
             }
         }
 
-        private void StartLeaderElection()
+        private Transition StartLeaderElection()
         {
-            this.RaiseEvent(new BecomeCandidate());
+            return this.RaiseEvent(new BecomeCandidate());
         }
 
-        private void VoteAsFollower()
+        private void VoteAsFollower(Event e)
         {
-            var request = this.ReceivedEvent as VoteRequest;
+            var request = e as VoteRequest;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
             }
 
-            this.Vote(this.ReceivedEvent as VoteRequest);
+            this.Vote(e as VoteRequest);
         }
 
-        private void RespondVoteAsFollower()
+        private void RespondVoteAsFollower(Event e)
         {
-            var request = this.ReceivedEvent as VoteResponse;
-            if (request.Term > this.CurrentTerm)
-            {
-                this.CurrentTerm = request.Term;
-                this.VotedFor = null;
-            }
-        }
-
-        private void AppendEntriesAsFollower()
-        {
-            var request = this.ReceivedEvent as AppendEntriesRequest;
-            if (request.Term > this.CurrentTerm)
-            {
-                this.CurrentTerm = request.Term;
-                this.VotedFor = null;
-            }
-
-            this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-        }
-
-        private void RespondAppendEntriesAsFollower()
-        {
-            var request = this.ReceivedEvent as AppendEntriesResponse;
+            var request = e as VoteResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
@@ -343,9 +307,27 @@ namespace Coyote.Examples.Raft
             }
         }
 
-        #endregion
+        private void AppendEntriesAsFollower(Event e)
+        {
+            var request = e as AppendEntriesRequest;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+            }
 
-        #region candidate
+            this.AppendEntries(e as AppendEntriesRequest);
+        }
+
+        private void RespondAppendEntriesAsFollower(Event e)
+        {
+            var request = e as AppendEntriesResponse;
+            if (request.Term > this.CurrentTerm)
+            {
+                this.CurrentTerm = request.Term;
+                this.VotedFor = null;
+            }
+        }
 
         [OnEntry(nameof(CandidateOnInit))]
         [OnEventDoAction(typeof(Client.Request), nameof(RedirectClientRequest))]
@@ -395,35 +377,33 @@ namespace Coyote.Examples.Raft
             }
         }
 
-        private void VoteAsCandidate()
+        private Transition VoteAsCandidate(Event e)
         {
-            var request = this.ReceivedEvent as VoteRequest;
+            var request = e as VoteRequest;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
-                this.Vote(this.ReceivedEvent as VoteRequest);
-                this.RaiseEvent(new BecomeFollower());
+                this.Vote(e as VoteRequest);
+                return this.RaiseEvent(new BecomeFollower());
             }
-            else
-            {
-                this.Vote(this.ReceivedEvent as VoteRequest);
-            }
+
+            this.Vote(e as VoteRequest);
+            return default;
         }
 
-        private void RespondVoteAsCandidate()
+        private Transition RespondVoteAsCandidate(Event e)
         {
-            var request = this.ReceivedEvent as VoteResponse;
+            var request = e as VoteResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
-                this.RaiseEvent(new BecomeFollower());
-                return;
+                return this.RaiseEvent(new BecomeFollower());
             }
             else if (request.Term != this.CurrentTerm)
             {
-                return;
+                return default;
             }
 
             if (request.VoteGranted)
@@ -434,41 +414,40 @@ namespace Coyote.Examples.Raft
                     this.Logger.WriteLine("\n [Leader] " + this.ServerId + " | term " + this.CurrentTerm +
                         " | election votes " + this.VotesReceived + " | log " + this.Logs.Count + "\n");
                     this.VotesReceived = 0;
-                    this.RaiseEvent(new BecomeLeader());
+                    return this.RaiseEvent(new BecomeLeader());
                 }
             }
+
+            return default;
         }
 
-        private void AppendEntriesAsCandidate()
+        private Transition AppendEntriesAsCandidate(Event e)
         {
-            var request = this.ReceivedEvent as AppendEntriesRequest;
+            var request = e as AppendEntriesRequest;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
-                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-                this.RaiseEvent(new BecomeFollower());
+                this.AppendEntries(e as AppendEntriesRequest);
+                return this.RaiseEvent(new BecomeFollower());
             }
-            else
-            {
-                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
-            }
+
+            this.AppendEntries(e as AppendEntriesRequest);
+            return default;
         }
 
-        private void RespondAppendEntriesAsCandidate()
+        private Transition RespondAppendEntriesAsCandidate(Event e)
         {
-            var request = this.ReceivedEvent as AppendEntriesResponse;
+            var request = e as AppendEntriesResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
-                this.RaiseEvent(new BecomeFollower());
+                return this.RaiseEvent(new BecomeFollower());
             }
+
+            return default;
         }
-
-        #endregion
-
-        #region leader
 
         [OnEntry(nameof(LeaderOnInit))]
         [OnEventDoAction(typeof(Client.Request), nameof(ProcessClientRequest))]
@@ -514,9 +493,9 @@ namespace Coyote.Examples.Raft
             }
         }
 
-        private void ProcessClientRequest()
+        private void ProcessClientRequest(Event e)
         {
-            this.LastClientRequest = this.ReceivedEvent as Client.Request;
+            this.LastClientRequest = e as Client.Request;
 
             var log = new Log(this.CurrentTerm, this.LastClientRequest.Command);
             this.Logs.Add(log);
@@ -556,9 +535,9 @@ namespace Coyote.Examples.Raft
             }
         }
 
-        private void VoteAsLeader()
+        private Transition VoteAsLeader(Event e)
         {
-            var request = this.ReceivedEvent as VoteRequest;
+            var request = e as VoteRequest;
 
             if (request.Term > this.CurrentTerm)
             {
@@ -566,59 +545,61 @@ namespace Coyote.Examples.Raft
                 this.VotedFor = null;
 
                 this.RedirectLastClientRequestToClusterManager();
-                this.Vote(this.ReceivedEvent as VoteRequest);
+                this.Vote(e as VoteRequest);
 
-                this.RaiseEvent(new BecomeFollower());
+                return this.RaiseEvent(new BecomeFollower());
             }
-            else
-            {
-                this.Vote(this.ReceivedEvent as VoteRequest);
-            }
+
+            this.Vote(e as VoteRequest);
+            return default;
         }
 
-        private void RespondVoteAsLeader()
+        private Transition RespondVoteAsLeader(Event e)
         {
-            var request = this.ReceivedEvent as VoteResponse;
+            var request = e as VoteResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
 
                 this.RedirectLastClientRequestToClusterManager();
-                this.RaiseEvent(new BecomeFollower());
+                return this.RaiseEvent(new BecomeFollower());
             }
+
+            return default;
         }
 
-        private void AppendEntriesAsLeader()
+        private Transition AppendEntriesAsLeader(Event e)
         {
-            var request = this.ReceivedEvent as AppendEntriesRequest;
+            var request = e as AppendEntriesRequest;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
 
                 this.RedirectLastClientRequestToClusterManager();
-                this.AppendEntries(this.ReceivedEvent as AppendEntriesRequest);
+                this.AppendEntries(e as AppendEntriesRequest);
 
-                this.RaiseEvent(new BecomeFollower());
+                return this.RaiseEvent(new BecomeFollower());
             }
+
+            return default;
         }
 
-        private void RespondAppendEntriesAsLeader()
+        private Transition RespondAppendEntriesAsLeader(Event e)
         {
-            var request = this.ReceivedEvent as AppendEntriesResponse;
+            var request = e as AppendEntriesResponse;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
                 this.VotedFor = null;
 
                 this.RedirectLastClientRequestToClusterManager();
-                this.RaiseEvent(new BecomeFollower());
-                return;
+                return this.RaiseEvent(new BecomeFollower());
             }
             else if (request.Term != this.CurrentTerm)
             {
-                return;
+                return default;
             }
 
             if (request.Success)
@@ -669,11 +650,9 @@ namespace Coyote.Examples.Raft
                 this.SendEvent(request.Server, new AppendEntriesRequest(this.CurrentTerm, this.Id, prevLogIndex,
                     prevLogTerm, logs, this.CommitIndex, request.ReceiverEndpoint));
             }
+
+            return default;
         }
-
-        #endregion
-
-        #region general methods
 
         /// <summary>
         /// Processes the given vote request.
@@ -802,14 +781,11 @@ namespace Coyote.Examples.Raft
             return logTerm;
         }
 
-        private void ShuttingDown()
+        private Transition ShuttingDown()
         {
-            this.SendEvent(this.ElectionTimer, new HaltEvent());
-            this.SendEvent(this.PeriodicTimer, new HaltEvent());
-
-            this.RaiseEvent(new HaltEvent());
+            this.SendEvent(this.ElectionTimer, HaltEvent.Instance);
+            this.SendEvent(this.PeriodicTimer, HaltEvent.Instance);
+            return this.Halt();
         }
-
-        #endregion
     }
 }

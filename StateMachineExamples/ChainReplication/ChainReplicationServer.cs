@@ -11,8 +11,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class ChainReplicationServer : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public int Id;
@@ -130,10 +128,6 @@ namespace Coyote.Examples.ChainReplication
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private int ServerId;
         private bool IsHead;
         private bool IsTail;
@@ -147,10 +141,6 @@ namespace Coyote.Examples.ChainReplication
 
         private int NextSeqId;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
@@ -159,11 +149,11 @@ namespace Coyote.Examples.ChainReplication
             typeof(BackwardAck), typeof(ForwardUpdate))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private void InitOnEntry(Event e)
         {
-            this.ServerId = (this.ReceivedEvent as Config).Id;
-            this.IsHead = (this.ReceivedEvent as Config).IsHead;
-            this.IsTail = (this.ReceivedEvent as Config).IsTail;
+            this.ServerId = (e as Config).Id;
+            this.IsHead = (e as Config).IsHead;
+            this.IsTail = (e as Config).IsTail;
 
             this.KeyValueStore = new Dictionary<int, int>();
             this.History = new List<int>();
@@ -172,11 +162,11 @@ namespace Coyote.Examples.ChainReplication
             this.NextSeqId = 0;
         }
 
-        private void SetupPredSucc()
+        private Transition SetupPredSucc(Event e)
         {
-            this.Predecessor = (this.ReceivedEvent as PredSucc).Predecessor;
-            this.Successor = (this.ReceivedEvent as PredSucc).Successor;
-            this.RaiseEvent(new Local());
+            this.Predecessor = (e as PredSucc).Predecessor;
+            this.Successor = (e as PredSucc).Successor;
+            return this.RaiseEvent(new Local());
         }
 
         [OnEventGotoState(typeof(Client.Update), typeof(ProcessUpdate), nameof(ProcessUpdateAction))]
@@ -196,10 +186,10 @@ namespace Coyote.Examples.ChainReplication
             this.Assert(this.IsHead, "Server {0} is not head", this.ServerId);
         }
 
-        private void ProcessQueryAction()
+        private void ProcessQueryAction(Event e)
         {
-            var client = (this.ReceivedEvent as Client.Query).Client;
-            var key = (this.ReceivedEvent as Client.Query).Key;
+            var client = (e as Client.Query).Client;
+            var key = (e as Client.Query).Key;
 
             this.Assert(this.IsTail, "Server {0} is not tail", this.Id);
 
@@ -216,16 +206,16 @@ namespace Coyote.Examples.ChainReplication
             }
         }
 
-        private void ProcessBecomeHead()
+        private void ProcessBecomeHead(Event e)
         {
             this.IsHead = true;
             this.Predecessor = this.Id;
 
-            var target = (this.ReceivedEvent as ChainReplicationMaster.BecomeHead).Target;
+            var target = (e as ChainReplicationMaster.BecomeHead).Target;
             this.SendEvent(target, new ChainReplicationMaster.HeadChanged());
         }
 
-        private void ProcessBecomeTail()
+        private void ProcessBecomeTail(Event e)
         {
             this.IsTail = true;
             this.Successor = this.Id;
@@ -239,20 +229,20 @@ namespace Coyote.Examples.ChainReplication
                 this.SendEvent(this.Predecessor, new BackwardAck(this.SentHistory[i].NextSeqId));
             }
 
-            var target = (this.ReceivedEvent as ChainReplicationMaster.BecomeTail).Target;
+            var target = (e as ChainReplicationMaster.BecomeTail).Target;
             this.SendEvent(target, new ChainReplicationMaster.TailChanged());
         }
 
-        private void SendPong()
+        private void SendPong(Event e)
         {
-            var target = (this.ReceivedEvent as FailureDetector.Ping).Target;
+            var target = (e as FailureDetector.Ping).Target;
             this.SendEvent(target, new FailureDetector.Pong());
         }
 
-        private void UpdatePredecessor()
+        private void UpdatePredecessor(Event e)
         {
-            var master = (this.ReceivedEvent as NewPredecessor).Master;
-            this.Predecessor = (this.ReceivedEvent as NewPredecessor).Predecessor;
+            var master = (e as NewPredecessor).Master;
+            this.Predecessor = (e as NewPredecessor).Predecessor;
 
             if (this.History.Count > 0)
             {
@@ -269,12 +259,12 @@ namespace Coyote.Examples.ChainReplication
             }
         }
 
-        private void UpdateSuccessor()
+        private void UpdateSuccessor(Event e)
         {
-            var master = (this.ReceivedEvent as NewSuccessor).Master;
-            this.Successor = (this.ReceivedEvent as NewSuccessor).Successor;
-            var lastUpdateReceivedSucc = (this.ReceivedEvent as NewSuccessor).LastUpdateReceivedSucc;
-            var lastAckSent = (this.ReceivedEvent as NewSuccessor).LastAckSent;
+            var master = (e as NewSuccessor).Master;
+            this.Successor = (e as NewSuccessor).Successor;
+            var lastUpdateReceivedSucc = (e as NewSuccessor).LastUpdateReceivedSucc;
+            var lastAckSent = (e as NewSuccessor).LastAckSent;
 
             if (this.SentHistory.Count > 0)
             {
@@ -310,11 +300,11 @@ namespace Coyote.Examples.ChainReplication
         [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
         private class ProcessUpdate : State { }
 
-        private void ProcessUpdateOnEntry()
+        private Transition ProcessUpdateOnEntry(Event e)
         {
-            var client = (this.ReceivedEvent as Client.Update).Client;
-            var key = (this.ReceivedEvent as Client.Update).Key;
-            var value = (this.ReceivedEvent as Client.Update).Value;
+            var client = (e as Client.Update).Client;
+            var key = (e as Client.Update).Key;
+            var value = (e as Client.Update).Value;
 
             if (this.KeyValueStore.ContainsKey(key))
             {
@@ -336,20 +326,20 @@ namespace Coyote.Examples.ChainReplication
 
             this.SendEvent(this.Successor, new ForwardUpdate(this.Id, this.NextSeqId, client, key, value));
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(ProcessFwdUpdateOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
         private class ProcessFwdUpdate : State { }
 
-        private void ProcessFwdUpdateOnEntry()
+        private Transition ProcessFwdUpdateOnEntry(Event e)
         {
-            var pred = (this.ReceivedEvent as ForwardUpdate).Predecessor;
-            var nextSeqId = (this.ReceivedEvent as ForwardUpdate).NextSeqId;
-            var client = (this.ReceivedEvent as ForwardUpdate).Client;
-            var key = (this.ReceivedEvent as ForwardUpdate).Key;
-            var value = (this.ReceivedEvent as ForwardUpdate).Value;
+            var pred = (e as ForwardUpdate).Predecessor;
+            var nextSeqId = (e as ForwardUpdate).NextSeqId;
+            var client = (e as ForwardUpdate).Client;
+            var key = (e as ForwardUpdate).Key;
+            var value = (e as ForwardUpdate).Value;
 
             if (pred.Equals(this.Predecessor))
             {
@@ -392,16 +382,16 @@ namespace Coyote.Examples.ChainReplication
                 }
             }
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(ProcessBckAckOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(WaitForRequest))]
         private class ProcessBckAck : State { }
 
-        private void ProcessBckAckOnEntry()
+        private Transition ProcessBckAckOnEntry(Event e)
         {
-            var nextSeqId = (this.ReceivedEvent as BackwardAck).NextSeqId;
+            var nextSeqId = (e as BackwardAck).NextSeqId;
 
             this.RemoveItemFromSent(nextSeqId);
 
@@ -410,7 +400,7 @@ namespace Coyote.Examples.ChainReplication
                 this.SendEvent(this.Predecessor, new BackwardAck(nextSeqId));
             }
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         private void RemoveItemFromSent(int seqId)
@@ -430,7 +420,5 @@ namespace Coyote.Examples.ChainReplication
                 this.SentHistory.RemoveAt(removeIdx);
             }
         }
-
-        #endregion
     }
 }

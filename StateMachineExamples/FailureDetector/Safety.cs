@@ -56,9 +56,9 @@ namespace Coyote.Examples.FailureDetector
             this.Pending = new Dictionary<ActorId, int>();
         }
 
-        private void PingAction()
+        private void PingAction(Event e)
         {
-            var client = (this.ReceivedEvent as Ping).Client;
+            var client = (e as Ping).Client;
             if (!this.Pending.ContainsKey(client))
             {
                 this.Pending[client] = 0;
@@ -68,9 +68,9 @@ namespace Coyote.Examples.FailureDetector
             this.Assert(this.Pending[client] <= 3, $"'{client}' ping count must be <= 3.");
         }
 
-        private void PongAction()
+        private void PongAction(Event e)
         {
-            var node = (this.ReceivedEvent as Pong).Node;
+            var node = (e as Pong).Node;
             this.Assert(this.Pending.ContainsKey(node), $"'{node}' is not in pending set.");
             this.Assert(this.Pending[node] > 0, $"'{node}' ping count must be > 0.");
             this.Pending[node] = this.Pending[node] - 1;

@@ -33,18 +33,18 @@ namespace Coyote.Examples.Raft
         [OnEventGotoState(typeof(LocalEvent), typeof(Monitoring))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry()
         {
             this.TermsWithLeader = new HashSet<int>();
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEventDoAction(typeof(NotifyLeaderElected), nameof(ProcessLeaderElected))]
         private class Monitoring : State { }
 
-        private void ProcessLeaderElected()
+        private void ProcessLeaderElected(Event e)
         {
-            var term = (this.ReceivedEvent as NotifyLeaderElected).Term;
+            var term = (e as NotifyLeaderElected).Term;
 
             this.Assert(!this.TermsWithLeader.Contains(term), "Detected more than one leader in term " + term);
             this.TermsWithLeader.Add(term);

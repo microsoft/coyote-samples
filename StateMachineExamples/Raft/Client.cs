@@ -11,8 +11,6 @@ namespace Coyote.Examples.Raft
 {
     internal class Client : StateMachine
     {
-        #region events
-
         /// <summary>
         /// Used to configure the client.
         /// </summary>
@@ -47,18 +45,10 @@ namespace Coyote.Examples.Raft
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId Cluster;
 
         private int LatestCommand;
         private int Counter;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -72,10 +62,10 @@ namespace Coyote.Examples.Raft
             this.Counter = 0;
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Cluster = (this.ReceivedEvent as ConfigureEvent).Cluster;
-            this.RaiseEvent(new LocalEvent());
+            this.Cluster = (e as ConfigureEvent).Cluster;
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
@@ -93,19 +83,15 @@ namespace Coyote.Examples.Raft
             this.SendEvent(this.Cluster, new Request(this.Id, this.LatestCommand));
         }
 
-        private void ProcessResponse()
+        private Transition ProcessResponse()
         {
             if (this.Counter == 3)
             {
                 this.SendEvent(this.Cluster, new ClusterManager.ShutDown());
-                this.RaiseEvent(new HaltEvent());
+                return this.Halt();
             }
-            else
-            {
-                this.RaiseEvent(new LocalEvent());
-            }
-        }
 
-        #endregion
+            return this.RaiseEvent(new LocalEvent());
+        }
     }
 }

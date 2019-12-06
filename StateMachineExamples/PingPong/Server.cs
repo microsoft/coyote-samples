@@ -29,11 +29,11 @@ namespace Coyote.Examples.PingPong
         [OnEventDoAction(typeof(Client.Ping), nameof(SendPong))]
         private class Active : State { }
 
-        private void SendPong()
+        private void SendPong(Event e)
         {
             // Receives a reference to a client machine (as a payload of
             // the 'Ping' event).
-            var client = (this.ReceivedEvent as Client.Ping).Client;
+            var client = (e as Client.Ping).Client;
             // Sends (asynchronously) a 'Pong' event to the client and make sure
             // it is handled at test time.
             this.SendEvent(client, new Pong(), default, new SendOptions(mustHandle: true));

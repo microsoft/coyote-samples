@@ -57,10 +57,10 @@ namespace Coyote.Examples.SendAndReceive
         [OnEntry(nameof(Execute))]
         private class Init : State { }
 
-        private async Task Execute()
+        private async Task<Transition> Execute(Event e)
         {
             // Grab the config event.
-            var config = this.ReceivedEvent as Config;
+            var config = e as Config;
             // send event to target machine, adding self Id
             this.SendEvent(config.TargetMachineId, config.Ev(this.Id));
             // Wait for the response.
@@ -68,7 +68,7 @@ namespace Coyote.Examples.SendAndReceive
             // Stash in the shared config event.
             config.ReceivedEvent = rv as T;
             // Finally, halt.
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
     }
 }

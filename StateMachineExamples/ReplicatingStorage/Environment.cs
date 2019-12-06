@@ -12,8 +12,6 @@ namespace Coyote.Examples.ReplicatingStorage
 {
     internal class Environment : StateMachine
     {
-        #region events
-
         public class NotifyNode : Event
         {
             public ActorId Node;
@@ -31,10 +29,6 @@ namespace Coyote.Examples.ReplicatingStorage
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId NodeManager;
         private int NumberOfReplicas;
 
@@ -48,16 +42,12 @@ namespace Coyote.Examples.ReplicatingStorage
         /// </summary>
         private ActorId FailureTimer;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(EntryOnInit))]
         [OnEventGotoState(typeof(LocalEvent), typeof(Configuring))]
         private class Init : State { }
 
-        private void EntryOnInit()
+        private Transition EntryOnInit()
         {
             this.NumberOfReplicas = 3;
             this.NumberOfFaults = 1;
@@ -68,7 +58,7 @@ namespace Coyote.Examples.ReplicatingStorage
             this.NodeManager = this.CreateActor(typeof(NodeManager));
             this.Client = this.CreateActor(typeof(Client));
 
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEntry(nameof(ConfiguringOnInit))]
@@ -76,20 +66,20 @@ namespace Coyote.Examples.ReplicatingStorage
         [DeferEvents(typeof(FailureTimer.TimeoutEvent))]
         private class Configuring : State { }
 
-        private void ConfiguringOnInit()
+        private Transition ConfiguringOnInit()
         {
             this.SendEvent(this.NodeManager, new NodeManager.ConfigureEvent(this.Id, this.NumberOfReplicas));
             this.SendEvent(this.Client, new Client.ConfigureEvent(this.NodeManager));
-            this.RaiseEvent(new LocalEvent());
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEventDoAction(typeof(NotifyNode), nameof(UpdateAliveNodes))]
         [OnEventDoAction(typeof(FailureTimer.TimeoutEvent), nameof(InjectFault))]
         private class Active : State { }
 
-        private void UpdateAliveNodes()
+        private void UpdateAliveNodes(Event e)
         {
-            var node = (this.ReceivedEvent as NotifyNode).Node;
+            var node = (e as NotifyNode).Node;
             this.AliveNodes.Add(node);
 
             if (this.AliveNodes.Count == this.NumberOfReplicas &&
@@ -120,10 +110,8 @@ namespace Coyote.Examples.ReplicatingStorage
             this.NumberOfFaults--;
             if (this.NumberOfFaults == 0)
             {
-                this.SendEvent(this.FailureTimer, new HaltEvent());
+                this.SendEvent(this.FailureTimer, HaltEvent.Instance);
             }
         }
-
-        #endregion
     }
 }

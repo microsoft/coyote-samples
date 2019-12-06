@@ -35,17 +35,17 @@ namespace Coyote.Examples.CacheCoherence
         [OnEventGotoState(typeof(Unit), typeof(MakingReq))]
         internal class Init : State { }
 
-        internal void Configure()
+        internal Transition Configure(Event e)
         {
-            this.Cache = (this.ReceivedEvent as Config).Clients;
-            this.RaiseEvent(new Unit());
+            this.Cache = (e as Config).Clients;
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(MakingReqOnEntry))]
         [OnEventGotoState(typeof(Unit), typeof(MakingReq))]
         internal class MakingReq : State { }
 
-        internal void MakingReqOnEntry()
+        internal Transition MakingReqOnEntry()
         {
             if (this.Random())
             {
@@ -81,7 +81,7 @@ namespace Coyote.Examples.CacheCoherence
                 }
             }
 
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
     }
 }

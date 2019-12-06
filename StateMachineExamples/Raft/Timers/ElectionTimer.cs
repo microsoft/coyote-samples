@@ -37,10 +37,10 @@ namespace Coyote.Examples.Raft
         [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
         private class Init : State { }
 
-        private void Configure()
+        private void Configure(Event e)
         {
-            this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            // this.RaiseEvent(new StartTimerEvent());
+            this.Target = (e as ConfigureEvent).Target;
+            // return this.RaiseEvent(new StartTimerEvent());
         }
 
         [OnEntry(nameof(ActiveOnEntry))]
@@ -54,7 +54,7 @@ namespace Coyote.Examples.Raft
             this.SendEvent(this.Id, new TickEvent());
         }
 
-        private void Tick()
+        private Transition Tick()
         {
             if (this.Random())
             {
@@ -63,7 +63,7 @@ namespace Coyote.Examples.Raft
             }
 
             // this.SendEvent(this.Id, new TickEvent());
-            this.RaiseEvent(new CancelTimerEvent());
+            return this.RaiseEvent(new CancelTimerEvent());
         }
 
         [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]

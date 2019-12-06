@@ -49,10 +49,10 @@ namespace Coyote.Examples.TwoPhaseCommit
         [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Target = (this.ReceivedEvent as Config).Target;
-            this.RaiseEvent(new Unit());
+            this.Target = (e as Config).Target;
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventGotoState(typeof(StartTimerEvent), typeof(TimerStarted))]
@@ -64,16 +64,18 @@ namespace Coyote.Examples.TwoPhaseCommit
         [OnEventDoAction(typeof(CancelTimerEvent), nameof(CancelingTimer))]
         private class TimerStarted : State { }
 
-        private void TimerStartedOnEntry()
+        private Transition TimerStartedOnEntry()
         {
             if (this.Random())
             {
-                this.SendEvent(this.Target, new Timer.TimeoutEvent());
-                this.RaiseEvent(new Unit());
+                this.SendEvent(this.Target, new TimeoutEvent());
+                return this.RaiseEvent(new Unit());
             }
+
+            return default;
         }
 
-        private void CancelingTimer()
+        private Transition CancelingTimer()
         {
             if (this.Random())
             {
@@ -85,7 +87,7 @@ namespace Coyote.Examples.TwoPhaseCommit
                 this.SendEvent(this.Target, new CancelTimerSuccess());
             }
 
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
     }
 }

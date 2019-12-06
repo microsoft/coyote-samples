@@ -12,8 +12,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class ServerResponseSeqMonitor : Monitor
     {
-        #region events
-
         internal class Config : Event
         {
             public List<ActorId> Servers;
@@ -68,27 +66,19 @@ namespace Coyote.Examples.ChainReplication
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private List<ActorId> Servers;
         private Dictionary<int, int> LastUpdateResponse;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEventGotoState(typeof(Local), typeof(Wait))]
         [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Servers = (this.ReceivedEvent as Config).Servers;
+            this.Servers = (e as Config).Servers;
             this.LastUpdateResponse = new Dictionary<int, int>();
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEventDoAction(typeof(ResponseToUpdate), nameof(ResponseToUpdateAction))]
@@ -96,11 +86,11 @@ namespace Coyote.Examples.ChainReplication
         [OnEventDoAction(typeof(UpdateServers), nameof(ProcessUpdateServers))]
         private class Wait : State { }
 
-        private void ResponseToUpdateAction()
+        private void ResponseToUpdateAction(Event e)
         {
-            var tail = (this.ReceivedEvent as ResponseToUpdate).Tail;
-            var key = (this.ReceivedEvent as ResponseToUpdate).Key;
-            var value = (this.ReceivedEvent as ResponseToUpdate).Value;
+            var tail = (e as ResponseToUpdate).Tail;
+            var key = (e as ResponseToUpdate).Key;
+            var value = (e as ResponseToUpdate).Value;
 
             if (this.Servers.Contains(tail))
             {
@@ -115,11 +105,11 @@ namespace Coyote.Examples.ChainReplication
             }
         }
 
-        private void ResponseToQueryAction()
+        private void ResponseToQueryAction(Event e)
         {
-            var tail = (this.ReceivedEvent as ResponseToQuery).Tail;
-            var key = (this.ReceivedEvent as ResponseToQuery).Key;
-            var value = (this.ReceivedEvent as ResponseToQuery).Value;
+            var tail = (e as ResponseToQuery).Tail;
+            var key = (e as ResponseToQuery).Key;
+            var value = (e as ResponseToQuery).Value;
 
             if (this.Servers.Contains(tail))
             {
@@ -128,11 +118,9 @@ namespace Coyote.Examples.ChainReplication
             }
         }
 
-        private void ProcessUpdateServers()
+        private void ProcessUpdateServers(Event e)
         {
-            this.Servers = (this.ReceivedEvent as UpdateServers).Servers;
+            this.Servers = (e as UpdateServers).Servers;
         }
-
-        #endregion
     }
 }

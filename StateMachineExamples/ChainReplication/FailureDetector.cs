@@ -11,8 +11,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class FailureDetector : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public ActorId Master;
@@ -65,34 +63,24 @@ namespace Coyote.Examples.ChainReplication
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId Master;
         private List<ActorId> Servers;
 
         private int CheckNodeIdx;
         private int Failures;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(StartMonitoring))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            this.Master = (this.ReceivedEvent as Config).Master;
-            this.Servers = (this.ReceivedEvent as Config).Servers;
-
+            this.Master = (e as Config).Master;
+            this.Servers = (e as Config).Servers;
             this.CheckNodeIdx = 0;
             this.Failures = 100;
-
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(StartMonitoringOnEntry))]
@@ -100,34 +88,33 @@ namespace Coyote.Examples.ChainReplication
         [OnEventGotoState(typeof(InjectFailure), typeof(HandleFailure))]
         private class StartMonitoring : State { }
 
-        private void StartMonitoringOnEntry()
+        private Transition StartMonitoringOnEntry()
         {
             if (this.Failures < 1)
             {
-                this.RaiseEvent(new HaltEvent());
+                return this.Halt();
             }
-            else
-            {
-                this.SendEvent(this.Servers[this.CheckNodeIdx], new Ping(this.Id));
 
-                if (this.Servers.Count > 1)
+            this.SendEvent(this.Servers[this.CheckNodeIdx], new Ping(this.Id));
+
+            if (this.Servers.Count > 1)
+            {
+                if (this.Random())
                 {
-                    if (this.Random())
-                    {
-                        this.SendEvent(this.Id, new InjectFailure());
-                    }
-                    else
-                    {
-                        this.SendEvent(this.Id, new Pong());
-                    }
+                    this.SendEvent(this.Id, new InjectFailure());
                 }
                 else
                 {
                     this.SendEvent(this.Id, new Pong());
                 }
-
-                this.Failures--;
             }
+            else
+            {
+                this.SendEvent(this.Id, new Pong());
+            }
+
+            this.Failures--;
+            return default;
         }
 
         private void HandlePong()
@@ -149,12 +136,10 @@ namespace Coyote.Examples.ChainReplication
             this.SendEvent(this.Master, new FailureDetected(this.Servers[this.CheckNodeIdx]));
         }
 
-        private void ProcessFailureCorrected()
+        private void ProcessFailureCorrected(Event e)
         {
             this.CheckNodeIdx = 0;
-            this.Servers = (this.ReceivedEvent as FailureCorrected).Servers;
+            this.Servers = (e as FailureCorrected).Servers;
         }
-
-        #endregion
     }
 }

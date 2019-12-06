@@ -11,8 +11,6 @@ namespace Coyote.Examples.ReplicatingStorage
 {
     internal class Client : StateMachine
     {
-        #region events
-
         /// <summary>
         /// Used to configure the client.
         /// </summary>
@@ -45,17 +43,9 @@ namespace Coyote.Examples.ReplicatingStorage
 
         private class LocalEvent : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId NodeManager;
 
         private int Counter;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -68,17 +58,17 @@ namespace Coyote.Examples.ReplicatingStorage
             this.Counter = 0;
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.NodeManager = (this.ReceivedEvent as ConfigureEvent).NodeManager;
-            this.RaiseEvent(new LocalEvent());
+            this.NodeManager = (e as ConfigureEvent).NodeManager;
+            return this.RaiseEvent(new LocalEvent());
         }
 
         [OnEntry(nameof(PumpRequestOnEntry))]
         [OnEventGotoState(typeof(LocalEvent), typeof(PumpRequest))]
         private class PumpRequest : State { }
 
-        private void PumpRequestOnEntry()
+        private Transition PumpRequestOnEntry()
         {
             int command = this.RandomInteger(100) + 1;
             this.Counter++;
@@ -89,14 +79,10 @@ namespace Coyote.Examples.ReplicatingStorage
 
             if (this.Counter == 1)
             {
-                this.RaiseEvent(new HaltEvent());
+                return this.Halt();
             }
-            else
-            {
-                this.RaiseEvent(new LocalEvent());
-            }
-        }
 
-        #endregion
+            return this.RaiseEvent(new LocalEvent());
+        }
     }
 }

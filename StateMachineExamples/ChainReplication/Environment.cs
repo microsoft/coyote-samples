@@ -15,13 +15,11 @@ namespace Coyote.Examples.ChainReplication
 
         private int NumOfServers;
 
-        private ActorId ChainReplicationMaster;
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry()
         {
             this.Servers = new List<ActorId>();
             this.Clients = new List<ActorId>();
@@ -30,7 +28,7 @@ namespace Coyote.Examples.ChainReplication
 
             for (int i = 0; i < this.NumOfServers; i++)
             {
-                ActorId server = null;
+                ActorId server;
 
                 if (i == 0)
                 {
@@ -58,8 +56,8 @@ namespace Coyote.Examples.ChainReplication
 
             for (int i = 0; i < this.NumOfServers; i++)
             {
-                ActorId pred = null;
-                ActorId succ = null;
+                ActorId pred;
+                ActorId succ;
 
                 if (i > 0)
                 {
@@ -88,10 +86,10 @@ namespace Coyote.Examples.ChainReplication
             this.Clients.Add(this.CreateActor(typeof(Client),
                 new Client.Config(1, this.Servers[0], this.Servers[this.NumOfServers - 1], 100)));
 
-            this.ChainReplicationMaster = this.CreateActor(typeof(ChainReplicationMaster),
+            this.CreateActor(typeof(ChainReplicationMaster),
                 new ChainReplicationMaster.Config(this.Servers, this.Clients));
 
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
     }
 }

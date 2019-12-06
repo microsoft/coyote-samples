@@ -3,7 +3,6 @@
 // Licensed under the MIT License (MIT). See License.txt in the repo root for license information.
 // ------------------------------------------------------------------------------------------------
 
-using System;
 using System.Collections.Generic;
 using Microsoft.Coyote;
 using Microsoft.Coyote.Specifications;
@@ -27,8 +26,8 @@ namespace Coyote.Examples.FailureDetector
     /// the failure of all node machines has been detected. Thus, this monitor expresses the
     /// specification that failure of every node machine must be eventually detected.
     ///
-    /// Read the wiki (https://github.com/Microsoft/Coyote/wiki) to learn more
-    /// about liveness checking in Coyote.
+    /// Read our documentation (https://microsoft.github.io/coyote/)
+    /// to learn more about liveness checking in Coyote.
     /// </summary>
     internal class Liveness : Monitor
     {
@@ -58,11 +57,11 @@ namespace Coyote.Examples.FailureDetector
         [OnEventDoAction(typeof(RegisterNodes), nameof(RegisterNodesAction))]
         private class Init : State { }
 
-        private void RegisterNodesAction()
+        private Transition RegisterNodesAction(Event e)
         {
-            var nodes = (this.ReceivedEvent as RegisterNodes).Nodes;
+            var nodes = (e as RegisterNodes).Nodes;
             this.Nodes = new HashSet<Node>(nodes);
-            this.Goto<Wait>();
+            return this.GotoState<Wait>();
         }
 
         /// <summary>
@@ -73,16 +72,18 @@ namespace Coyote.Examples.FailureDetector
         [OnEventDoAction(typeof(NodeFailed), nameof(NodeDownAction))]
         private class Wait : State { }
 
-        private void NodeDownAction()
+        private Transition NodeDownAction(Event e)
         {
-            var node = (this.ReceivedEvent as NodeFailed).Node;
+            var node = (e as NodeFailed).Node;
             this.Nodes.Remove(node);
             if (this.Nodes.Count == 0)
             {
                 // When the liveness property has been satisfied
                 // transition out of the hot state.
-                this.Goto<Done>();
+                return this.GotoState<Done>();
             }
+
+            return default;
         }
 
         private class Done : State { }

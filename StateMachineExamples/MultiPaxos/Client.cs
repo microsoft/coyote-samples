@@ -26,20 +26,20 @@ namespace Coyote.Examples.MultiPaxos
 
         [Start]
         [OnEventGotoState(typeof(Local), typeof(PumpRequestOne))]
-        [OnEventDoAction(typeof(Client.Config), nameof(Configure))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Servers = (this.ReceivedEvent as Config).Servers;
-            this.RaiseEvent(new Local());
+            this.Servers = (e as Config).Servers;
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(PumpRequestOneOnEntry))]
         [OnEventGotoState(typeof(Response), typeof(PumpRequestTwo))]
         private class PumpRequestOne : State { }
 
-        private void PumpRequestOneOnEntry()
+        private Transition PumpRequestOneOnEntry()
         {
             this.Monitor<ValidityCheck>(new ValidityCheck.MonitorClientSent(1));
 
@@ -52,14 +52,14 @@ namespace Coyote.Examples.MultiPaxos
                 this.SendEvent(this.Servers[this.Servers.Count - 1], new PaxosNode.Update(0, 1));
             }
 
-            this.RaiseEvent(new Response());
+            return this.RaiseEvent(new Response());
         }
 
         [OnEntry(nameof(PumpRequestTwoOnEntry))]
         [OnEventGotoState(typeof(Response), typeof(Done))]
         private class PumpRequestTwo : State { }
 
-        private void PumpRequestTwoOnEntry()
+        private Transition PumpRequestTwoOnEntry()
         {
             this.Monitor<ValidityCheck>(new ValidityCheck.MonitorClientSent(2));
 
@@ -72,15 +72,15 @@ namespace Coyote.Examples.MultiPaxos
                 this.SendEvent(this.Servers[this.Servers.Count - 1], new PaxosNode.Update(0, 2));
             }
 
-            this.RaiseEvent(new Response());
+            return this.RaiseEvent(new Response());
         }
 
         [OnEntry(nameof(DoneOnEntry))]
         private class Done : State { }
 
-        private void DoneOnEntry()
+        private Transition DoneOnEntry()
         {
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
     }
 }

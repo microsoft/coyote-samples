@@ -13,8 +13,6 @@ namespace Coyote.Examples.Chord
 {
     internal class ChordNode : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public int Id;
@@ -168,10 +166,6 @@ namespace Coyote.Examples.Chord
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private int NodeId;
         private HashSet<int> Keys;
         private int NumOfIds;
@@ -180,10 +174,6 @@ namespace Coyote.Examples.Chord
         private ActorId Predecessor;
 
         private ActorId Manager;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
@@ -198,14 +188,14 @@ namespace Coyote.Examples.Chord
             this.FingerTable = new Dictionary<int, Finger>();
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.NodeId = (this.ReceivedEvent as Config).Id;
-            this.Keys = (this.ReceivedEvent as Config).Keys;
-            this.Manager = (this.ReceivedEvent as Config).Manager;
+            this.NodeId = (e as Config).Id;
+            this.Keys = (e as Config).Keys;
+            this.Manager = (e as Config).Manager;
 
-            var nodes = (this.ReceivedEvent as Config).Nodes;
-            var nodeIds = (this.ReceivedEvent as Config).NodeIds;
+            var nodes = (e as Config).Nodes;
+            var nodeIds = (e as Config).NodeIds;
 
             this.NumOfIds = (int)Math.Pow(2, nodes.Count);
 
@@ -227,17 +217,17 @@ namespace Coyote.Examples.Chord
                 }
             }
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
-        private void JoinCluster()
+        private void JoinCluster(Event e)
         {
-            this.NodeId = (this.ReceivedEvent as Join).Id;
-            this.Manager = (this.ReceivedEvent as Join).Manager;
-            this.NumOfIds = (this.ReceivedEvent as Join).NumOfIds;
+            this.NodeId = (e as Join).Id;
+            this.Manager = (e as Join).Manager;
+            this.NumOfIds = (e as Join).NumOfIds;
 
-            var nodes = (this.ReceivedEvent as Join).Nodes;
-            var nodeIds = (this.ReceivedEvent as Join).NodeIds;
+            var nodes = (e as Join).Nodes;
+            var nodeIds = (e as Join).NodeIds;
 
             for (var idx = 1; idx <= nodes.Count; idx++)
             {
@@ -266,10 +256,10 @@ namespace Coyote.Examples.Chord
         [OnEventDoAction(typeof(Terminate), nameof(ProcessTerminate))]
         private class Waiting : State { }
 
-        private void ProcessFindSuccessor()
+        private void ProcessFindSuccessor(Event e)
         {
-            var sender = (this.ReceivedEvent as FindSuccessor).Sender;
-            var key = (this.ReceivedEvent as FindSuccessor).Key;
+            var sender = (e as FindSuccessor).Sender;
+            var key = (e as FindSuccessor).Key;
 
             if (this.Keys.Contains(key))
             {
@@ -323,25 +313,25 @@ namespace Coyote.Examples.Chord
             }
         }
 
-        private void ProcessFindPredecessor()
+        private void ProcessFindPredecessor(Event e)
         {
-            var sender = (this.ReceivedEvent as FindPredecessor).Sender;
+            var sender = (e as FindPredecessor).Sender;
             if (this.Predecessor != null)
             {
                 this.SendEvent(sender, new FindPredecessorResp(this.Predecessor));
             }
         }
 
-        private void ProcessQueryId()
+        private void ProcessQueryId(Event e)
         {
-            var sender = (this.ReceivedEvent as QueryId).Sender;
+            var sender = (e as QueryId).Sender;
             this.SendEvent(sender, new QueryIdResp(this.NodeId));
         }
 
-        private void SendKeys()
+        private void SendKeys(Event e)
         {
-            var sender = (this.ReceivedEvent as AskForKeys).Node;
-            var senderId = (this.ReceivedEvent as AskForKeys).Id;
+            var sender = (e as AskForKeys).Node;
+            var senderId = (e as AskForKeys).Id;
 
             this.Assert(this.Predecessor.Equals(sender), "Predecessor is corrupted.");
 
@@ -379,10 +369,10 @@ namespace Coyote.Examples.Chord
             }
         }
 
-        private void ProcessFindSuccessorResp()
+        private void ProcessFindSuccessorResp(Event e)
         {
-            var successor = (this.ReceivedEvent as FindSuccessorResp).Node;
-            var key = (this.ReceivedEvent as FindSuccessorResp).Key;
+            var successor = (e as FindSuccessorResp).Node;
+            var key = (e as FindSuccessorResp).Key;
 
             this.Assert(this.FingerTable.ContainsKey(key),
                 "Finger table of {0} does not contain {1}.", this.NodeId, key);
@@ -390,9 +380,9 @@ namespace Coyote.Examples.Chord
                 this.FingerTable[key].End, successor);
         }
 
-        private void ProcessFindPredecessorResp()
+        private void ProcessFindPredecessorResp(Event e)
         {
-            var successor = (this.ReceivedEvent as FindPredecessorResp).Node;
+            var successor = (e as FindPredecessorResp).Node;
             if (!successor.Equals(this.Id))
             {
                 this.FingerTable[(this.NodeId + 1) % this.NumOfIds] =
@@ -405,27 +395,27 @@ namespace Coyote.Examples.Chord
             }
         }
 
-        private void UpdatePredecessor()
+        private void UpdatePredecessor(Event e)
         {
-            var predecessor = (this.ReceivedEvent as NotifySuccessor).Node;
+            var predecessor = (e as NotifySuccessor).Node;
             if (!predecessor.Equals(this.Id))
             {
                 this.Predecessor = predecessor;
             }
         }
 
-        private void UpdateKeys()
+        private void UpdateKeys(Event e)
         {
-            var keys = (this.ReceivedEvent as AskForKeysResp).Keys;
+            var keys = (e as AskForKeysResp).Keys;
             foreach (var key in keys)
             {
                 this.Keys.Add(key);
             }
         }
 
-        private void ProcessTerminate()
+        private Transition ProcessTerminate()
         {
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
 
         private static int GetSuccessorNodeId(int start, List<int> nodeIds)
@@ -499,7 +489,5 @@ namespace Coyote.Examples.Chord
                 this.Logger.WriteLine("  >> Key-" + key);
             }
         }
-
-        #endregion
     }
 }

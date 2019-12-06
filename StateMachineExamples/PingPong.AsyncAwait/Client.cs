@@ -64,15 +64,15 @@ namespace Coyote.Examples.PingPong.AsyncAwait
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
             // Receives a reference to a server machine (as a payload of
             // the 'Config' event).
-            this.Server = (this.ReceivedEvent as Config).Server;
+            this.Server = (e as Config).Server;
 
             // Notifies the Coyote runtime that the machine must transition
             // to the 'Active' state when 'InitOnEntry' returns.
-            this.Goto<Active>();
+            return this.GotoState<Active>();
         }
 
         /// <summary>
@@ -81,7 +81,7 @@ namespace Coyote.Examples.PingPong.AsyncAwait
         [OnEntry(nameof(ActiveOnEntry))]
         private class Active : State { }
 
-        private async Task ActiveOnEntry()
+        private async Task<Transition> ActiveOnEntry()
         {
             // A counter for ping-pong turns.
             int counter = 0;
@@ -111,7 +111,7 @@ namespace Coyote.Examples.PingPong.AsyncAwait
             // will terminate the machine and release any resources. Note that the
             // 'Halt' event is handled automatically, the user does not need to
             // declare an event handler in the state declaration.
-            this.RaiseEvent(new HaltEvent());
+            return this.Halt();
         }
     }
 }

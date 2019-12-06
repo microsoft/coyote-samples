@@ -37,10 +37,10 @@ namespace Coyote.Examples.ReplicatingStorage
         [OnEventGotoState(typeof(StartTimerEvent), typeof(Active))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Target = (this.ReceivedEvent as ConfigureEvent).Target;
-            this.RaiseEvent(new StartTimerEvent());
+            this.Target = (e as ConfigureEvent).Target;
+            return this.RaiseEvent(new StartTimerEvent());
         }
 
         [OnEntry(nameof(ActiveOnEntry))]

@@ -58,9 +58,9 @@ namespace Coyote.Examples.FailureDetector
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            this.NumOfNodes = (this.ReceivedEvent as Config).NumOfNodes;
+            this.NumOfNodes = (e as Config).NumOfNodes;
 
             // Initializes the nodes.
             this.Nodes = new HashSet<ActorId>();
@@ -76,7 +76,7 @@ namespace Coyote.Examples.FailureDetector
             this.FailureDetector = this.CreateActor(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
             this.SendEvent(this.FailureDetector, new RegisterClient(this.Id));
 
-            this.Goto<InjectFailures>();
+            return this.GotoState<InjectFailures>();
         }
 
         [OnEntry(nameof(InjectFailuresOnEntry))]
@@ -90,16 +90,16 @@ namespace Coyote.Examples.FailureDetector
         {
             foreach (var node in this.Nodes)
             {
-                this.SendEvent(node, new HaltEvent());
+                this.SendEvent(node, HaltEvent.Instance);
             }
         }
 
         /// <summary>
         /// Notify liveness monitor of node failure.
         /// </summary>
-        private void NodeFailedAction()
+        private void NodeFailedAction(Event e)
         {
-            this.Monitor<Liveness>(this.ReceivedEvent);
+            this.Monitor<Liveness>(e);
         }
     }
 }

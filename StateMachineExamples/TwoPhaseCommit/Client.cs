@@ -56,10 +56,10 @@ namespace Coyote.Examples.TwoPhaseCommit
         [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Coordinator = (this.ReceivedEvent as Config).Coordinator;
-            this.RaiseEvent(new Unit());
+            this.Coordinator = (e as Config).Coordinator;
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEntry(nameof(DoWriteOnEntry))]

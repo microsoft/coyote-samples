@@ -12,17 +12,11 @@ namespace Coyote.Examples.Chord
 {
     internal class ClusterManager : StateMachine
     {
-        #region events
-
         internal class CreateNewNode : Event { }
 
         internal class TerminateNode : Event { }
 
         private class Local : Event { }
-
-        #endregion
-
-        #region fields
 
         private int NumOfNodes;
         private int NumOfIds;
@@ -34,16 +28,12 @@ namespace Coyote.Examples.Chord
 
         private ActorId Client;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(Waiting))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry()
         {
             this.NumOfNodes = 3;
             this.NumOfIds = (int)Math.Pow(2, this.NumOfNodes);
@@ -68,7 +58,7 @@ namespace Coyote.Examples.Chord
             this.Client = this.CreateActor(typeof(Client),
                 new Client.Config(this.Id, new List<int>(this.Keys)));
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEventDoAction(typeof(ChordNode.FindSuccessor), nameof(ForwardFindSuccessor))]
@@ -77,9 +67,9 @@ namespace Coyote.Examples.Chord
         [OnEventDoAction(typeof(ChordNode.JoinAck), nameof(QueryStabilize))]
         private class Waiting : State { }
 
-        private void ForwardFindSuccessor()
+        private void ForwardFindSuccessor(Event e)
         {
-            this.SendEvent(this.ChordNodes[0], this.ReceivedEvent);
+            this.SendEvent(this.ChordNodes[0], e);
         }
 
         private void ProcessCreateNewNode()
@@ -184,7 +174,5 @@ namespace Coyote.Examples.Chord
 
             return nodeKeys;
         }
-
-        #endregion
     }
 }

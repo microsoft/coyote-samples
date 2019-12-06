@@ -93,9 +93,9 @@ namespace Coyote.Examples.TwoPhaseCommit
             this.Replicas = new List<ActorId>();
         }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            int numReplicas = (this.ReceivedEvent as Config).NumReplicas;
+            int numReplicas = (e as Config).NumReplicas;
             this.Assert(numReplicas > 0);
 
             for (int i = 0; i < numReplicas; i++)
@@ -111,7 +111,7 @@ namespace Coyote.Examples.TwoPhaseCommit
             this.Timer = this.CreateActor(typeof(Timer));
             this.SendEvent(this.Timer, new Timer.Config(this.Id));
 
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
         [OnEventGotoState(typeof(Unit), typeof(CountingVote))]
@@ -120,9 +120,9 @@ namespace Coyote.Examples.TwoPhaseCommit
         [IgnoreEvents(typeof(Replica.RespReplicaCommit), typeof(Replica.RespReplicaAbort))]
         private class Loop : State { }
 
-        private void DoWrite()
+        private Transition DoWrite(Event e)
         {
-            this.PendingWriteReq = (this.ReceivedEvent as Client.WriteReq).PendingWriteReq;
+            this.PendingWriteReq = (e as Client.WriteReq).PendingWriteReq;
             this.CurrSeqNum++;
 
             for (int i = 0; i < this.Replicas.Count; i++)
@@ -132,13 +132,13 @@ namespace Coyote.Examples.TwoPhaseCommit
             }
 
             this.SendEvent(this.Timer, new Timer.StartTimerEvent(100));
-            this.RaiseEvent(new Unit());
+            return this.RaiseEvent(new Unit());
         }
 
-        private void DoRead()
+        private void DoRead(Event e)
         {
-            var client = (this.ReceivedEvent as Client.ReadReq).Client;
-            var idx = (this.ReceivedEvent as Client.ReadReq).Idx;
+            var client = (e as Client.ReadReq).Client;
+            var idx = (e as Client.ReadReq).Idx;
 
             if (this.Data.ContainsKey(idx))
             {
@@ -161,7 +161,7 @@ namespace Coyote.Examples.TwoPhaseCommit
         [DeferEvents(typeof(Client.WriteReq))]
         private class CountingVote : State { }
 
-        private void CountingVoteOnEntry()
+        private Transition CountingVoteOnEntry()
         {
             if (this.Counter == 0)
             {
@@ -187,13 +187,15 @@ namespace Coyote.Examples.TwoPhaseCommit
                 this.SendEvent(this.PendingWriteReq.Client, new WriteSuccess());
                 this.SendEvent(this.Timer, new Timer.CancelTimerEvent());
 
-                this.RaiseEvent(new Unit());
+                return this.RaiseEvent(new Unit());
             }
+
+            return default;
         }
 
-        private void RespReplicaCommitAction()
+        private void RespReplicaCommitAction(Event e)
         {
-            var seqNum = (this.ReceivedEvent as Replica.RespReplicaCommit).SeqNum;
+            var seqNum = (e as Replica.RespReplicaCommit).SeqNum;
 
             if (this.CurrSeqNum == seqNum)
             {
@@ -201,15 +203,17 @@ namespace Coyote.Examples.TwoPhaseCommit
             }
         }
 
-        private void HandleAbort()
+        private Transition HandleAbort(Event e)
         {
-            var seqNum = (this.ReceivedEvent as Replica.RespReplicaAbort).SeqNum;
+            var seqNum = (e as Replica.RespReplicaAbort).SeqNum;
             if (this.CurrSeqNum == seqNum)
             {
                 this.DoGlobalAbort();
                 this.SendEvent(this.Timer, new Timer.CancelTimerEvent());
-                this.RaiseEvent(new Unit());
+                return this.RaiseEvent(new Unit());
             }
+
+            return default;
         }
 
         private void DoGlobalAbort()

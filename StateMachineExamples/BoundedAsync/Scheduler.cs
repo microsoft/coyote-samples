@@ -40,11 +40,11 @@ namespace Coyote.Examples.BoundedAsync
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
             // Receives a configuration event containing the number of 'Process'
             // machines to create.
-            int processNum = (this.ReceivedEvent as Config).ProcessNum;
+            int processNum = (e as Config).ProcessNum;
 
             // Assert that >= 3 'Process' machines will be created.
             this.Assert(processNum >= 3, "The number of 'Process' machines to spawn must be >= 3.");
@@ -87,7 +87,7 @@ namespace Coyote.Examples.BoundedAsync
             this.Count = 0;
 
             // Transition to the 'Sync' state in the end of this action.
-            this.Goto<Sync>();
+            return this.GotoState<Sync>();
         }
 
         /// <summary>
@@ -113,7 +113,7 @@ namespace Coyote.Examples.BoundedAsync
             }
         }
 
-        private void CountReq()
+        private Transition CountReq()
         {
             this.Count++;
 
@@ -121,8 +121,10 @@ namespace Coyote.Examples.BoundedAsync
             if (this.Count == this.Processes.Length)
             {
                 this.Count = 0;
-                this.RaiseEvent(new Unit());
+                return this.RaiseEvent(new Unit());
             }
+
+            return default;
         }
     }
 }

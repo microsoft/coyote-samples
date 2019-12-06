@@ -11,8 +11,6 @@ namespace Coyote.Examples.ChainReplication
 {
     internal class ChainReplicationMaster : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public List<ActorId> Servers;
@@ -68,10 +66,6 @@ namespace Coyote.Examples.ChainReplication
 
         private class Done : Event { }
 
-        #endregion
-
-        #region fields
-
         private List<ActorId> Servers;
         private List<ActorId> Clients;
 
@@ -84,19 +78,15 @@ namespace Coyote.Examples.ChainReplication
         private int LastUpdateReceivedSucc;
         private int LastAckSent;
 
-        #endregion
-
-        #region states
-
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(WaitForFailure))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            this.Servers = (this.ReceivedEvent as Config).Servers;
-            this.Clients = (this.ReceivedEvent as Config).Clients;
+            this.Servers = (e as Config).Servers;
+            this.Clients = (e as Config).Clients;
 
             this.FailureDetector = this.CreateActor(typeof(FailureDetector),
                 new FailureDetector.Config(this.Id, this.Servers));
@@ -104,7 +94,7 @@ namespace Coyote.Examples.ChainReplication
             this.Head = this.Servers[0];
             this.Tail = this.Servers[this.Servers.Count - 1];
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEventGotoState(typeof(HeadFailed), typeof(CorrectHeadFailure))]
@@ -113,32 +103,30 @@ namespace Coyote.Examples.ChainReplication
         [OnEventDoAction(typeof(FailureDetector.FailureDetected), nameof(CheckWhichNodeFailed))]
         private class WaitForFailure : State { }
 
-        private void CheckWhichNodeFailed()
+        private Transition CheckWhichNodeFailed(Event e)
         {
             this.Assert(this.Servers.Count > 1, "All nodes have failed.");
 
-            var failedServer = (this.ReceivedEvent as FailureDetector.FailureDetected).Server;
+            var failedServer = (e as FailureDetector.FailureDetected).Server;
 
             if (this.Head.Equals(failedServer))
             {
-                this.RaiseEvent(new HeadFailed());
+                return this.RaiseEvent(new HeadFailed());
             }
             else if (this.Tail.Equals(failedServer))
             {
-                this.RaiseEvent(new TailFailed());
+                return this.RaiseEvent(new TailFailed());
             }
-            else
-            {
-                for (int i = 0; i < this.Servers.Count - 1; i++)
-                {
-                    if (this.Servers[i].Equals(failedServer))
-                    {
-                        this.FaultyNodeIndex = i;
-                    }
-                }
 
-                this.RaiseEvent(new ServerFailed());
+            for (int i = 0; i < this.Servers.Count - 1; i++)
+            {
+                if (this.Servers[i].Equals(failedServer))
+                {
+                    this.FaultyNodeIndex = i;
+                }
             }
+
+            return this.RaiseEvent(new ServerFailed());
         }
 
         [OnEntry(nameof(CorrectHeadFailureOnEntry))]
@@ -160,14 +148,14 @@ namespace Coyote.Examples.ChainReplication
             this.SendEvent(this.Head, new BecomeHead(this.Id));
         }
 
-        private void UpdateClients()
+        private Transition UpdateClients()
         {
             for (int i = 0; i < this.Clients.Count; i++)
             {
                 this.SendEvent(this.Clients[i], new Client.UpdateHeadTail(this.Head, this.Tail));
             }
 
-            this.RaiseEvent(new Done());
+            return this.RaiseEvent(new Done());
         }
 
         private void UpdateFailureDetector()
@@ -202,7 +190,7 @@ namespace Coyote.Examples.ChainReplication
         [OnEventDoAction(typeof(Success), nameof(ProcessSuccess))]
         private class CorrectServerFailure : State { }
 
-        private void CorrectServerFailureOnEntry()
+        private Transition CorrectServerFailureOnEntry()
         {
             this.Servers.RemoveAt(this.FaultyNodeIndex);
 
@@ -211,13 +199,7 @@ namespace Coyote.Examples.ChainReplication
             this.Monitor<ServerResponseSeqMonitor>(
                 new ServerResponseSeqMonitor.UpdateServers(this.Servers));
 
-            this.RaiseEvent(new FixSuccessor());
-        }
-
-        private void ProcessFixSuccessor()
-        {
-            this.SendEvent(this.Servers[this.FaultyNodeIndex], new ChainReplicationServer.NewPredecessor(
-                this.Id, this.Servers[this.FaultyNodeIndex - 1]));
+            return this.RaiseEvent(new FixSuccessor());
         }
 
         private void ProcessFixPredecessor()
@@ -226,20 +208,16 @@ namespace Coyote.Examples.ChainReplication
                 this.Servers[this.FaultyNodeIndex], this.LastAckSent, this.LastUpdateReceivedSucc));
         }
 
-        private void SetLastUpdate()
+        private Transition SetLastUpdate(Event e)
         {
-            this.LastUpdateReceivedSucc = (this.ReceivedEvent as
-                ChainReplicationServer.NewSuccInfo).LastUpdateReceivedSucc;
-            this.LastAckSent = (this.ReceivedEvent as
-                ChainReplicationServer.NewSuccInfo).LastAckSent;
-            this.RaiseEvent(new FixPredecessor());
+            this.LastUpdateReceivedSucc = (e as ChainReplicationServer.NewSuccInfo).LastUpdateReceivedSucc;
+            this.LastAckSent = (e as ChainReplicationServer.NewSuccInfo).LastAckSent;
+            return this.RaiseEvent(new FixPredecessor());
         }
 
-        private void ProcessSuccess()
+        private Transition ProcessSuccess()
         {
-            this.RaiseEvent(new Done());
+            return this.RaiseEvent(new Done());
         }
-
-        #endregion
     }
 }

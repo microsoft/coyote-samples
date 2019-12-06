@@ -42,33 +42,35 @@ namespace Coyote.Examples.MultiPaxos
 
         [Start]
         [OnEventGotoState(typeof(Local), typeof(Loop))]
-        [OnEventDoAction(typeof(Timer.Config), nameof(Configure))]
+        [OnEventDoAction(typeof(Config), nameof(Configure))]
         private class Init : State { }
 
-        private void Configure()
+        private Transition Configure(Event e)
         {
-            this.Target = (this.ReceivedEvent as Timer.Config).Target;
-            this.TimeoutValue = (this.ReceivedEvent as Timer.Config).TimeoutValue;
-            this.RaiseEvent(new Local());
+            this.Target = (e as Config).Target;
+            this.TimeoutValue = (e as Config).TimeoutValue;
+            return this.RaiseEvent(new Local());
         }
 
-        [OnEventGotoState(typeof(Timer.StartTimerEvent), typeof(TimerStarted))]
-        [IgnoreEvents(typeof(Timer.CancelTimerEvent))]
+        [OnEventGotoState(typeof(StartTimerEvent), typeof(TimerStarted))]
+        [IgnoreEvents(typeof(CancelTimerEvent))]
         private class Loop : State { }
 
         [OnEntry(nameof(TimerStartedOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(Loop))]
-        [OnEventGotoState(typeof(Timer.CancelTimerEvent), typeof(Loop))]
-        [IgnoreEvents(typeof(Timer.StartTimerEvent))]
+        [OnEventGotoState(typeof(CancelTimerEvent), typeof(Loop))]
+        [IgnoreEvents(typeof(StartTimerEvent))]
         private class TimerStarted : State { }
 
-        private void TimerStartedOnEntry()
+        private Transition TimerStartedOnEntry()
         {
             if (this.Random())
             {
-                this.SendEvent(this.Target, new Timer.TimeoutEvent(this.Id));
-                this.RaiseEvent(new Local());
+                this.SendEvent(this.Target, new TimeoutEvent(this.Id));
+                return this.RaiseEvent(new Local());
             }
+
+            return default;
         }
     }
 }

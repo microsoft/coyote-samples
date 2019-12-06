@@ -11,8 +11,6 @@ namespace Coyote.Examples.Chord
 {
     internal class Client : StateMachine
     {
-        #region events
-
         internal class Config : Event
         {
             public ActorId ClusterManager;
@@ -28,28 +26,20 @@ namespace Coyote.Examples.Chord
 
         private class Local : Event { }
 
-        #endregion
-
-        #region fields
-
         private ActorId ClusterManager;
 
         private List<int> Keys;
         private int QueryCounter;
-
-        #endregion
-
-        #region states
 
         [Start]
         [OnEntry(nameof(InitOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(Querying))]
         private class Init : State { }
 
-        private void InitOnEntry()
+        private Transition InitOnEntry(Event e)
         {
-            this.ClusterManager = (this.ReceivedEvent as Config).ClusterManager;
-            this.Keys = (this.ReceivedEvent as Config).Keys;
+            this.ClusterManager = (e as Config).ClusterManager;
+            this.Keys = (e as Config).Keys;
 
             // LIVENESS BUG: can never detect the key, and keeps looping without
             // exiting the process. Enable to introduce the bug.
@@ -57,14 +47,14 @@ namespace Coyote.Examples.Chord
 
             this.QueryCounter = 0;
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         [OnEntry(nameof(QueryingOnEntry))]
         [OnEventGotoState(typeof(Local), typeof(Waiting))]
         private class Querying : State { }
 
-        private void QueryingOnEntry()
+        private Transition QueryingOnEntry()
         {
             if (this.QueryCounter < 5)
             {
@@ -87,7 +77,7 @@ namespace Coyote.Examples.Chord
                 this.QueryCounter++;
             }
 
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
 
         private int GetNextQueryKey()
@@ -113,19 +103,17 @@ namespace Coyote.Examples.Chord
         [OnEventDoAction(typeof(ChordNode.QueryIdResp), nameof(ProcessQueryIdResp))]
         private class Waiting : State { }
 
-        private void ProcessFindSuccessorResp()
+        private void ProcessFindSuccessorResp(Event e)
         {
-            var successor = (this.ReceivedEvent as ChordNode.FindSuccessorResp).Node;
-            var key = (this.ReceivedEvent as ChordNode.FindSuccessorResp).Key;
+            var successor = (e as ChordNode.FindSuccessorResp).Node;
+            var key = (e as ChordNode.FindSuccessorResp).Key;
             this.Monitor<LivenessMonitor>(new LivenessMonitor.NotifyClientResponse(key));
             this.SendEvent(successor, new ChordNode.QueryId(this.Id));
         }
 
-        private void ProcessQueryIdResp()
+        private Transition ProcessQueryIdResp()
         {
-            this.RaiseEvent(new Local());
+            return this.RaiseEvent(new Local());
         }
-
-        #endregion
     }
 }
