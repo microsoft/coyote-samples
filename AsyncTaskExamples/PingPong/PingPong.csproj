@@ -1,8 +1,0 @@
-<Project Sdk="Microsoft.NET.Sdk" ToolsVersion="Current">
-  <Import Project="..\..\Common\build.props" />
-  <PropertyGroup>
-    <Description>The PingPong sample.</Description>
-    <AssemblyName>PingPong</AssemblyName>
-    <RootNamespace>PingPong</RootNamespace>
-  </PropertyGroup>
-</Project>

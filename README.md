@@ -1,12 +1,13 @@
 Coyote Samples
 ==============
-A collection of examples and tutorials that show how to use [Coyote](https://github.com/microsoft/coyote)
+A collection of examples and tutorials that show how to use
+[Coyote](https://github.com/microsoft/coyote)
 to build reliable asynchronous applications.
 
 There are two sets of examples using the two main Coyote programming models:
 
-- [AsyncTaskExamples](AsyncTaskExamples/README.md) - shows how to use Coyote to systematically test `C# asynchronous tasks`.
-- [StateMachineExamples](StateMachineExamples/README.md) - shows how to use the Coyote `explicit state machine model`
+- [AsyncTasks](Examples/AsyncTasks/README.md) - shows how to use Coyote to systematically test `C# asynchronous tasks`.
+- [StateMachines](Examples/StateMachines/README.md) - shows how to use the Coyote `state machine actors`
 
 # Contributing
 This project welcomes contributions and suggestions. Most contributions require you to agree to a

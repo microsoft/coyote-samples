@@ -17,9 +17,9 @@ function Invoke-ToolCommand([String]$tool, [String]$command, [String]$error_msg)
     }
 }
 
-function BuildDir([String]$dir, [String]$name) {
+function BuildProj([String]$proj, [String]$name) {
 
-  $solution = $PSScriptRoot + "\..\$dir\$dir.sln"
+  $solution = $PSScriptRoot + "\..\Examples\$proj\$proj.sln"
   Write-Host $solution
 
   Write-Comment -prefix "." -text "Building $name" -color "yellow"
@@ -33,6 +33,5 @@ function BuildDir([String]$dir, [String]$name) {
 
 # gci -r | select -exp FullName
 
-BuildDir -dir "StateMachineExamples" -name "Coyote State Machine Examples"
-
-BuildDir -dir "AsyncTaskExamples" -name "Coyote Async Task Examples"
+BuildProj -proj "AsyncTasks" -name "the Coyote asynchronous task examples"
+BuildProj -proj "StateMachines" -name "the Coyote state machine examples"

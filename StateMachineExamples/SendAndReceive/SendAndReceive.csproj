@@ -1,8 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\Common\build.props" />
-  <PropertyGroup>
-    <Description>The SendAndReceive Coyote sample.</Description>
-    <AssemblyName>SendAndReceive</AssemblyName>
-    <RootNamespace>SendAndReceive</RootNamespace>
-  </PropertyGroup>
-</Project>
