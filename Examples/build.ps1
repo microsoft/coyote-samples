@@ -19,7 +19,7 @@ function Invoke-ToolCommand([String]$tool, [String]$command, [String]$error_msg)
 
 function BuildProj([String]$proj, [String]$name) {
 
-  $solution = $PSScriptRoot + "\..\Examples\$proj\$proj.sln"
+  $solution = $PSScriptRoot + "\$proj\$proj.sln"
   Write-Host $solution
 
   Write-Comment -prefix "." -text "Building $name" -color "yellow"

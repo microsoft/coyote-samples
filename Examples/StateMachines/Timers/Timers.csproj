@@ -4,5 +4,6 @@
     <Description>Coyote sample using Timers.</Description>
     <AssemblyName>Timers</AssemblyName>
     <RootNamespace>Timers</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

@@ -4,5 +4,6 @@
     <Description>The ChainReplication sample.</Description>
     <AssemblyName>ChainReplication</AssemblyName>
     <RootNamespace>ChainReplication</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

@@ -4,5 +4,6 @@
     <Description>The PingPong sample.</Description>
     <AssemblyName>PingPong.AsyncAwait</AssemblyName>
     <RootNamespace>PingPong.AsyncAwait</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

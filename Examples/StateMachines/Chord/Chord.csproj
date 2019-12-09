@@ -4,5 +4,6 @@
     <Description>The Chord sample.</Description>
     <AssemblyName>Chord</AssemblyName>
     <RootNamespace>Chord</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

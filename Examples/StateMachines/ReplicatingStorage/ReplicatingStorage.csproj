@@ -4,5 +4,6 @@
     <Description>The ReplicatingStorage Coyote sample.</Description>
     <AssemblyName>ReplicatingStorage</AssemblyName>
     <RootNamespace>ReplicatingStorage</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

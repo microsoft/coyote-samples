@@ -4,5 +4,6 @@
     <Description>The CacheCoherence sample.</Description>
     <AssemblyName>CacheCoherence</AssemblyName>
     <RootNamespace>CacheCoherence</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

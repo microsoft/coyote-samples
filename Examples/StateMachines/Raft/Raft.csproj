@@ -4,5 +4,6 @@
     <Description>The Raft sample.</Description>
     <AssemblyName>Raft</AssemblyName>
     <RootNamespace>Raft</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

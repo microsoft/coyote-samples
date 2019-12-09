@@ -4,5 +4,6 @@
     <Description>The MultiPaxos sample.</Description>
     <AssemblyName>MultiPaxos</AssemblyName>
     <RootNamespace>MultiPaxos</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

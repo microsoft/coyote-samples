@@ -4,5 +4,6 @@
     <Description>The FailureDetector sample.</Description>
     <AssemblyName>FailureDetector</AssemblyName>
     <RootNamespace>FailureDetector</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

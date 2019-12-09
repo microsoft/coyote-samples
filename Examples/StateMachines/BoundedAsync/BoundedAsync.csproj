@@ -4,5 +4,6 @@
     <Description>The BoundedAsync sample.</Description>
     <AssemblyName>BoundedAsync</AssemblyName>
     <RootNamespace>BoundedAsync</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

@@ -4,5 +4,6 @@
     <Description>The PingPong sample.</Description>
     <AssemblyName>PingPong</AssemblyName>
     <RootNamespace>PingPong</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>

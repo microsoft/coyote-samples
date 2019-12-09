@@ -4,5 +4,6 @@
     <Description>The TwoPhaseCommit Coyote sample.</Description>
     <AssemblyName>TwoPhaseCommit</AssemblyName>
     <RootNamespace>TwoPhaseCommit</RootNamespace>
+    <OutputType>Exe</OutputType>
   </PropertyGroup>
 </Project>
