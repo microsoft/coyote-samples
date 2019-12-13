@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Common\build.props" />
-  <PropertyGroup>
-    <Description>The TwoPhaseCommit Coyote sample.</Description>
-    <AssemblyName>TwoPhaseCommit</AssemblyName>
-    <RootNamespace>TwoPhaseCommit</RootNamespace>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
-</Project>

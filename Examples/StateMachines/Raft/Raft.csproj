@@ -1,9 +1,0 @@
-﻿<Project Sdk="Microsoft.NET.Sdk">
-  <Import Project="..\..\..\Common\build.props" />
-  <PropertyGroup>
-    <Description>The Raft sample.</Description>
-    <AssemblyName>Raft</AssemblyName>
-    <RootNamespace>Raft</RootNamespace>
-    <OutputType>Exe</OutputType>
-  </PropertyGroup>
-</Project>
