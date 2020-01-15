@@ -12,30 +12,25 @@ namespace Microsoft.Coyote.Samples.HelloWorld
         private const string HelloWorld = "Hello World!";
         private const string GoodMorning = "Good Morning";
 
-        internal class SharedEntry<T>
-        {
-            public T Value = default;
-        }
+        private string Value;
 
-        public static async ControlledTask WriteWithDelayAsync<T>(SharedEntry<T> entry, T value)
+        private async ControlledTask WriteWithDelayAsync(string value)
         {
             await ControlledTask.Delay(100);
-            entry.Value = value;
+            this.Value = value;
         }
 
         public async ControlledTask RunAsync()
         {
-            SharedEntry<string> entry = new SharedEntry<string>();
-
-            ControlledTask task1 = WriteWithDelayAsync(entry, GoodMorning);
-            ControlledTask task2 = WriteWithDelayAsync(entry, HelloWorld);
-            ControlledTask task3 = WriteWithDelayAsync(entry, HelloWorld);
+            ControlledTask task1 = this.WriteWithDelayAsync(GoodMorning);
+            ControlledTask task2 = this.WriteWithDelayAsync(HelloWorld);
+            ControlledTask task3 = this.WriteWithDelayAsync(HelloWorld);
 
             await ControlledTask.WhenAll(task1, task2, task3);
 
-            Console.WriteLine(entry.Value);
+            Console.WriteLine(this.Value);
 
-            Specification.Assert(entry.Value == HelloWorld, $"Value is '{entry.Value}' instead of '{HelloWorld}'.");
+            Specification.Assert(this.Value == HelloWorld, $"Value is '{this.Value}' instead of '{HelloWorld}'.");
         }
     }
 }
