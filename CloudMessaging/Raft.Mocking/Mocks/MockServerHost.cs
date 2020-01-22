@@ -8,9 +8,8 @@ using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Samples.CloudMessaging;
 
-namespace Microsoft.Coyote.Samples.Mocking
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     /// <summary>
     /// Mock implementation of a host that wraps one of the <see cref="Server"/>
@@ -19,7 +18,7 @@ namespace Microsoft.Coyote.Samples.Mocking
     /// to communicate in-memory, so that Coyote can systematically test the
     /// Raft service logic.
     /// </summary>
-    public class MockServerHost : IServerHost, IServerManager, ICommunicationManager
+    public class MockServerHost : IServerManager
     {
         /// <summary>
         /// The Coyote runtime responsible for executing the hosted state machine.
@@ -66,12 +65,18 @@ namespace Microsoft.Coyote.Samples.Mocking
         /// </summary>
         public TimeSpan LeaderElectionPeriod => TimeSpan.FromSeconds(1);
 
+        /// <summary>
+        /// Actor id that provides access to the hosted <see cref="ClusterManager"/> state machine.
+        /// </summary>
+        private readonly ActorId ClusterManager;
+
         public MockServerHost(IActorRuntime runtime, ActorId serverProxy,
-            IEnumerable<ActorId> serverProxies, ActorId client)
+            IEnumerable<ActorId> serverProxies, ActorId client, ActorId cluster)
         {
             this.Runtime = runtime;
             this.ServerProxy = serverProxy;
             this.ServerId = serverProxy.Name;
+            this.ClusterManager = cluster;
 
             this.RemoteServers = new Dictionary<string, ActorId>();
             foreach (var server in serverProxies)
@@ -82,53 +87,18 @@ namespace Microsoft.Coyote.Samples.Mocking
             this.RemoteServerIds = this.RemoteServers.Keys.ToList();
             this.NumServers = this.RemoteServers.Count + 1;
             this.Client = client;
+        }
 
+        public virtual void Initialize()
+        {
             // Creates an instance of the Server state machine and associates
             // it with the given actor id.
-            this.Runtime.CreateActor(this.ServerProxy, typeof(Server), new SetupServerEvent(this, this));
+            this.Runtime.CreateActor(this.ServerProxy, typeof(Server), new Server.SetupServerEvent(this, this.ClusterManager));
         }
 
-        public Task RunAsync(CancellationToken cancellationToken)
+        public virtual void Start()
         {
             this.Runtime.SendEvent(this.ServerProxy, new NotifyJoinedServiceEvent());
-            return Task.CompletedTask;
-        }
-
-        public virtual Task BroadcastVoteRequestsAsync(int term, int lastLogIndex, int lastLogTerm)
-        {
-            foreach (var server in this.RemoteServers.Values)
-            {
-                this.Runtime.SendEvent(server, new VoteRequestEvent(term, this.ServerId, lastLogIndex, lastLogTerm));
-            }
-
-            return Task.CompletedTask;
-        }
-
-        public Task SendVoteResponseAsync(string targetId, int term, bool voteGranted)
-        {
-            this.Runtime.SendEvent(this.RemoteServers[targetId], new VoteResponseEvent(term, voteGranted));
-            return Task.CompletedTask;
-        }
-
-        public Task SendAppendEntriesRequestAsync(string targetId, int term, int prevLogIndex,
-            int prevLogTerm, List<Log> entries, int leaderCommit, string command)
-        {
-            this.Runtime.SendEvent(this.RemoteServers[targetId], new AppendEntriesRequestEvent(
-                term, this.ServerId, prevLogIndex, prevLogTerm, entries, leaderCommit, command));
-            return Task.CompletedTask;
-        }
-
-        public Task SendAppendEntriesResponseAsync(string targetId, int term, bool success, string command)
-        {
-            this.Runtime.SendEvent(this.RemoteServers[targetId], new AppendEntriesResponseEvent(
-                term, success, this.ServerId, command));
-            return Task.CompletedTask;
-        }
-
-        public Task SendClientResponseAsync(string command)
-        {
-            this.Runtime.SendEvent(this.Client, new ClientResponseEvent(command));
-            return Task.CompletedTask;
         }
 
         public void NotifyElectedLeader(int term)

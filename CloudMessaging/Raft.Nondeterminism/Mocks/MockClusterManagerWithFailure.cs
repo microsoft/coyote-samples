@@ -5,46 +5,40 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Samples.CloudMessaging;
-using Microsoft.Coyote.Samples.Mocking;
 
-namespace Microsoft.Coyote.Samples.Nondeterminism
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     /// <summary>
-    /// Mock implementation of a server host that introduces controlled
+    /// Mock implementation of a ClusterManager that introduces controlled
     /// nondeterminism to exercise the specification that no more than
     /// one leader can be elected in the same term.
     /// </summary>
-    public class MockServerHostWithFailure : MockServerHost
+    public class MockClusterManagerWithFailure : MockClusterManager
     {
-        public MockServerHostWithFailure(IActorRuntime runtime, ActorId serverProxy,
-            IEnumerable<ActorId> serverProxies, ActorId client)
-            : base(runtime, serverProxy, serverProxies, client)
-        {
-        }
-
         /// <summary>
         /// We override this method to introduce controlled nondeterminism by invoking
         /// <see cref="IActorRuntime.Random"/> method. The returned random values are
         /// controlled by the runtime durig testing and systematically explored with
         /// other combinations of nondeterminism to find bugs.
         /// </summary>
-        public override Task BroadcastVoteRequestsAsync(int term, int lastLogIndex, int lastLogTerm)
+        public override async Task BroadcastVoteRequestAsync(Event e)
         {
-            foreach (var server in this.RemoteServers.Values)
+            var request = e as VoteRequestEvent;
+
+            foreach (var server in this.Servers.Values)
             {
-                this.Runtime.SendEvent(server, new VoteRequestEvent(term, this.ServerId, lastLogIndex, lastLogTerm));
-                if (this.Runtime.Random())
+                this.SendEvent(server, request);
+                if (this.Random())
                 {
                     // Nondeterministically send a duplicate vote to exercise the corner case
                     // where networking communication sends duplicate messages. This can cause
                     // a Raft server to count duplicate votes, leading to more than one leader
                     // being elected at the same term.
-                    this.Runtime.SendEvent(server, new VoteRequestEvent(term, this.ServerId, lastLogIndex, lastLogTerm));
+                    this.SendEvent(server, request);
                 }
             }
 
-            return Task.CompletedTask;
+            await Task.CompletedTask;
         }
     }
 }

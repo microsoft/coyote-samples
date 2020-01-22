@@ -5,15 +5,15 @@ using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.TestingServices;
 using Microsoft.Coyote.Threading.Tasks;
 
-namespace Microsoft.Coyote.Samples.Mocking
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     public static class Program
     {
         [Test]
-        public static async ControlledTask Execute(IActorRuntime runtime)
+        public static void Execute(IActorRuntime runtime)
         {
-            var testScenario = new RaftTestScenario();
-            await testScenario.RunTestAsync(runtime, 5, 2);
+            var testScenario = new RaftTestScenarioWithFailure();
+            testScenario.RunTest(runtime, 5, 2);
         }
     }
 }

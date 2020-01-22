@@ -37,6 +37,16 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         TimeSpan LeaderElectionPeriod { get; }
 
         /// <summary>
+        /// Initialize the server.
+        /// </summary>
+        void Initialize();
+
+        /// <summary>
+        /// Start the server.
+        /// </summary>
+        void Start();
+
+        /// <summary>
         /// Notifies the manager that the server was elected as leader.
         /// </summary>
         void NotifyElectedLeader(int term);

@@ -14,9 +14,13 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         [DataMember]
         public readonly string Command;
 
-        public ClientResponseEvent(string command)
+        [DataMember]
+        public readonly string Server;
+
+        public ClientResponseEvent(string command, string server)
         {
             this.Command = command;
+            this.Server = server;
         }
     }
 }

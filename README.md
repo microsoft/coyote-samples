@@ -9,10 +9,13 @@ This repository contains a series of samples that highlight how to use
 - [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple Coyote application using asynchronous tasks, and then run and systematically test it locally.
 - [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it locally.
 - [HelloWorldStateMachines](./HelloWorldStateMachines): demonstrates how to write a simple Coyote application using state machines, and then run and systematically test it locally.
-- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the Azure Service Bus cloud messaging framework.
-- [Mocking](./Mocking): demonstrates how to use mocks to systematically test in-memory the [CloudMessaging](./CloudMessaging) sample application.
-- [Nondeterminism](./Nondeterminism): demonstrates how to introduce controlled nondeterminism in your Coyote tests to systematically exercise corner-cases.
-- [TimersActors](./TimersActors): demonstrates how to use the timer API of the Coyote actor programming model.
+- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
+This sample is made up of the following parts:
+    - [Raft](./CloudMessaging/Raft) - a core C# class library that implements the [Raft Consensus Algorithm](https://raft.github.io/) using the Coyote [Actor Programming Model](https://microsoft.github.io/coyote/programming-models/actors/overview).
+    - [Raft.Azure](./CloudMessaging/Raft.Azure) - a C# executable that shows how to run Coyote messages through an [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/).
+    - [Raft.Mocking](./CloudMessaging/Raft.Mocking): demonstrates how to use mocks to systematically test in-memory the [CloudMessaging](./CloudMessaging) sample application.
+    - [Raft.Nondeterminism](./CloudMessaging/Raft.Nondeterminism): demonstrates how to introduce controlled nondeterminism in your Coyote tests to systematically exercise corner-cases.
+- [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
 - [FailoverActors](./FailoverActors): demonstrates how to systematically test the failover logic in your Coyote actor applications.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:

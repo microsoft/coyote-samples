@@ -4,9 +4,9 @@
     <Description>Raft on AKS tutorial.</Description>
     <AssemblyName>Raft</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
-    <OutputType>Exe</OutputType>
-    <OutputPath>..\bin\</OutputPath>
+    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
+    <OutputType>Library</OutputType>
+    <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -21,7 +21,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Azure.ServiceBus" Version="4.1.1" />
     <PackageReference Include="Newtonsoft.Json" Version="12.0.3" />
   </ItemGroup>
 </Project>

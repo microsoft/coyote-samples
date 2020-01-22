@@ -9,8 +9,14 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
     /// Response to an append entries request.
     /// </summary>
     [DataContract]
-    public class AppendEntriesResponseEvent : Event
+    public class AppendLogEntriesResponseEvent : Event
     {
+        /// <summary>
+        /// The id of the server we are sending this message to.
+        /// </summary>
+        [DataMember]
+        public readonly string To;
+
         /// <summary>
         /// The current term for the leader to update itself.
         /// </summary>
@@ -27,7 +33,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// The server id so leader can update its state.
         /// </summary>
         [DataMember]
-        public readonly string ServerId;
+        public readonly string SenderId;
 
         /// <summary>
         /// The client request command, if any.
@@ -35,11 +41,12 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         [DataMember]
         public readonly string Command;
 
-        public AppendEntriesResponseEvent(int term, bool success, string serverId, string command)
+        public AppendLogEntriesResponseEvent(string to, string senderId, int term, bool success, string command)
         {
+            this.To = to;
             this.Term = term;
             this.Success = success;
-            this.ServerId = serverId;
+            this.SenderId = senderId;
             this.Command = command;
         }
     }

@@ -4,10 +4,8 @@
 using System.Collections.Generic;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Samples.CloudMessaging;
-using Microsoft.Coyote.Samples.Mocking;
 
-namespace Microsoft.Coyote.Samples.Nondeterminism
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     /// <summary>
     /// Tests the Raft service implementation by creating, hosting and executing
@@ -19,8 +17,7 @@ namespace Microsoft.Coyote.Samples.Nondeterminism
         /// <summary>
         /// Creates a new server host.
         /// </summary>
-        protected override IServerHost CreateServerHost(IActorRuntime runtime, ActorId serverProxy,
-            IEnumerable<ActorId> serverProxies, ActorId client) =>
-            new MockServerHostWithFailure(runtime, serverProxy, serverProxies, client);
+        protected override ActorId CreateClusterManager(IActorRuntime runtime) =>
+            runtime.CreateActor(typeof(MockClusterManagerWithFailure));
     }
 }

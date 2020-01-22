@@ -4,7 +4,7 @@
 using System.Collections.Generic;
 using Microsoft.Coyote.Specifications;
 
-namespace Microsoft.Coyote.Samples.Mocking
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     /// <summary>
     /// Monitor that checks the safety specification that

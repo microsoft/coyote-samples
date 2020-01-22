@@ -12,6 +12,12 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
     public class VoteResponseEvent : Event
     {
         /// <summary>
+        /// The id of the server to send this event to.
+        /// </summary>
+        [DataMember]
+        public readonly string TargetId;
+
+        /// <summary>
         /// The current term for the candidate to update itself.
         /// </summary>
         [DataMember]
@@ -23,8 +29,9 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         [DataMember]
         public readonly bool VoteGranted;
 
-        public VoteResponseEvent(int term, bool voteGranted)
+        public VoteResponseEvent(string targetId, int term, bool voteGranted)
         {
+            this.TargetId = targetId;
             this.Term = term;
             this.VoteGranted = voteGranted;
         }

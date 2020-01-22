@@ -11,8 +11,14 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
     /// to provide a form of heartbeat.
     /// </summary>
     [DataContract]
-    public class AppendEntriesRequestEvent : Event
+    public class AppendLogEntriesRequestEvent : Event
     {
+        /// <summary>
+        /// The id of server we are sending this message to.
+        /// </summary>
+        [DataMember]
+        public readonly string To;
+
         /// <summary>
         /// The leaders term.
         /// </summary>
@@ -55,9 +61,10 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         [DataMember]
         public readonly string Command;
 
-        public AppendEntriesRequestEvent(int term, string leaderId, int prevLogIndex,
+        public AppendLogEntriesRequestEvent(string serverId, string leaderId, int term, int prevLogIndex,
             int prevLogTerm, List<Log> entries, int leaderCommit, string command)
         {
+            this.To = serverId;
             this.Term = term;
             this.LeaderId = leaderId;
             this.PrevLogIndex = prevLogIndex;

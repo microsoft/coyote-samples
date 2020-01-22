@@ -8,30 +8,33 @@ using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
 using Microsoft.Coyote.Samples.CloudMessaging;
 
-namespace Microsoft.Coyote.Samples.Mocking
+namespace Microsoft.Coyote.Samples.CloudMessaging
 {
     /// <summary>
-    /// Mock implementation of a client that sends requests to
-    /// Raft server instances.
+    /// Mock implementation of a client that sends a specified number of requests to
+    /// the Raft cluster.
     /// </summary>
     [OnEventDoAction(typeof(ClientResponseEvent), nameof(HandleResponse))]
     [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimeout))]
-    internal class MockClient : Actor
+    public class MockClient : Actor
     {
-        internal class SetupEvent : Event
+        public class SetupEvent : Event
         {
-            internal readonly IEnumerable<ActorId> Servers;
+            internal readonly ActorId Cluster;
             internal readonly int NumRequests;
+            internal readonly TimeSpan RetryTimeout;
+            public TaskCompletionSource<bool> Finished;
 
-            internal SetupEvent(IEnumerable<ActorId> servers, int numRequests)
+            public SetupEvent(ActorId cluster, int numRequests, TimeSpan retryTimeout)
             {
-                this.Servers = servers;
+                this.Cluster = cluster;
                 this.NumRequests = numRequests;
+                this.RetryTimeout = retryTimeout;
+                this.Finished = new TaskCompletionSource<bool>();
             }
         }
 
-        private IEnumerable<ActorId> Servers;
-        private int NumRequests;
+        private SetupEvent ClientInfo;
         private int NumResponses;
 
         private string NextCommand => $"request-{this.NumResponses}";
@@ -39,8 +42,7 @@ namespace Microsoft.Coyote.Samples.Mocking
         protected override Task OnInitializeAsync(Event initialEvent)
         {
             var setup = initialEvent as SetupEvent;
-            this.Servers = setup.Servers;
-            this.NumRequests = setup.NumRequests;
+            this.ClientInfo = setup;
             this.NumResponses = 0;
 
             // Start by sending the first request.
@@ -55,12 +57,7 @@ namespace Microsoft.Coyote.Samples.Mocking
 
         private void SendNextRequest()
         {
-            foreach (var server in this.Servers)
-            {
-                // We naively sent the request to all servers, but this could be optimized
-                // by providing an intermediate "service" mock actor that redirects events.
-                this.SendEvent(server, new ClientRequestEvent(this.NextCommand));
-            }
+            this.SendEvent(this.ClientInfo.Cluster, new ClientRequestEvent(this.NextCommand));
 
             this.Logger.WriteLine($"<Client> sent {this.NextCommand}.");
         }
@@ -70,13 +67,14 @@ namespace Microsoft.Coyote.Samples.Mocking
             var response = e as ClientResponseEvent;
             if (response.Command == this.NextCommand)
             {
-                this.Logger.WriteLine($"<Client> received response for {response.Command}.");
+                this.Logger.WriteLine($"<Client> received response for {response.Command} from  {response.Server}.");
                 this.NumResponses++;
 
-                if (this.NumResponses == this.NumRequests)
+                if (this.NumResponses == this.ClientInfo.NumRequests)
                 {
                     // Halt the client, as all responses have been received.
                     this.Halt();
+                    this.ClientInfo.Finished.SetResult(true);
                 }
                 else
                 {

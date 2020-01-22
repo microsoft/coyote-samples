@@ -11,8 +11,6 @@ Write-Comment -prefix "." -text "Building the Coyote samples" -color "yellow"
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldTasks\HelloWorldTasks.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldActors\HelloWorldActors.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CloudMessaging\CloudMessaging.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Mocking\Mocking.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Nondeterminism\Nondeterminism.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Timers\Timers.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Monitors\Monitors.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachine\CoffeeMachine.sln" -config $configuration

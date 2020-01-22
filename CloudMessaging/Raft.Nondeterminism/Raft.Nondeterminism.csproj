@@ -2,10 +2,10 @@
   <Import Project="..\..\Common\build.props" />
   <PropertyGroup>
     <Description>Raft on AKS tutorial.</Description>
-    <AssemblyName>Raft.Mocking</AssemblyName>
-    <RootNamespace>Microsoft.Coyote.Samples.Mocking</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2</TargetFrameworks>
-    <OutputPath>..\bin\</OutputPath>
+    <AssemblyName>Raft.Nondeterminism</AssemblyName>
+    <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
+    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
+    <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
@@ -20,6 +20,7 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <ProjectReference Include="..\..\CloudMessaging\Raft\Raft.csproj" />
+    <ProjectReference Include="..\Raft\Raft.csproj" />
+    <ProjectReference Include="..\Raft.Mocking\Raft.Mocking.csproj" />
   </ItemGroup>
 </Project>
