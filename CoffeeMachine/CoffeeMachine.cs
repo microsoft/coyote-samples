@@ -22,7 +22,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         private int ShotsRequested;
         private double PreviousCoffeeLevel;
         private double PreviousShotCount;
-        public static bool Halted;
 
         internal class ConfigEvent : Event
         {
@@ -53,6 +52,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         internal class TerminateEvent : Event { }
 
+        internal class HaltedEvent : Event { }
+
         [Start]
         [OnEntry(nameof(OnInit))]
         [DeferEvents(typeof(MakeCoffeeEvent))]
@@ -63,7 +64,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         {
             if (e is ConfigEvent configEvent)
             {
-                Halted = false;
                 this.WriteLine("<CoffeeMachine> initializing...");
                 this.Sensors = configEvent.Sensors;
                 // register this class as a client of the sensors.
@@ -471,7 +471,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             this.WriteLine("<CoffeeMachine> # Coffee Machine Halted                                         #");
             this.WriteLine("<CoffeeMachine> #################################################################");
             Console.WriteLine();
-            Halted = true;
+            this.SendEvent(this.Client, new HaltedEvent());
             return base.OnHaltAsync(e);
         }
 

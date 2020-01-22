@@ -12,7 +12,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
     /// This class is designed to test how the CoffeeMachine handles "failover" or specifically,
     /// can it correctly "restart after failure" without getting into a bad state.  The CoffeeMachine
     /// will be randomly terminated.  The only thing the CoffeeMachine can depend on is
-    /// the persistence of the state provided by the Sensors.
+    /// the persistence of the state provided by the MockSensors.
     /// </summary>
     internal class FailoverDriver : StateMachine
     {
@@ -23,7 +23,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         private int MaxSteps;
         private int HaltSteps;
         private TimerInfo HaltTimer;
-        private bool Halted;
 
         internal class ConfigEvent : Event
         {
@@ -60,8 +59,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         internal void OnStartTest()
         {
-            this.Halted = false;
-
             // Create a new CoffeeMachine instance
             this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.SensorsId));
 
@@ -82,62 +79,53 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             }
         }
 
-        private Transition HandleTimer(Event e)
+        private Transition HandleTimer()
         {
-            if (this.Halted)
+            if (this.HaltSteps < MockSensors.Steps)
             {
-                // we are waiting for coffee machine to be really halted.
-                if (CoffeeMachine.Halted)
-                {
-                    // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
-
-                    if (this.HaltTimer != null)
-                    {
-                        this.StopTimer(this.HaltTimer);
-                        this.HaltTimer = null;
-                    }
-
-                    return this.GotoState<Stopped>();
-                }
+                return this.GotoState<Stop>();
             }
-            else if (this.HaltSteps < MockSensors.Steps)
+
+            return default;
+        }
+
+        internal Transition OnStopTest(Event e)
+        {
+            if (this.HaltTimer != null)
             {
-                return this.OnStopTest(e);
+                this.StopTimer(this.HaltTimer);
+                this.HaltTimer = null;
+            }
+
+            if (e is CoffeeMachine.CoffeeCompletedEvent)
+            {
+                this.MaxSteps = MockSensors.Steps;
+                this.WriteLine("<FailoverDriver> Coffee completed in {0} steps", this.MaxSteps);
+                MockSensors.Steps = 0;
+                return this.GotoState<Stopped>();
+            }
+            else
+            {
+                // Halt the CoffeeMachine.  HaltEvent is async and we must ensure the
+                // CoffeeMachine is really halted before we create a new one because MockSensors
+                // will get confused if two CoffeeMachines are running at the same time.
+                // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
+                // to terminate, and it sends back a HaltedEvent when it really has been halted.
+                this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
             }
 
             return default;
         }
 
         [OnEntry(nameof(OnStopTest))]
-        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimer))]
+        [OnEventDoAction(typeof(CoffeeMachine.HaltedEvent), nameof(OnHalted))]
         [IgnoreEvents(typeof(CoffeeMachine.CoffeeCompletedEvent))]
         internal class Stop : State { }
 
-        internal Transition OnStopTest(Event e)
+        internal Transition OnHalted()
         {
-            if (e is CoffeeMachine.CoffeeCompletedEvent)
-            {
-                this.MaxSteps = MockSensors.Steps;
-                this.WriteLine("<FailoverDriver> Coffee completed in {0} steps", this.MaxSteps);
-                MockSensors.Steps = 0;
-            }
-
-            if (!this.Halted)
-            {
-                // Halt the CoffeeMachine.  The failover test is then designed to check that
-                // when we recreate a new CoffeeMachine it is able to pick up with the current
-                // state of the sensors without getting confused.
-                this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
-                this.Halted = true;
-
-                // need a timer to wait for coffee machine to be actually halted.
-                if (this.HaltTimer == null)
-                {
-                    this.HaltTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1));
-                }
-            }
-
-            return default;
+            // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
+            return this.GotoState<Stopped>();
         }
 
         [OnEntry(nameof(OnStopped))]
