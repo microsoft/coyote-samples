@@ -21,7 +21,6 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Coyote" Version="1.0.0-rc7" />
     <PackageReference Include="System.Collections" Version="4.3.0" />
   </ItemGroup>
 </Project>

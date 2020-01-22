@@ -15,5 +15,6 @@ Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Mocking\Mocking.sln"
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Nondeterminism\Nondeterminism.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Timers\Timers.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Monitors\Monitors.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachine\CoffeeMachine.sln" -config $configuration
 
 Write-Comment -prefix "." -text "Successfully built the Coyote samples" -color "green"

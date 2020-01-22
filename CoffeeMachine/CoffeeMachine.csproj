@@ -1,10 +1,10 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\build.props" />
   <PropertyGroup>
-    <Description>The HelloWorldTasks sample</Description>
-    <AssemblyName>HelloWorldTasks</AssemblyName>
-    <RootNamespace>Microsoft.Coyote.Samples.HelloWorld</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2;net47;net46</TargetFrameworks>
+    <Description>The HelloWorldActors sample</Description>
+    <AssemblyName>CoffeeMachine</AssemblyName>
+    <RootNamespace>Microsoft.Coyote.Samples.CoffeeMachine</RootNamespace>
+    <TargetFrameworks>net47;netcoreapp2.2;net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
@@ -20,4 +20,7 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
+  <ItemGroup>
+    <PackageReference Include="System.Collections" Version="4.3.0" />
+  </ItemGroup>
 </Project>
