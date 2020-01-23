@@ -16,7 +16,7 @@ This sample is made up of the following parts:
     - [Raft.Mocking](./CloudMessaging/Raft.Mocking): demonstrates how to use mocks to systematically test in-memory the [CloudMessaging](./CloudMessaging) sample application.
     - [Raft.Nondeterminism](./CloudMessaging/Raft.Nondeterminism): demonstrates how to introduce controlled nondeterminism in your Coyote tests to systematically exercise corner-cases.
 - [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
-- [FailoverActors](./FailoverActors): demonstrates how to systematically test the failover logic in your Coyote actor applications.
+- [Failover Coffee Machine Example](./CoffeeMachine): demonstrates how to systematically test the failover logic in your Coyote actor applications.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```

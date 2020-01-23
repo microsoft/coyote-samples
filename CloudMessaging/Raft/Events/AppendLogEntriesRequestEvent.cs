@@ -14,7 +14,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
     public class AppendLogEntriesRequestEvent : Event
     {
         /// <summary>
-        /// The id of server we are sending this message to.
+        /// The id of the server we are sending this message to.
         /// </summary>
         [DataMember]
         public readonly string To;

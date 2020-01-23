@@ -471,7 +471,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             this.WriteLine("<CoffeeMachine> # Coffee Machine Halted                                         #");
             this.WriteLine("<CoffeeMachine> #################################################################");
             Console.WriteLine();
-            this.SendEvent(this.Client, new HaltedEvent());
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new HaltedEvent());
+            }
+
             return base.OnHaltAsync(e);
         }
 
