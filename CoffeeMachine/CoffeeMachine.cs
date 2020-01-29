@@ -26,21 +26,21 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         internal class ConfigEvent : Event
         {
             public ActorId Sensors;
+            public ActorId Client;
 
-            public ConfigEvent(ActorId sensors)
+            public ConfigEvent(ActorId sensors, ActorId client)
             {
                 this.Sensors = sensors;
+                this.Client = client;
             }
         }
 
         internal class MakeCoffeeEvent : Event
         {
-            public ActorId Sender;
             public int Shots;
 
-            public MakeCoffeeEvent(ActorId sender, int shots)
+            public MakeCoffeeEvent(int shots)
             {
-                this.Sender = sender;
                 this.Shots = shots;
             }
         }
@@ -65,6 +65,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             if (e is ConfigEvent configEvent)
             {
                 this.WriteLine("<CoffeeMachine> initializing...");
+                this.Client = configEvent.Client;
                 this.Sensors = configEvent.Sensors;
                 // register this class as a client of the sensors.
                 this.SendEvent(this.Sensors, new RegisterClientEvent(this.Id));
@@ -237,7 +238,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                     }
                 }
 
-                this.WriteLine("<CoffeeMachine> Coffee machine is warming up ({0} degrees)...", this.WaterTemperature);
+                this.WriteLine("<CoffeeMachine> Coffee machine is warming up ({0} degrees)...", (int)this.WaterTemperature);
             }
 
             return default;
@@ -261,7 +262,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         {
             if (e is MakeCoffeeEvent mc)
             {
-                this.Client = mc.Sender;
                 this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
                 Console.WriteLine($"<CoffeeMachine> Coffee requested, shots={mc.Shots}");
                 this.ShotsRequested = mc.Shots;
@@ -340,11 +340,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         {
             this.WriteLine("<CoffeeMachine> hopper is empty!");
             this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
-            if (this.Client != null)
-            {
-                this.SendEvent(this.Client, new CoffeeCompletedEvent() { Error = true });
-            }
-
             return this.GotoState<RefillRequired>();
         }
 
@@ -394,11 +389,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             this.WriteLine("<CoffeeMachine> Water is empty!");
             // turn off the water pump
             this.SendEvent(this.Sensors, new ShotButtonEvent(false));
-            if (this.Client != null)
-            {
-                this.SendEvent(this.Client, new CoffeeCompletedEvent() { Error = true });
-            }
-
             return this.GotoState<RefillRequired>();
         }
 
@@ -433,11 +423,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         }
 
         [OnEntry(nameof(OnRefillRequired))]
+        [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
         [IgnoreEvents(typeof(MakeCoffeeEvent), typeof(WaterLevelEvent), typeof(HopperLevelEvent), typeof(DoorOpenEvent), typeof(PortaFilterCoffeeLevelEvent))]
         private class RefillRequired : State { }
 
         private void OnRefillRequired()
         {
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new CoffeeCompletedEvent() { Error = true });
+            }
+
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             this.WriteLine("<CoffeeMachine> Coffee machine needs manual refilling of water and/or coffee beans!");
         }
@@ -448,6 +444,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         private void OnError()
         {
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new CoffeeCompletedEvent() { Error = true });
+            }
+
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             this.WriteLine("<CoffeeMachine> Coffee machine needs fixing!");
         }

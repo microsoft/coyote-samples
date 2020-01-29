@@ -20,8 +20,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         private ActorId CoffeeMachineId;
         private bool RunForever;
         private int Iterations;
-        private int MaxSteps;
-        private int HaltSteps;
         private TimerInfo HaltTimer;
 
         internal class ConfigEvent : Event
@@ -59,34 +57,24 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         internal void OnStartTest()
         {
+            this.WriteLine("<FailoverDriver> #################################################################");
+            this.WriteLine("<FailoverDriver> starting new CoffeeMachine.");
             // Create a new CoffeeMachine instance
-            this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.SensorsId));
+            this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.SensorsId, this.Id));
 
             // Request a coffee!
             var shots = this.RandomInteger(3) + 1;
-            this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.MakeCoffeeEvent(this.Id, shots));
+            this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.MakeCoffeeEvent(shots));
 
             // Setup a timer to randomly kill the coffee machine.   When the timer fires
             // we will restart the coffee machine and this is testing that the machine can
             // recover gracefully when that happens.
-            if (this.MaxSteps > 0)
-            {
-                int steps = this.RandomInteger(this.MaxSteps * 9 / 8);
-                MockSensors.Steps = 0;
-                this.WriteLine("<FailoverDriver> Test will halt in {0} steps", steps);
-                this.HaltSteps = steps;
-                this.HaltTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1));
-            }
+            this.HaltTimer = this.StartTimer(TimeSpan.FromSeconds(this.RandomInteger(7) + 1));
         }
 
         private Transition HandleTimer()
         {
-            if (this.HaltSteps < MockSensors.Steps)
-            {
-                return this.GotoState<Stop>();
-            }
-
-            return default;
+            return this.GotoState<Stop>();
         }
 
         internal Transition OnStopTest(Event e)
@@ -97,11 +85,19 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                 this.HaltTimer = null;
             }
 
-            if (e is CoffeeMachine.CoffeeCompletedEvent)
+            if (e is CoffeeMachine.CoffeeCompletedEvent ce)
             {
-                this.MaxSteps = MockSensors.Steps;
-                this.WriteLine("<FailoverDriver> Coffee completed in {0} steps", this.MaxSteps);
-                MockSensors.Steps = 0;
+                if (ce.Error)
+                {
+                    this.WriteLine("<FailoverDriver> CoffeeMachine reported an error.");
+                    this.WriteLine("<FailoverDriver> Test is complete, press ENTER to continue...");
+                    this.RunForever = false; // no point trying to make more coffee.
+                }
+                else
+                {
+                    this.WriteLine("<FailoverDriver> CoffeeMachine completed the job.");
+                }
+
                 return this.GotoState<Stopped>();
             }
             else
@@ -111,6 +107,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                 // will get confused if two CoffeeMachines are running at the same time.
                 // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
                 // to terminate, and it sends back a HaltedEvent when it really has been halted.
+                this.WriteLine("<FailoverDriver> forcing termination of CoffeeMachine.");
                 this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
             }
 

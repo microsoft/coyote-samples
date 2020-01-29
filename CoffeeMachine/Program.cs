@@ -19,6 +19,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             IActorRuntime runtime = ActorRuntimeFactory.Create(); // Configuration.Create().WithVerbosityEnabled());
             Execute(runtime);
             Console.ReadLine();
+            Console.WriteLine("User cancelled the test by pressing ENTER");
         }
 
         [Microsoft.Coyote.TestingServices.Test]

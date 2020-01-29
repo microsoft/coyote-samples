@@ -150,7 +150,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
         private TimerInfo ShotTimer;
         private TimerInfo HopperLevelTimer;
         public bool RunSlowly;
-        public static int Steps;
 
         internal class ConfigEvent : Event
         {
@@ -459,12 +458,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
             // turn off the water.
             this.ShotButton = false;
-        }
-
-        protected override Task OnEventHandledAsync(Event e)
-        {
-            Steps++;
-            return base.OnEventHandledAsync(e);
         }
     }
 }
