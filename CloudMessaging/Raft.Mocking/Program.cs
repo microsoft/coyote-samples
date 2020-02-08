@@ -3,7 +3,6 @@
 
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.TestingServices;
-using Microsoft.Coyote.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {

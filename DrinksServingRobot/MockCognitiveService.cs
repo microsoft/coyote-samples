@@ -33,6 +33,11 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
     {
         private const double WorkTime = 1.5;
 
+        internal class RecognitionTimerEvent : TimerElapsedEvent
+        {
+            public ActorId ClientId;
+        }
+
         [Start]
         [OnEntry(nameof(OnInit))]
         [DeferEvents(typeof(RecognizeDrinksClientEvent))]
@@ -45,7 +50,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         }
 
         [OnEventDoAction(typeof(RecognizeDrinksClientEvent), nameof(FindADrinksClient))]
-        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(OnTick))]
+        [OnEventDoAction(typeof(RecognitionTimerEvent), nameof(OnTick))]
         internal class Active : State { }
 
         private void FindADrinksClient(Event e)
@@ -53,15 +58,15 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (e is RecognizeDrinksClientEvent re)
             {
                 // Simulate the fact that this service can take some time.
-                this.StartTimer(TimeSpan.FromSeconds(WorkTime), re.ClientId);
+                this.StartTimer(TimeSpan.FromSeconds(WorkTime), new RecognitionTimerEvent() { ClientId = re.ClientId });
             }
         }
 
         private void OnTick(Event e)
         {
-            if (e is TimerElapsedEvent te)
+            if (e is RecognitionTimerEvent te)
             {
-                var clientId = te.Info.Payload as ActorId;
+                var clientId = te.ClientId;
                 var clientLocation = Utilities.GetRandomLocation(this.RandomInteger, 2, 2, 30, 30);
                 var personType = Utilities.GetRandomPersonType(this.RandomInteger);
                 var clientDetailsEvent = new DrinksClientDetailsEvent(new ClientDetails(personType, clientLocation));

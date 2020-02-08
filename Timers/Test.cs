@@ -12,6 +12,7 @@ namespace Coyote.Examples.Timers
         public static void Main()
         {
             // Optional: increases verbosity level to see the Coyote runtime log.
+            // var configuration = Configuration.Create();
             var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
@@ -21,8 +22,7 @@ namespace Coyote.Examples.Timers
             Execute(runtime);
 
             // The Coyote runtime executes asynchronously, so we wait
-            // to not terminate the process.
-            Console.WriteLine("Press Enter to terminate...");
+            // here until user presses ENTER key before terminating the program.
             Console.ReadLine();
         }
 

@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.Coyote.Specifications;
-using Microsoft.Coyote.Threading.Tasks;
+using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.HelloWorld
 {

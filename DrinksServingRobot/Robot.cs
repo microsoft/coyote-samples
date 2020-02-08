@@ -30,15 +30,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         internal const int ServingDuration = 2;
         internal const int RetreatingDuration = 1;
 
-        private readonly Dictionary<string, TimerInfo> Timers = new Dictionary<string, TimerInfo>
-        {
-            { "MoveTimer", null }
-        };
-
-        private readonly Dictionary<string, Event> TimerSpecificEvents = new Dictionary<string, Event>
-        {
-            { "MoveTimer", new MoveTimerElapsedEvent() }
-        };
+        private readonly Dictionary<string, TimerInfo> Timers = new Dictionary<string, TimerInfo>();
 
         internal class ConfigEvent : Event
         {
@@ -58,13 +50,12 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         internal class NavigatorResetEvent : Event { }
 
-        internal class MoveTimerElapsedEvent : Event { }
+        internal class MoveTimerElapsedEvent : TimerElapsedEvent { }
 
         internal class CompletedEvent : Event { }
 
         [Start]
         [OnEntry(nameof(OnInit))]
-        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(DispatchTimer))]
         [OnEventDoAction(typeof(Navigator.RegisterNavigatorEvent), nameof(OnSetNavigator))]
         [DeferEvents(typeof(Navigator.DrinkOrderProducedEvent))]
         internal class Init : State { }
@@ -113,14 +104,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             return default;
         }
 
-        private void DispatchTimer(Event e)
-        {
-            if (e is TimerElapsedEvent tee)
-            {
-                this.SendEvent(this.Id, this.TimerSpecificEvents[(string)tee.Info.Payload]);
-            }
-        }
-
         [OnEntry(nameof(OnInitActive))]
         [OnEventGotoState(typeof(Navigator.DrinkOrderProducedEvent), typeof(ExecutingOrder))]
         [OnEventDoAction(typeof(Navigator.DrinkOrderConfirmedEvent), nameof(OnDrinkOrderConfirmed))]
@@ -135,7 +118,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void OnDrinkOrderConfirmed()
         {
-            // this.DrinkOrderConfirmed = true; // this is where it really belongs.
+            this.DrinkOrderConfirmed = true;
             this.SendEvent(this.CreatorId, new RobotReadyEvent());
         }
 
@@ -184,8 +167,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (route != null)
             {
                 this.Route = route;
-                this.DrinkOrderConfirmed = false;
-                this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), "MoveTimer");
+                this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), new MoveTimerElapsedEvent());
             }
 
             return this.GotoState<MovingOnRoute>();
@@ -220,7 +202,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.Route.RemoveAt(0);
                 this.MoveTo(nextDestination);
 
-                this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), "MoveTimer");
+                this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), new MoveTimerElapsedEvent());
                 nextState = default;
             }
 
@@ -235,10 +217,10 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void DestroyTimer(string name)
         {
-            if (this.Timers[name] != null)
+            if (this.Timers.TryGetValue(name,  out TimerInfo info))
             {
-                this.StopTimer(this.Timers[name]);
-                this.Timers[name] = null;
+                this.StopTimer(info);
+                this.Timers.Remove(name);
             }
         }
 
@@ -267,7 +249,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.WriteLine(string.Empty);
             this.MoveTo(StartingLocation);
             this.CurrentOrder = null;
-            this.DrinkOrderConfirmed = true;
+            this.DrinkOrderConfirmed = false;
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             return this.RunForever ? this.GotoState<Active>() : this.GotoState<FinishState>();
         }

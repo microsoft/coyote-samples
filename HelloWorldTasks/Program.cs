@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Samples.HelloWorld;
-using Microsoft.Coyote.Threading.Tasks;
+using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.HelloWorldTasks
 {

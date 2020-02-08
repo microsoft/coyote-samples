@@ -131,7 +131,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
     [OnEventDoAction(typeof(GrinderButtonEvent), nameof(OnGrinderButton))]
     [OnEventDoAction(typeof(ShotButtonEvent), nameof(OnShotButton))]
     [OnEventDoAction(typeof(DumpGrindsButtonEvent), nameof(OnDumpGrindsButton))]
-    [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimer))]
+    [OnEventDoAction(typeof(HeaterTimerEvent), nameof(MonitorWaterTemperature))]
+    [OnEventDoAction(typeof(GrinderTimerEvent), nameof(MonitorGrinder))]
+    [OnEventDoAction(typeof(ShotTimerEvent), nameof(MonitorShot))]
     internal class MockSensors : Actor
     {
         private ActorId Client;
@@ -169,6 +171,18 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             }
         }
 
+        internal class HeaterTimerEvent : TimerElapsedEvent
+        {
+        }
+
+        internal class GrinderTimerEvent : TimerElapsedEvent
+        {
+        }
+
+        internal class ShotTimerEvent : TimerElapsedEvent
+        {
+        }
+
         protected override Task OnInitializeAsync(Event initialEvent)
         {
             if (initialEvent is ConfigEvent ce)
@@ -187,7 +201,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             this.ShotButton = false;
             this.DoorOpen = this.Random(5);
 
-            this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), "Heater");
+            this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
             return base.OnInitializeAsync(initialEvent);
         }
 
@@ -288,7 +302,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                 }
 
                 // start monitoring the coffee level.
-                this.CoffeeLevelTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), "Grinder");
+                this.CoffeeLevelTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new GrinderTimerEvent());
             }
             else if (this.CoffeeLevelTimer != null)
             {
@@ -312,7 +326,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                     }
 
                     // time the shot then send shot complete event.
-                    this.ShotTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), "Shot");
+                    this.ShotTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new ShotTimerEvent());
                 }
                 else if (this.ShotTimer != null)
                 {
@@ -328,26 +342,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             {
                 // this is a toggle button, in no time grinds are dumped (just for simplicity)
                 this.PortaFilterCoffeeLevel = 0;
-            }
-        }
-
-        private void HandleTimer(Event e)
-        {
-            if (e is TimerElapsedEvent te)
-            {
-                string name = (string)te.Info.Payload;
-                switch (name)
-                {
-                    case "Heater":
-                        this.MonitorWaterTemperature();
-                        break;
-                    case "Grinder":
-                        this.MonitorGrinder();
-                        break;
-                    case "Shot":
-                        this.MonitorShot();
-                        break;
-                }
             }
         }
 
