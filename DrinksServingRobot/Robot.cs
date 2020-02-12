@@ -26,7 +26,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private DrinkOrder CurrentOrder;
         private bool DrinkOrderPending;
 
-        internal const int MoveDuration = 1;
+        internal const double MoveDuration = 0.5;
         internal const int ServingDuration = 2;
         internal const int RetreatingDuration = 1;
 
@@ -185,6 +185,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private Transition NextMove()
         {
+            this.DrinkOrderPending = false;
             Transition nextState;
 
             if (this.Route == null)
@@ -207,7 +208,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 var nextDestination = this.Route[0];
                 this.Route.RemoveAt(0);
                 this.MoveTo(nextDestination);
-
                 this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), new MoveTimerElapsedEvent());
                 nextState = default;
             }
@@ -255,7 +255,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.WriteLine(string.Empty);
             this.MoveTo(StartingLocation);
             this.CurrentOrder = null;
-            this.DrinkOrderPending = false;
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             return this.RunForever ? this.GotoState<Active>() : this.GotoState<FinishState>();
         }

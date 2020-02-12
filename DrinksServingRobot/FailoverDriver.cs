@@ -19,7 +19,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private TimerInfo HaltTimer;
         private int Iterations;
-        private const double NavigatorTimeToLive = 2;  // seconds
+        private const int NavigatorTimeToLive = 500;  // milliseconds
 
         internal class ConfigEvent : Event
         {
@@ -67,8 +67,8 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             // Setup a timer to randomly kill the Navigator.   When the timer fires we will restart the
             // Navigator and this is testing that the Navigator and Robot can recover gracefully when that happens.
 
-            int ms = this.RandomInteger((int)(NavigatorTimeToLive * 1000));
-            this.HaltTimer = this.StartTimer(TimeSpan.FromMilliseconds(ms));
+            int duration = this.RandomInteger(NavigatorTimeToLive) + NavigatorTimeToLive;
+            this.HaltTimer = this.StartTimer(TimeSpan.FromMilliseconds(duration));
         }
 
         private void StopTimer()
