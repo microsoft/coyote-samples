@@ -18,6 +18,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
             RunForever = true;
             IActorRuntime runtime = ActorRuntimeFactory.Create(conf);
+            runtime.OnFailure += OnRuntimeFailure;
             Execute(runtime);
             Console.ReadLine();
         }
@@ -27,6 +28,11 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         {
             runtime.RegisterMonitor(typeof(LivenessMonitor));
             ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
+        }
+
+        private static void OnRuntimeFailure(Exception ex)
+        {
+            Console.WriteLine("### Error: {0}", ex.Message);
         }
     }
 }

@@ -38,6 +38,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimer))]
         [OnEventDoAction(typeof(Robot.RobotReadyEvent), nameof(OnRobotReady))]
         [OnEventDoAction(typeof(Robot.CompletedEvent), nameof(OnRobotComplete))]
+        [IgnoreEvents(typeof(Robot.NavigatorResetEvent))]
         internal class Init : State { }
 
         internal void OnInit(Event e)

@@ -24,7 +24,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private List<Location> Route;
 
         private DrinkOrder CurrentOrder;
-        private bool DrinkOrderConfirmed;
+        private bool DrinkOrderPending;
 
         internal const int MoveDuration = 1;
         internal const int ServingDuration = 2;
@@ -71,6 +71,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private Transition OnSetNavigator(Event e)
         {
+            Transition result = default;
             if (e is Navigator.RegisterNavigatorEvent sne)
             {
                 // Note: the whole point of this sample is to test failover of the Navigator.
@@ -79,21 +80,21 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 if (this.NavigatorId == null)
                 {
                     this.NavigatorId = sne.NewNavigatorId;
-                    return this.PushState<Active>();
+                    result = this.PushState<Active>();
                 }
                 else
                 {
-                    this.WriteLine("<Robot> received a new Navigator, and pending drink order={0}!!!", this.DrinkOrderConfirmed);
+                    this.WriteLine("<Robot> received a new Navigator, and pending drink order={0}!!!", this.DrinkOrderPending);
 
                     // continue on with the new navigator.
                     this.NavigatorId = sne.NewNavigatorId;
 
-                    if (this.DrinkOrderConfirmed)
+                    if (this.DrinkOrderPending)
                     {
                         // stop any current driving and wait for DrinkOrderProducedEvent from new navigator
                         // as it restarts the previous drink order request.
                         this.StopMoving();
-                        this.GotoState<Active>();
+                        result = this.GotoState<Active>();
                         this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
                     }
                 }
@@ -101,7 +102,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.SendEvent(this.CreatorId, new NavigatorResetEvent());
             }
 
-            return default;
+            return result;
         }
 
         [OnEntry(nameof(OnInitActive))]
@@ -111,14 +112,18 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void OnInitActive()
         {
-            this.SendEvent(this.NavigatorId, new Navigator.GetDrinkOrderEvent(this.GetPicture()));
+            if (!this.DrinkOrderPending)
+            {
+                this.SendEvent(this.NavigatorId, new Navigator.GetDrinkOrderEvent(this.GetPicture()));
+                this.WriteLine("<Robot> Asked for a new Drink Order");
+            }
+
             this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
-            this.WriteLine("<Robot> Asked for a new Drink Order");
         }
 
         private void OnDrinkOrderConfirmed()
         {
-            this.DrinkOrderConfirmed = true;
+            this.DrinkOrderPending = true;
             this.SendEvent(this.CreatorId, new RobotReadyEvent());
         }
 
@@ -167,6 +172,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (route != null)
             {
                 this.Route = route;
+                // this.DrinkOrderPending = false; // this is where it really belongs.
                 this.Timers["MoveTimer"] = this.StartTimer(TimeSpan.FromSeconds(MoveDuration), new MoveTimerElapsedEvent());
             }
 
@@ -249,7 +255,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.WriteLine(string.Empty);
             this.MoveTo(StartingLocation);
             this.CurrentOrder = null;
-            this.DrinkOrderConfirmed = false;
+            this.DrinkOrderPending = false;
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             return this.RunForever ? this.GotoState<Active>() : this.GotoState<FinishState>();
         }

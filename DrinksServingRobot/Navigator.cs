@@ -171,7 +171,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (e != null)
             {
                 this.ProcessDrinkOrder(e);
-                this.WriteLine("<Navigator> Restarting the unserved-due-to-termination last issued Robot's request to find drink clients ...");
+                this.WriteLine("<Navigator> Restarting the pending Robot's request to find drink clients ...");
             }
             else
             {
