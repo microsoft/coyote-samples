@@ -7,7 +7,7 @@ using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.TestingServices;
 
-namespace Microsoft.Coyote.Samples.CoffeeMachine
+namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
     public static class Program
     {
@@ -22,9 +22,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             Console.WriteLine("User cancelled the test by pressing ENTER");
         }
 
+        private static void OnRuntimeFailure(Exception ex)
+        {
+            Console.WriteLine("Unhandled exception: {0}", ex.Message);
+        }
+
         [Microsoft.Coyote.TestingServices.Test]
         public static void Execute(IActorRuntime runtime)
         {
+            runtime.OnFailure += OnRuntimeFailure;
             runtime.RegisterMonitor(typeof(LivenessMonitor));
             ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
             runtime.SendEvent(driver, new FailoverDriver.StartTestEvent());

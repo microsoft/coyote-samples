@@ -23,16 +23,22 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// </summary>
         public override async Task BroadcastVoteRequestAsync(Event e)
         {
-            foreach (var server in this.Servers.Values)
+            var request = e as VoteRequestEvent;
+
+            foreach (var pair in this.Servers)
             {
-                this.SendEvent(server, e);
-                if (this.Random())
+                if (request.CandidateId != pair.Key)
                 {
-                    // Nondeterministically send a duplicate vote to exercise the corner case
-                    // where networking communication sends duplicate messages. This can cause
-                    // a Raft server to count duplicate votes, leading to more than one leader
-                    // being elected at the same term.
-                    this.SendEvent(server, e);
+                    var server = pair.Value;
+                    this.SendEvent(server, request);
+                    if (this.Random())
+                    {
+                        // Nondeterministically send a duplicate vote to exercise the corner case
+                        // where networking communication sends duplicate messages. This can cause
+                        // a Raft server to count duplicate votes, leading to more than one leader
+                        // being elected at the same term.
+                        this.SendEvent(server, request);
+                    }
                 }
             }
 

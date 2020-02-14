@@ -13,7 +13,8 @@ Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldActors\Hel
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CloudMessaging\CloudMessaging.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Timers\Timers.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Monitors\Monitors.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachine\CoffeeMachine.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineActors\CoffeeMachineActors.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineTasks\CoffeeMachineTasks.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\DrinksServingRobot\DrinksServingRobot.sln" -config $configuration
 
 Write-Comment -prefix "." -text "Successfully built the Coyote samples" -color "green"

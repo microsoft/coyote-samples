@@ -3,7 +3,7 @@
 
 using Microsoft.Coyote.Specifications;
 
-namespace Microsoft.Coyote.Samples.CoffeeMachine
+namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
     /// <summary>
     /// This monitors the coffee machine to make sure it always finishes the job,

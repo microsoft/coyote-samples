@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
 
-namespace Microsoft.Coyote.Samples.CoffeeMachine
+namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
     /// <summary>
     /// This class is designed to test how the CoffeeMachine handles "failover" or specifically,
@@ -57,8 +57,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         internal void OnStartTest()
         {
-            this.WriteLine("<FailoverDriver> #################################################################");
-            this.WriteLine("<FailoverDriver> starting new CoffeeMachine.");
+            this.WriteLine("#################################################################");
+            this.WriteLine("starting new CoffeeMachine.");
             // Create a new CoffeeMachine instance
             this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.SensorsId, this.Id));
 
@@ -89,13 +89,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             {
                 if (ce.Error)
                 {
-                    this.WriteLine("<FailoverDriver> CoffeeMachine reported an error.");
-                    this.WriteLine("<FailoverDriver> Test is complete, press ENTER to continue...");
+                    this.WriteLine("CoffeeMachine reported an error.");
+                    this.WriteLine("Test is complete, press ENTER to continue...");
                     this.RunForever = false; // no point trying to make more coffee.
                 }
                 else
                 {
-                    this.WriteLine("<FailoverDriver> CoffeeMachine completed the job.");
+                    this.WriteLine("CoffeeMachine completed the job.");
                 }
 
                 return this.GotoState<Stopped>();
@@ -107,7 +107,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
                 // will get confused if two CoffeeMachines are running at the same time.
                 // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
                 // to terminate, and it sends back a HaltedEvent when it really has been halted.
-                this.WriteLine("<FailoverDriver> forcing termination of CoffeeMachine.");
+                this.WriteLine("forcing termination of CoffeeMachine.");
                 this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
             }
 
@@ -144,8 +144,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
         private void WriteLine(string format, params object[] args)
         {
-            this.Logger.WriteLine(format, args);
-            Console.WriteLine(format, args);
+            string msg = string.Format(format, args);
+            msg = "<FailoverDriver> " + msg;
+            this.Logger.WriteLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        protected override Task OnEventUnhandledAsync(Event e, string state)
+        {
+            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            return base.OnEventUnhandledAsync(e, state);
         }
     }
 }

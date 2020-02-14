@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
 
-namespace Microsoft.Coyote.Samples.CoffeeMachine
+namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
     internal class RegisterClientEvent : Event
     {
@@ -425,8 +425,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
             {
                 hopperLevel = 0;
                 this.SendEvent(this.Client, new HopperEmptyEvent());
-                this.StopTimer(this.CoffeeLevelTimer);
-                this.CoffeeLevelTimer = null;
+                if (this.CoffeeLevelTimer != null)
+                {
+                    this.StopTimer(this.CoffeeLevelTimer);
+                    this.CoffeeLevelTimer = null;
+                }
             }
         }
 
@@ -452,6 +455,20 @@ namespace Microsoft.Coyote.Samples.CoffeeMachine
 
             // turn off the water.
             this.ShotButton = false;
+        }
+
+        private void WriteLine(string format, params object[] args)
+        {
+            string msg = string.Format(format, args);
+            msg = "<MockSensors> " + msg;
+            this.Logger.WriteLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        protected override Task OnEventUnhandledAsync(Event e, string state)
+        {
+            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            return base.OnEventUnhandledAsync(e, state);
         }
     }
 }
