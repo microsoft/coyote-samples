@@ -236,6 +236,11 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
                 if (this.CurrentState == typeof(Candidate) || this.CurrentState == typeof(Leader))
                 {
+                    if (this.CurrentState == typeof(Leader))
+                    {
+                        this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because VoteRequest term is {request.Term}");
+                    }
+
                     transition = this.GotoState<Follower>();
                 }
             }
@@ -277,6 +282,11 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
                 if (this.CurrentState == typeof(Candidate) || this.CurrentState == typeof(Leader))
                 {
+                    if (this.CurrentState == typeof(Leader))
+                    {
+                        this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because VoteResponseEvent term is {response.Term}");
+                    }
+
                     transition = this.GotoState<Follower>();
                 }
             }
@@ -323,6 +333,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                 }
                 else if (this.CurrentState == typeof(Leader))
                 {
+                    this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because AppendLogEntriesRequestEvent term is {request.Term}");
                     appendEntries = true;
                     transition = this.GotoState<Follower>();
                 }
@@ -415,6 +426,11 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
                 if (this.CurrentState == typeof(Candidate) || this.CurrentState == typeof(Leader))
                 {
+                    if (this.CurrentState == typeof(Leader))
+                    {
+                        this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because AppendLogEntriesResponseEvent term is {response.Term}");
+                    }
+
                     transition = this.GotoState<Follower>();
                 }
             }
@@ -445,7 +461,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                     }
                     else
                     {
-                        this.Logger.WriteLine($"<Leader> has {this.LogVotesReceived} of max possible {this.Manager.NumServers} on command {response.Command}");
+                        this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} has {this.LogVotesReceived} of max possible {this.Manager.NumServers} on command {response.Command}");
                     }
                 }
                 else
@@ -519,7 +535,17 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// leader election. This handler is only called when the server is in
         /// the <see cref="Follower"/> or <see cref="Candidate"/> role.
         /// </summary>
-        private Transition HandleTimeout() => this.GotoState<Candidate>();
+        private Transition HandleTimeout()
+        {
+            // The timeout happens too often during testing, so we add a Random 1 in 10 chance here
+            // to reduce that a bit.
+            if (this.Random(10))
+            {
+                return this.GotoState<Candidate>();
+            }
+
+            return default;
+        }
 
         protected override Task OnExceptionHandledAsync(Exception ex, Event e)
         {

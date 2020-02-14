@@ -104,7 +104,7 @@ namespace Microsoft.Coyote.Samples.HelloWorld
         {
             this.SendEvent(this.Server, HaltEvent.Instance);
             this.SendEvent(this.Id, HaltEvent.Instance);
-            this.CompletionSource.SetResult(true);
+            this.CompletionSource.TrySetResult(true);
         }
     }
 }
