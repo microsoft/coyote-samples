@@ -88,7 +88,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         [DeferEvents(typeof(WakeUpEvent), typeof(GetDrinkOrderEvent), typeof(GetDrivingInstructionsEvent))]
         internal class Init : State { }
 
-        internal Transition OnInit(Event e)
+        internal void OnInit(Event e)
         {
             if (e is NavigatorConfigEvent configEvent)
             {
@@ -98,7 +98,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.RoutePlannerServiceId = configEvent.RoutePlannerId;
             }
 
-            return this.PushState<Paused>();
+            this.RaisePushStateEvent<Paused>();
         }
 
         private void SaveGetDrinkOrderEvent(GetDrinkOrderEvent e)
@@ -148,7 +148,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.SendEvent(this.StorageId, new ReadKeyEvent(this.Id, DrinkOrderStorageKey));
         }
 
-        internal Transition RestartPendingJob(Event e)
+        internal void RestartPendingJob(Event e)
         {
             if (e is KeyValueEvent kve)
             {
@@ -160,10 +160,8 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                     this.RestartPendingGetDrinkOrderRequest(value as GetDrinkOrderEvent);
                 }
 
-                return this.GotoState<Active>();
+                this.RaiseGotoStateEvent<Active>();
             }
-
-            return default;
         }
 
         private void RestartPendingGetDrinkOrderRequest(GetDrinkOrderEvent e)
@@ -260,17 +258,15 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.SendEvent(this.RoutePlannerServiceId, new GetRouteEvent(this.Id, e.StartPoint, e.EndPoint));
         }
 
-        private Transition OnTerminate(Event e)
+        private void OnTerminate(Event e)
         {
             if (e is TerminateEvent)
             {
-                return this.TerminateMyself();
+                this.TerminateMyself();
             }
-
-            return default;
         }
 
-        private Transition TerminateMyself()
+        private void TerminateMyself()
         {
             if (!this.Terminating)
             {
@@ -285,10 +281,8 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.SendEvent(this.CreatorId, new HaltedEvent());
                 this.WriteLine("<Navigator> Halting now ...");
 
-                return this.Halt();
+                this.RaiseHaltEvent();
             }
-
-            return default;
         }
 
         private void WriteLine(string s)

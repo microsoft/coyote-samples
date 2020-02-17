@@ -59,10 +59,10 @@ namespace Microsoft.Coyote.Samples.Monitors
         /// When it enters the 'Init' state, the timer receives a reference to
         /// the target machine, and then transitions to the 'WaitForReq' state.
         /// </summary>
-        private Transition InitOnEntry(Event e)
+        private void InitOnEntry(Event e)
         {
             this.Target = (e as Config).Target;
-            return this.GotoState<WaitForReq>();
+            this.RaiseGotoStateEvent<WaitForReq>();
         }
 
         /// <summary>

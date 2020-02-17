@@ -60,7 +60,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
         private class Init : State { }
 
-        private Transition OnInit(Event e)
+        private void OnInit(Event e)
         {
             if (e is ConfigEvent configEvent)
             {
@@ -70,10 +70,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 // register this class as a client of the sensors.
                 this.SendEvent(this.Sensors, new RegisterClientEvent(this.Id));
                 // Use PushState so that TerminateEvent can be handled at any time in all the following states.
-                return this.PushState<CheckSensors>();
+                this.RaisePushStateEvent<CheckSensors>();
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnCheckSensors))]
@@ -115,7 +113,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
         }
 
-        private Transition OnWaterLevel(Event e)
+        private void OnWaterLevel(Event e)
         {
             if (e is WaterLevelEvent we)
             {
@@ -124,14 +122,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 if ((int)this.WaterLevel.Value <= 0)
                 {
                     this.WriteLine("Coffee machine is out of water");
-                    return this.GotoState<RefillRequired>();
+                    this.RaiseGotoStateEvent<RefillRequired>();
                 }
             }
 
-            return this.CheckInitialState();
+            this.CheckInitialState();
         }
 
-        private Transition OnHopperLevel(Event e)
+        private void OnHopperLevel(Event e)
         {
             if (e is HopperLevelEvent he)
             {
@@ -140,14 +138,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 if ((int)this.HopperLevel.Value == 0)
                 {
                     this.WriteLine("Coffee machine is out of coffee beans");
-                    return this.GotoState<RefillRequired>();
+                    this.RaiseGotoStateEvent<RefillRequired>();
                 }
             }
 
-            return this.CheckInitialState();
+            this.CheckInitialState();
         }
 
-        private Transition OnDoorOpen(Event e)
+        private void OnDoorOpen(Event e)
         {
             if (e is DoorOpenEvent de)
             {
@@ -155,14 +153,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 if (this.DoorOpen.Value != false)
                 {
                     this.WriteLine("Cannot safely operate coffee machine with the door open!");
-                    return this.GotoState<Error>();
+                    this.RaiseGotoStateEvent<Error>();
                 }
             }
 
-            return this.CheckInitialState();
+            this.CheckInitialState();
         }
 
-        private Transition OnPortaFilterCoffeeLevel(Event e)
+        private void OnPortaFilterCoffeeLevel(Event e)
         {
             if (e is PortaFilterCoffeeLevelEvent pe)
             {
@@ -175,17 +173,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 }
             }
 
-            return this.CheckInitialState();
+            this.CheckInitialState();
         }
 
-        private Transition CheckInitialState()
+        private void CheckInitialState()
         {
             if (this.WaterLevel.HasValue && this.HopperLevel.HasValue && this.DoorOpen.HasValue && this.PortaFilterCoffeeLevel.HasValue)
             {
-                return this.GotoState<HeatingWater>();
+                this.RaiseGotoStateEvent<HeatingWater>();
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnStartHeating))]
@@ -194,16 +190,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [OnEventDoAction(typeof(WaterHotEvent), nameof(OnWaterHot))]
         private class HeatingWater : State { }
 
-        private Transition OnStartHeating()
+        private void OnStartHeating()
         {
             // Start heater and keep monitoring the water temp till it reaches 100!
             this.WriteLine("Warming the water to 100 degrees");
             this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
             this.SendEvent(this.Sensors, new ReadWaterTemperatureEvent());
-            return default;
         }
 
-        private Transition OnWaterHot()
+        private void OnWaterHot()
         {
             this.WriteLine("Coffee machine water temperature is now 100");
             if (this.Heating)
@@ -214,10 +209,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.SendEvent(this.Sensors, new WaterHeaterButtonEvent(false));
             }
 
-            return this.GotoState<Ready>();
+            this.RaiseGotoStateEvent<Ready>();
         }
 
-        private Transition MonitorWaterTemperature(Event e)
+        private void MonitorWaterTemperature(Event e)
         {
             if (e is WaterTemperatureEvent value)
             {
@@ -225,7 +220,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
                 if (this.WaterTemperature.Value >= 100)
                 {
-                    return this.OnWaterHot();
+                    this.OnWaterHot();
                 }
                 else
                 {
@@ -240,8 +235,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
                 this.WriteLine("Coffee machine is warming up ({0} degrees)...", (int)this.WaterTemperature);
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnReady))]
@@ -258,7 +251,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [OnEntry(nameof(OnMakeCoffee))]
         private class MakingCoffee : State { }
 
-        private Transition OnMakeCoffee(Event e)
+        private void OnMakeCoffee(Event e)
         {
             if (e is MakeCoffeeEvent mc)
             {
@@ -273,10 +266,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 // turn on shot button for desired time
                 // dump the grinds, while checking for error conditions
                 // like out of water or coffee beans.
-                return this.GotoState<GrindingBeans>();
+                this.RaiseGotoStateEvent<GrindingBeans>();
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnGrindingBeans))]
@@ -296,7 +287,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.SendEvent(this.Sensors, new ReadHopperLevelEvent());
         }
 
-        private Transition MonitorPortaFilter(Event e)
+        private void MonitorPortaFilter(Event e)
         {
             if (e is PortaFilterCoffeeLevelEvent pe)
             {
@@ -304,7 +295,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     this.WriteLine("PortaFilter is full");
                     this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
-                    return this.GotoState<MakingShots>();
+                    this.RaiseGotoStateEvent<MakingShots>();
                 }
                 else
                 {
@@ -315,32 +306,28 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                     }
                 }
             }
-
-            return default;
         }
 
-        private Transition MonitorHopperLevel(Event e)
+        private void MonitorHopperLevel(Event e)
         {
             if (e is HopperLevelEvent he)
             {
                 if (he.HopperLevel == 0)
                 {
-                    return this.OnHopperEmpty();
+                    this.OnHopperEmpty();
                 }
                 else
                 {
                     this.SendEvent(this.Sensors, new ReadHopperLevelEvent());
                 }
             }
-
-            return default;
         }
 
-        private Transition OnHopperEmpty()
+        private void OnHopperEmpty()
         {
             this.WriteLine("hopper is empty!");
             this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
-            return this.GotoState<RefillRequired>();
+            this.RaiseGotoStateEvent<RefillRequired>();
         }
 
         [OnEntry(nameof(OnMakingShots))]
@@ -360,7 +347,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.SendEvent(this.Sensors, new ReadWaterLevelEvent());
         }
 
-        private Transition OnShotComplete()
+        private void OnShotComplete()
         {
             this.PreviousShotCount++;
             if (this.PreviousShotCount >= this.ShotsRequested)
@@ -371,7 +358,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                     this.Assert(false, "Made the wrong number of shots");
                 }
 
-                return this.GotoState<Cleanup>();
+                this.RaiseGotoStateEvent<Cleanup>();
             }
             else
             {
@@ -380,36 +367,32 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 // request another shot!
                 this.SendEvent(this.Sensors, new ShotButtonEvent(true));
             }
-
-            return default;
         }
 
-        private Transition OnWaterEmpty()
+        private void OnWaterEmpty()
         {
             this.WriteLine("Water is empty!");
             // turn off the water pump
             this.SendEvent(this.Sensors, new ShotButtonEvent(false));
-            return this.GotoState<RefillRequired>();
+            this.RaiseGotoStateEvent<RefillRequired>();
         }
 
-        private Transition OnMonitorWaterLevel(Event e)
+        private void OnMonitorWaterLevel(Event e)
         {
             if (e is WaterLevelEvent we)
             {
                 if (we.WaterLevel <= 0)
                 {
-                    return this.OnWaterEmpty();
+                    this.OnWaterEmpty();
                 }
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnCleanup))]
         [IgnoreEvents(typeof(WaterLevelEvent))]
         private class Cleanup : State { }
 
-        private Transition OnCleanup()
+        private void OnCleanup()
         {
             // dump the grinds
             this.WriteLine("Dumping the grinds!");
@@ -419,7 +402,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.SendEvent(this.Client, new CoffeeCompletedEvent());
             }
 
-            return this.GotoState<Ready>();
+            this.RaiseGotoStateEvent<Ready>();
         }
 
         [OnEntry(nameof(OnRefillRequired))]
@@ -453,16 +436,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.WriteLine("Coffee machine needs fixing!");
         }
 
-        private Transition OnTerminate(Event e)
+        private void OnTerminate(Event e)
         {
             if (e is TerminateEvent te)
             {
                 this.WriteLine("Coffee Machine Terminating...");
                 this.SendEvent(this.Sensors, new PowerButtonEvent(false));
-                return this.Halt();
+                this.RaiseHaltEvent();
             }
-
-            return default;
         }
 
         protected override Task OnHaltAsync(Event e)

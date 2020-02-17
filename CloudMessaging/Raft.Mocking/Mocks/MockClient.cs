@@ -73,7 +73,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                 if (this.NumResponses == this.ClientInfo.NumRequests)
                 {
                     // Halt the client, as all responses have been received.
-                    this.Halt();
+                    this.RaiseHaltEvent();
                     this.ClientInfo.Finished.SetResult(true);
                 }
                 else

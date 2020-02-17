@@ -43,10 +43,10 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         [DeferEvents(typeof(RecognizeDrinksClientEvent))]
         internal class Init : State { }
 
-        private Transition OnInit()
+        private void OnInit()
         {
             Console.WriteLine("<CognitiveService> CognitiveService is starting.");
-            return this.GotoState<Active>();
+            this.RaiseGotoStateEvent<Active>();
         }
 
         [OnEventDoAction(typeof(RecognizeDrinksClientEvent), nameof(FindADrinksClient))]

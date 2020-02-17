@@ -35,7 +35,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         [Start]
         [OnEntry(nameof(OnInit))]
-        [OnEventDoAction(typeof(TimerElapsedEvent), nameof(HandleTimer))]
+        [OnEventPushState(typeof(TimerElapsedEvent), typeof(TerminatingNavigator))]
         [OnEventDoAction(typeof(Robot.RobotReadyEvent), nameof(OnRobotReady))]
         [OnEventDoAction(typeof(Robot.CompletedEvent), nameof(OnRobotComplete))]
         [IgnoreEvents(typeof(Robot.NavigatorResetEvent))]
@@ -87,11 +87,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             return this.CreateActor(typeof(Navigator), new Navigator.NavigatorConfigEvent(this.Id, this.StorageId, cognitiveServiceId, routePlannerServiceId));
         }
 
-        private Transition HandleTimer()
-        {
-            return this.PushState<TerminatingNavigator>();
-        }
-
         private void OnRobotComplete()
         {
         }
@@ -123,7 +118,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             this.SendEvent(this.NavigatorId, new Navigator.WakeUpEvent(this.RobotId));
         }
 
-        private Transition OnNavigatorReset()
+        private void OnNavigatorReset()
         {
             this.WriteLine("<FailoverDriver> *****   Robot confirmed it reset to the new Navigator *****");
 
@@ -138,13 +133,13 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.HaltSystem();
             }
 
-            return this.PopState();
+            this.RaisePopStateEvent();
         }
 
         private void HaltSystem()
         {
             this.KillActors(this.RobotId, this.NavigatorId, this.StorageId);
-            this.Halt();
+            this.RaiseHaltEvent();
         }
 
         private void KillActors(params ActorId[] actors)

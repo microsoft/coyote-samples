@@ -47,11 +47,11 @@ namespace Microsoft.Coyote.Samples.Monitors
         [OnEventDoAction(typeof(RegisterNodes), nameof(RegisterNodesAction))]
         private class Init : State { }
 
-        private Transition RegisterNodesAction(Event e)
+        private void RegisterNodesAction(Event e)
         {
             var nodes = (e as RegisterNodes).Nodes;
             this.Nodes = new HashSet<ActorId>(nodes);
-            return this.GotoState<Wait>();
+            this.RaiseGotoStateEvent<Wait>();
         }
 
         /// <summary>
@@ -62,7 +62,7 @@ namespace Microsoft.Coyote.Samples.Monitors
         [OnEventDoAction(typeof(FailureDetector.NodeFailed), nameof(NodeDownAction))]
         private class Wait : State { }
 
-        private Transition NodeDownAction(Event e)
+        private void NodeDownAction(Event e)
         {
             var node = (e as FailureDetector.NodeFailed).Node;
             this.Nodes.Remove(node);
@@ -70,10 +70,8 @@ namespace Microsoft.Coyote.Samples.Monitors
             {
                 // When the liveness property has been satisfied
                 // transition out of the hot state.
-                return this.GotoState<Done>();
+                this.RaiseGotoStateEvent<Done>();
             }
-
-            return default;
         }
 
         private class Done : State { }

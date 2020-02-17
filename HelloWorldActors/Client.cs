@@ -47,14 +47,14 @@ namespace Microsoft.Coyote.Samples.HelloWorld
         [OnEventGotoState(typeof(ReadyEvent), typeof(Active))]
         private class Init : State { }
 
-        private Transition InitOnEntry(Event e)
+        private void InitOnEntry(Event e)
         {
             ConfigEvent configEvent = e as ConfigEvent;
             this.CompletionSource = configEvent.CompletionSource;
             this.Server = configEvent.OtherParty;
             this.MaxRequests = configEvent.MaxRequests;
 
-            return this.RaiseEvent(new ReadyEvent());
+            this.RaiseEvent(new ReadyEvent());
         }
 
         [OnEntry(nameof(ClientActiveEntry))]

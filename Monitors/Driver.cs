@@ -56,7 +56,7 @@ namespace Microsoft.Coyote.Samples.Monitors
         [OnEntry(nameof(InitOnEntry))]
         private class Init : State { }
 
-        private Transition InitOnEntry(Event e)
+        private void InitOnEntry(Event e)
         {
             this.NumOfNodes = (e as Config).NumOfNodes;
 
@@ -74,7 +74,7 @@ namespace Microsoft.Coyote.Samples.Monitors
             this.FailureDetector = this.CreateActor(typeof(FailureDetector), new FailureDetector.Config(this.Nodes));
             this.SendEvent(this.FailureDetector, new RegisterClient(this.Id));
 
-            return this.GotoState<InjectFailures>();
+            this.RaiseGotoStateEvent<InjectFailures>();
         }
 
         [OnEntry(nameof(InjectFailuresOnEntry))]

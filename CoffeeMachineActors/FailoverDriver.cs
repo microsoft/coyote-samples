@@ -72,12 +72,12 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.HaltTimer = this.StartTimer(TimeSpan.FromSeconds(this.RandomInteger(7) + 1));
         }
 
-        private Transition HandleTimer()
+        private void HandleTimer()
         {
-            return this.GotoState<Stop>();
+            this.RaiseGotoStateEvent<Stop>();
         }
 
-        internal Transition OnStopTest(Event e)
+        internal void OnStopTest(Event e)
         {
             if (this.HaltTimer != null)
             {
@@ -98,7 +98,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                     this.WriteLine("CoffeeMachine completed the job.");
                 }
 
-                return this.GotoState<Stopped>();
+                this.RaiseGotoStateEvent<Stopped>();
             }
             else
             {
@@ -110,8 +110,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.WriteLine("forcing termination of CoffeeMachine.");
                 this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
             }
-
-            return default;
         }
 
         [OnEntry(nameof(OnStopTest))]
@@ -119,26 +117,26 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [IgnoreEvents(typeof(CoffeeMachine.CoffeeCompletedEvent))]
         internal class Stop : State { }
 
-        internal Transition OnHalted()
+        internal void OnHalted()
         {
             // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
-            return this.GotoState<Stopped>();
+            this.RaiseGotoStateEvent<Stopped>();
         }
 
         [OnEntry(nameof(OnStopped))]
         internal class Stopped : State { }
 
-        private Transition OnStopped()
+        private void OnStopped()
         {
             if (this.RunForever || this.Iterations == 0)
             {
                 this.Iterations += 1;
                 // Run another CoffeeMachine instance!
-                return this.GotoState<Test>();
+                this.RaiseGotoStateEvent<Test>();
             }
             else
             {
-                return this.Halt();
+                this.RaiseHaltEvent();
             }
         }
 

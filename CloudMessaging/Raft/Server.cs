@@ -221,14 +221,13 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// Handle the received <see cref="VoteRequestEvent"/> by voting based
         /// on the current role of the Raft server.
         /// </summary>
-        private Transition VoteRequest(Event e)
+        private void VoteRequest(Event e)
         {
             var request = e as VoteRequestEvent;
             this.Logger.WriteLine($"<VoteRequest> {this.Manager.ServerId} received vote request from " +
                 $"{request.CandidateId} (term={request.Term}, lastLogIndex={request.LastLogIndex}, " +
                 $"lastLogTerm={request.LastLogTerm}).");
 
-            Transition transition = default;
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
@@ -241,7 +240,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                         this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because VoteRequest term is {request.Term}");
                     }
 
-                    transition = this.GotoState<Follower>();
+                    this.RaiseGotoStateEvent<Follower>();
                 }
             }
 
@@ -260,7 +259,6 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
             this.SendEvent(this.ClusterManager, new VoteResponseEvent(request.CandidateId, this.CurrentTerm, voteGranted));
             this.Logger.WriteLine($"<VoteResponse> {this.Manager.ServerId} sent vote response " +
                 $"(term={this.CurrentTerm}, log={this.Logs.Count}, vote={voteGranted}).");
-            return transition;
         }
 
         /// <summary>
@@ -268,13 +266,12 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// of the Raft server. If the server is in the <see cref="Candidate"/> role, and
         /// receives a vote majority, then it is elected as leader.
         /// </summary>
-        private Transition VoteResponse(Event e)
+        private void VoteResponse(Event e)
         {
             var response = e as VoteResponseEvent;
             this.Logger.WriteLine($"<VoteResponse> {this.Manager.ServerId} received vote response " +
                 $"(term={response.Term}, vote-granted={response.VoteGranted}).");
 
-            Transition transition = default;
             if (response.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = response.Term;
@@ -287,7 +284,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                         this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because VoteResponseEvent term is {response.Term}");
                     }
 
-                    transition = this.GotoState<Follower>();
+                    this.RaiseGotoStateEvent<Follower>();
                 }
             }
             else if (this.CurrentState == typeof(Candidate) &&
@@ -300,18 +297,16 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                     this.Logger.WriteLine($"<LeaderElection> {this.Manager.ServerId} was elected leader " +
                         $"(term={this.CurrentTerm}, #votes={this.VotesReceived}, log={this.Logs.Count}).");
                     this.VotesReceived = 0;
-                    transition = this.GotoState<Leader>();
+                    this.RaiseGotoStateEvent<Leader>();
                 }
             }
-
-            return transition;
         }
 
         /// <summary>
         /// Handle the received <see cref="AppendLogEntriesRequestEvent"/> based on
         /// the current role of the Raft server.
         /// </summary>
-        private Transition AppendLogEntriesRequest(Event e)
+        private void AppendLogEntriesRequest(Event e)
         {
             var request = e as AppendLogEntriesRequestEvent;
             this.Logger.WriteLine($"<AppendLogEntriesRequest> {this.Manager.ServerId} received append " +
@@ -321,7 +316,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
             bool appendEntries = this.CurrentState == typeof(Follower) ||
                 this.CurrentState == typeof(Candidate);
-            Transition transition = default;
+
             if (request.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = request.Term;
@@ -329,13 +324,13 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
                 if (this.CurrentState == typeof(Candidate))
                 {
-                    transition = this.GotoState<Follower>();
+                    this.RaiseGotoStateEvent<Follower>();
                 }
                 else if (this.CurrentState == typeof(Leader))
                 {
                     this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because AppendLogEntriesRequestEvent term is {request.Term}");
                     appendEntries = true;
-                    transition = this.GotoState<Follower>();
+                    this.RaiseGotoStateEvent<Follower>();
                 }
             }
 
@@ -404,21 +399,18 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                     }
                 }
             }
-
-            return transition;
         }
 
         /// <summary>
         /// Handle the received <see cref="AppendLogEntriesResponseEvent"/> based on
         /// the current role of the Raft server.
         /// </summary>
-        private Transition AppendLogEntriesResponse(Event e)
+        private void AppendLogEntriesResponse(Event e)
         {
             var response = e as AppendLogEntriesResponseEvent;
             this.Logger.WriteLine($"<AppendLogEntriesResponse> {this.Manager.ServerId} received append entries " +
                 $"response from {response.SenderId} (term={response.Term}, success={response.Success}) in state {this.CurrentState.Name}");
 
-            Transition transition = default;
             if (response.Term > this.CurrentTerm)
             {
                 this.CurrentTerm = response.Term;
@@ -431,7 +423,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                         this.Logger.WriteLine($"<Leader> {this.Manager.ServerId} is relinquishing leadership because AppendLogEntriesResponseEvent term is {response.Term}");
                     }
 
-                    transition = this.GotoState<Follower>();
+                    this.RaiseGotoStateEvent<Follower>();
                 }
             }
             else if (this.CurrentState == typeof(Leader) && response.Term == this.CurrentTerm)
@@ -484,8 +476,6 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                         $"#entries={entries.Count}, leaderCommit={this.CommitIndex})");
                 }
             }
-
-            return transition;
         }
 
         /// <summary>
@@ -535,16 +525,14 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// leader election. This handler is only called when the server is in
         /// the <see cref="Follower"/> or <see cref="Candidate"/> role.
         /// </summary>
-        private Transition HandleTimeout()
+        private void HandleTimeout()
         {
             // The timeout happens too often during testing, so we add a Random 1 in 10 chance here
             // to reduce that a bit.
             if (this.Random(10))
             {
-                return this.GotoState<Candidate>();
+                this.RaiseGotoStateEvent<Candidate>();
             }
-
-            return default;
         }
 
         protected override Task OnExceptionHandledAsync(Exception ex, Event e)

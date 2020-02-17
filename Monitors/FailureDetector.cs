@@ -75,7 +75,7 @@ namespace Microsoft.Coyote.Samples.Monitors
         [OnEventPushState(typeof(Unit), typeof(SendPing))]
         private class Init : State { }
 
-        private Transition InitOnEntry(Event e)
+        private void InitOnEntry(Event e)
         {
             var nodes = (e as Config).Nodes;
 
@@ -94,7 +94,7 @@ namespace Microsoft.Coyote.Samples.Monitors
             this.Timer = this.CreateActor(typeof(Timer), new Timer.Config(this.Id));
 
             // Transitions to the 'SendPing' state after everything has initialized.
-            return this.RaiseEvent(new Unit());
+            this.RaiseEvent(new Unit());
         }
 
         private void RegisterClientAction(Event e)
@@ -142,7 +142,7 @@ namespace Microsoft.Coyote.Samples.Monitors
         /// <summary>
         /// This action is triggered whenever a node replies with a 'Pong' event.
         /// </summary>
-        private Transition PongAction(Event e)
+        private void PongAction(Event e)
         {
             var node = (e as Node.Pong).Node;
             if (this.Alive.Contains(node))
@@ -153,14 +153,12 @@ namespace Microsoft.Coyote.Samples.Monitors
                 if (this.Responses.Count == this.Alive.Count)
                 {
                     this.SendEvent(this.Timer, new Timer.CancelTimerEvent());
-                    return this.RaiseEvent(new TimerCancelled());
+                    this.RaiseEvent(new TimerCancelled());
                 }
             }
-
-            return default;
         }
 
-        private Transition TimeoutAction()
+        private void TimeoutAction()
         {
             // One attempt is done for this round.
             this.Attempts++;
@@ -169,7 +167,8 @@ namespace Microsoft.Coyote.Samples.Monitors
             if (this.Responses.Count < this.Alive.Count && this.Attempts < 2)
             {
                 // Retry by looping back to same state.
-                return this.GotoState<SendPing>();
+                this.RaiseGotoStateEvent<SendPing>();
+                return;
             }
 
             foreach (var node in this.Nodes)
@@ -186,7 +185,7 @@ namespace Microsoft.Coyote.Samples.Monitors
                 }
             }
 
-            return this.RaiseEvent(new RoundDone());
+            this.RaiseEvent(new RoundDone());
         }
 
         [OnEventDoAction(typeof(Timer.CancelSuccess), nameof(CancelSuccessAction))]
@@ -194,14 +193,14 @@ namespace Microsoft.Coyote.Samples.Monitors
         [DeferEvents(typeof(Timer.TimeoutEvent), typeof(Node.Pong))]
         private class WaitForCancelResponse : State { }
 
-        private Transition CancelSuccessAction()
+        private void CancelSuccessAction()
         {
-            return this.RaiseEvent(new RoundDone());
+            this.RaiseEvent(new RoundDone());
         }
 
-        private Transition CancelFailure()
+        private void CancelFailure()
         {
-            return this.PopState();
+            this.RaisePopStateEvent();
         }
 
         [OnEntry(nameof(ResetOnEntry))]
