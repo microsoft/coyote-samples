@@ -52,8 +52,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         internal class MoveTimerElapsedEvent : TimerElapsedEvent { }
 
-        internal class CompletedEvent : Event { }
-
         [Start]
         [OnEntry(nameof(OnInit))]
         [OnEventDoAction(typeof(Navigator.RegisterNavigatorEvent), nameof(OnSetNavigator))]
@@ -287,7 +285,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void Finish()
         {
-            this.SendEvent(this.CreatorId, new CompletedEvent());
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
             this.SendEvent(this.Id, HaltEvent.Instance);
         }

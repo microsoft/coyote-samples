@@ -31,13 +31,9 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             }
         }
 
-        internal class StartTestEvent : Event { }
-
         [Start]
         [OnEntry(nameof(OnInit))]
-        [OnEventPushState(typeof(TimerElapsedEvent), typeof(TerminatingNavigator))]
-        [OnEventDoAction(typeof(Robot.RobotReadyEvent), nameof(OnRobotReady))]
-        [OnEventDoAction(typeof(Robot.CompletedEvent), nameof(OnRobotComplete))]
+        [DeferEvents(typeof(TimerElapsedEvent), typeof(Robot.RobotReadyEvent))]
         [IgnoreEvents(typeof(Robot.NavigatorResetEvent))]
         internal class Init : State { }
 
@@ -58,7 +54,13 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
             // Wake up the Navigator.
             this.SendEvent(this.NavigatorId, new Navigator.WakeUpEvent(this.RobotId));
+            this.RaiseGotoStateEvent<Active>();
         }
+
+        [OnEventGotoState(typeof(TimerElapsedEvent), typeof(TerminatingNavigator))]
+        [OnEventDoAction(typeof(Robot.RobotReadyEvent), nameof(OnRobotReady))]
+        [IgnoreEvents(typeof(Robot.NavigatorResetEvent))]
+        internal class Active : State { }
 
         private void OnRobotReady()
         {
@@ -85,10 +87,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             var cognitiveServiceId = this.CreateActor(typeof(MockCognitiveService));
             var routePlannerServiceId = this.CreateActor(typeof(MockRoutePlanner));
             return this.CreateActor(typeof(Navigator), new Navigator.NavigatorConfigEvent(this.Id, this.StorageId, cognitiveServiceId, routePlannerServiceId));
-        }
-
-        private void OnRobotComplete()
-        {
         }
 
         [OnEntry(nameof(OnTerminateNavigator))]
@@ -133,7 +131,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.HaltSystem();
             }
 
-            this.RaisePopStateEvent();
+            this.RaiseGotoStateEvent<Active>();
         }
 
         private void HaltSystem()
