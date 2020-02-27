@@ -44,10 +44,12 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     internal class Loggable
     {
         protected readonly TextWriter Log;
+        private readonly bool Echo = false;
 
-        public Loggable(TextWriter writer)
+        public Loggable(TextWriter writer, bool echo)
         {
             this.Log = writer;
+            this.Echo = echo;
         }
 
         internal void WriteLine(string format, params object[] args)
@@ -55,7 +57,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             var msg = string.Format(format, args);
             msg = string.Format("<{0}> {1}", this.GetType().Name, msg);
             this.Log.WriteLine(msg);
-            Console.WriteLine(msg);
+            if (this.Echo)
+            {
+                Console.WriteLine(msg);
+            }
         }
     }
 }

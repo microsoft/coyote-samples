@@ -406,7 +406,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         }
 
         [OnEntry(nameof(OnRefillRequired))]
-        [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
         [IgnoreEvents(typeof(MakeCoffeeEvent), typeof(WaterLevelEvent), typeof(HopperLevelEvent), typeof(DoorOpenEvent), typeof(PortaFilterCoffeeLevelEvent))]
         private class RefillRequired : State { }
 

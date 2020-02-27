@@ -56,8 +56,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private bool Halted;
         private TaskCompletionSource<bool> ShotCompleteSource;
 
-        public CoffeeMachine(TextWriter log)
-            : base(log)
+        public CoffeeMachine(TextWriter log, bool echo)
+            : base(log, echo)
         {
         }
 

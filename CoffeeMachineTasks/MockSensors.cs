@@ -162,6 +162,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public async ControlledTask SetPowerSwitchAsync(bool value)
         {
             await ControlledTask.Delay(1);
+            ControlledTimer timer1 = null;
+            ControlledTimer timer2 = null;
+            ControlledTimer timer3 = null;
+
+            // NOTE: you have to be very careful using locks with ControlledTasks.  You must ensure
+            // the lock does not include a ControlledTask operation as that is not supported by
+            // the Coyote runtime and can lead to deadlocks during testing.
             lock (this.SyncObject)
             {
                 this.PowerOn = value;
@@ -172,25 +179,21 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     this.GrinderButton = false;
                     this.ShotButton = false;
 
-                    if (this.CoffeeLevelTimer != null)
-                    {
-                        StopTimer(this.CoffeeLevelTimer);
-                        this.CoffeeLevelTimer = null;
-                    }
+                    timer1 = this.CoffeeLevelTimer;
+                    this.CoffeeLevelTimer = null;
 
-                    if (this.ShotTimer != null)
-                    {
-                        StopTimer(this.ShotTimer);
-                        this.ShotTimer = null;
-                    }
+                    timer2 = this.ShotTimer;
+                    this.ShotTimer = null;
 
-                    if (this.HopperLevelTimer != null)
-                    {
-                        StopTimer(this.HopperLevelTimer);
-                        this.HopperLevelTimer = null;
-                    }
+                    timer3 = this.HopperLevelTimer;
+                    this.HopperLevelTimer = null;
                 }
             }
+
+            // This is why StopTimer must done outside of the lock.
+            StopTimer(timer1);
+            StopTimer(timer2);
+            StopTimer(timer3);
         }
 
         public async ControlledTask SetWaterHeaterButtonAsync(bool value)
@@ -212,31 +215,42 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public async ControlledTask SetGrinderButtonAsync(bool value)
         {
             await ControlledTask.Delay(1);
+            this.OnGrinderButtonChanged(value);
+        }
+
+        private void OnGrinderButtonChanged(bool value)
+        {
+            ControlledTimer timer = null;
 
             lock (this.SyncObject)
             {
+                timer = this.CoffeeLevelTimer;
                 this.GrinderButton = value;
-                this.OnGrinderButtonChanged();
-            }
-        }
-
-        private void OnGrinderButtonChanged()
-        {
-            if (this.GrinderButton)
-            {
-                // should never turn on the grinder when there is no coffee to grind
-                if (this.HopperLevel <= 0)
+                if (this.GrinderButton)
                 {
-                    Specification.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
+                    // should never turn on the grinder when there is no coffee to grind
+                    if (this.HopperLevel <= 0)
+                    {
+                        Specification.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
+                    }
                 }
-
-                // start monitoring the coffee level.
-                this.CoffeeLevelTimer = StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new Action(this.MonitorGrinder));
             }
-            else if (this.CoffeeLevelTimer != null)
+
+            // ControlledTimer operations must be done outside the lock.
+            if (value && timer == null)
             {
-                StopTimer(this.CoffeeLevelTimer);
-                this.CoffeeLevelTimer = null;
+                // start monitoring the coffee level.
+                timer = StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new Action(this.MonitorGrinder));
+            }
+            else if (!value && timer != null)
+            {
+                StopTimer(timer);
+                timer = null;
+            }
+
+            lock (this.SyncObject)
+            {
+                this.CoffeeLevelTimer = timer;
             }
         }
 
@@ -244,8 +258,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             await ControlledTask.Delay(1);
 
+            ControlledTimer timer = null;
             lock (this.SyncObject)
             {
+                timer = this.CoffeeLevelTimer;
                 this.ShotButton = value;
 
                 if (this.ShotButton)
@@ -255,15 +271,24 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     {
                         Specification.Assert(false, "Please do not turn on shot maker if there is no water");
                     }
+                }
+            }
 
-                    // time the shot then send shot complete event.
-                    this.ShotTimer = StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new Action(this.MonitorShot));
-                }
-                else if (this.ShotTimer != null)
-                {
-                    StopTimer(this.ShotTimer);
-                    this.ShotTimer = null;
-                }
+            // ControlledTimer operations must be done outside the lock.
+            if (value && timer == null)
+            {
+                // start monitoring the coffee level.
+                timer = StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new Action(this.MonitorShot));
+            }
+            else if (!value && timer != null)
+            {
+                StopTimer(timer);
+                timer = null;
+            }
+
+            lock (this.SyncObject)
+            {
+                this.ShotTimer = timer;
             }
         }
 
@@ -327,6 +352,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             // grinding does nothing!
 
             bool changed = false;
+            bool turnOffGrinder = false;
+            bool notifyEmpty = false;
+            bool stopTimer = false;
+
             lock (this.SyncObject)
             {
                 double hopperLevel = this.HopperLevel;
@@ -341,6 +370,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     if (!this.RunSlowly && level < 99)
                     {
                         hopperLevel -= 98 - (int)level;
+                        Console.WriteLine("### HopperLevel: RunSlowly = {0}, level = {1}", this.RunSlowly, hopperLevel);
                         level = 99;
                     }
 
@@ -352,8 +382,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                         if (level == 100)
                         {
                             // turning off the grinder is automatic
-                            this.GrinderButton = false;
-                            this.OnGrinderButtonChanged();
+                            turnOffGrinder = true;
                         }
                     }
 
@@ -366,17 +395,25 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 if (this.HopperLevel <= 0)
                 {
                     hopperLevel = 0;
-                    if (this.HopperEmpty != null)
-                    {
-                        this.HopperEmpty(this, true);
-                    }
-
-                    if (this.CoffeeLevelTimer != null)
-                    {
-                        StopTimer(this.CoffeeLevelTimer);
-                        this.CoffeeLevelTimer = null;
-                    }
+                    notifyEmpty = true;
+                    stopTimer = true;
                 }
+            }
+
+            if (turnOffGrinder)
+            {
+                this.OnGrinderButtonChanged(false);
+            }
+
+            if (notifyEmpty && this.HopperEmpty != null)
+            {
+                this.HopperEmpty(this, true);
+            }
+
+            if (stopTimer && this.CoffeeLevelTimer != null)
+            {
+                StopTimer(this.CoffeeLevelTimer);
+                this.CoffeeLevelTimer = null;
             }
 
             // event callbacks should not be inside the lock otherwise we could get deadlocks.
@@ -399,13 +436,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 this.WaterLevel -= 1;
                 // turn off the water.
                 this.ShotButton = false;
+            }
 
-                // automatically stop the water when shot is completed.
-                if (this.ShotTimer != null)
-                {
-                    StopTimer(this.ShotTimer);
-                    this.ShotTimer = null;
-                }
+            // automatically stop the water when shot is completed.
+            if (this.ShotTimer != null)
+            {
+                StopTimer(this.ShotTimer);
+                this.ShotTimer = null;
             }
 
             if (this.WaterLevel > 0)
@@ -426,7 +463,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         private static void StopTimer(ControlledTimer timer)
         {
-            timer.Stop();
+            if (timer != null)
+            {
+                timer.Stop();
+            }
         }
 
         private static ControlledTimer StartPeriodicTimer(TimeSpan startDelay, TimeSpan interval, Action handler)

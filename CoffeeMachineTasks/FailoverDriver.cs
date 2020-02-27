@@ -32,7 +32,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private ControlledTimer HaltTimer;
 
         public FailoverDriver(bool runForever, TextWriter log)
-            : base(log)
+            : base(log, runForever)
         {
             this.RunForever = runForever;
             this.Sensors = new MockSensors(runForever);
@@ -41,7 +41,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public async ControlledTask RunTest()
         {
             bool halted = true;
-            while (this.RunForever || this.Iterations < 1)
+            while (this.RunForever || this.Iterations <= 1)
             {
                 this.WriteLine("#################################################################");
 
@@ -51,7 +51,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 {
                     this.WriteLine("starting new CoffeeMachine iteration {0}.", this.Iterations);
                     this.IsInitialized = false;
-                    this.CoffeeMachine = new CoffeeMachine(this.Log);
+                    this.CoffeeMachine = new CoffeeMachine(this.Log, this.RunForever);
                     halted = false;
                     this.IsInitialized = await this.CoffeeMachine.InitializeAsync(this.Sensors);
                     if (!this.IsInitialized)
@@ -75,6 +75,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 if (string.Compare(error, "<halted>", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     // then OnStopTest did it's thing, so it is time to create new coffee machine.
+                    this.WriteLine("CoffeeMachine is halted.");
                     halted = true;
                 }
                 else if (!string.IsNullOrEmpty(error))
@@ -82,6 +83,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     this.WriteLine("CoffeeMachine reported an error.");
                     this.WriteLine("Test is complete, press ENTER to continue...");
                     this.RunForever = false; // no point trying to make more coffee.
+                    this.Iterations = 10;
                 }
                 else
                 {
