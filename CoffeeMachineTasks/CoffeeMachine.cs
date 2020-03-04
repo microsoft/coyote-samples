@@ -299,14 +299,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (!this.IsBroken)
                 {
-                    // wait for shots complete event
-                    try
+                    // wait for shots complete event, but we cannot do this:
+                    //   "await completion.Task.ToControlledTask();"
+                    // because completion.Task is not a Coyote ControlledTask.
+                    // So we have to do this instead:
+                    while (!completion.Task.IsCompleted)
                     {
-                        await completion.Task.ToControlledTask();
-                    }
-                    catch (TaskCanceledException)
-                    {
-                        // Terminate was called.
+                        await ControlledTask.Yield();
                     }
 
                     if (!this.IsBroken)
