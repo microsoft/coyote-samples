@@ -85,6 +85,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 throw new Exception("Please make sure InitializeAsync returns true.");
             }
 
+            if (this.Halted)
+            {
+                return "Coffee machine is halted";
+            }
+
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
 
             // make sure water is hot enough.
@@ -183,10 +188,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         private async ControlledTask StartHeatingWater()
         {
-            // Start heater and keep monitoring the water temp till it reaches 100!
-            this.WriteLine("Warming the water to 100 degrees");
-            Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
-            await this.MonitorWaterTemperature();
+            if (!this.Halted)
+            {
+                // Start heater and keep monitoring the water temp till it reaches 100!
+                this.WriteLine("Warming the water to 100 degrees");
+                Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
+                await this.MonitorWaterTemperature();
+            }
         }
 
         private async ControlledTask OnWaterHot()

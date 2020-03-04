@@ -40,6 +40,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         ControlledTask SetDumpGrindsButtonAsync(bool value);
 
+        ControlledTask TerminateAsync();
+
         /// <summary>
         /// An async event can be raised any time the water temperature changes.
         /// </summary>
@@ -120,6 +122,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.ShotButton = false;
             this.DoorOpen = ControlledRandomValueGenerator.GetNextBoolean(5);
             this.WaterHeaterTimer = StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new Action(this.MonitorWaterTemperature));
+        }
+
+        public ControlledTask TerminateAsync()
+        {
+            StopTimer(this.WaterHeaterTimer);
+            StopTimer(this.CoffeeLevelTimer);
+            StopTimer(this.ShotTimer);
+            StopTimer(this.HopperLevelTimer);
+            return ControlledTask.CompletedTask;
         }
 
         public async ControlledTask<bool> GetPowerSwitchAsync()

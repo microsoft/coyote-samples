@@ -81,7 +81,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 else if (!string.IsNullOrEmpty(error))
                 {
                     this.WriteLine("CoffeeMachine reported an error.");
-                    this.WriteLine("Test is complete, press ENTER to continue...");
                     this.RunForever = false; // no point trying to make more coffee.
                     this.Iterations = 10;
                 }
@@ -93,6 +92,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 this.Iterations++;
             }
+
+            // Shutdown the sensors because test is now complete.
+            this.WriteLine("Test is complete, press ENTER to continue...");
+            await this.Sensors.TerminateAsync();
         }
 
         internal void OnStopTest()
