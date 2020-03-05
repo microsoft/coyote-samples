@@ -2,20 +2,15 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.IO;
 using System.Reflection;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
-using Microsoft.Azure.ServiceBus.Core;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
-using Newtonsoft.Json;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {

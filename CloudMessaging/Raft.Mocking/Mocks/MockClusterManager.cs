@@ -1,12 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
-using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
-using Microsoft.Coyote;
-using Microsoft.Coyote.Actors;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {

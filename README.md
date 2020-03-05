@@ -8,7 +8,6 @@ This repository contains a series of samples that highlight how to use
 
 - [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple Coyote application using asynchronous tasks, and then run and systematically test it locally.
 - [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it locally.
-- [HelloWorldStateMachines](./HelloWorldStateMachines): demonstrates how to write a simple Coyote application using state machines, and then run and systematically test it locally.
 - [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
 This sample is made up of the following parts:
     - [Raft](./CloudMessaging/Raft) - a core C# class library that implements the [Raft Consensus Algorithm](https://raft.github.io/) using the Coyote [Actor Programming Model](https://microsoft.github.io/coyote/programming-models/actors/overview).
