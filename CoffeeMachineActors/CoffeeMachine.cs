@@ -9,6 +9,7 @@ using Microsoft.Coyote.Specifications;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
+    [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
     internal class CoffeeMachine : StateMachine
     {
         private ActorId Client;
@@ -57,7 +58,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [Start]
         [OnEntry(nameof(OnInit))]
         [DeferEvents(typeof(MakeCoffeeEvent))]
-        [OnEventDoAction(typeof(TerminateEvent), nameof(OnTerminate))]
         private class Init : State { }
 
         private void OnInit(Event e)
@@ -69,8 +69,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.Sensors = configEvent.Sensors;
                 // register this class as a client of the sensors.
                 this.SendEvent(this.Sensors, new RegisterClientEvent(this.Id));
-                // Use PushState so that TerminateEvent can be handled at any time in all the following states.
-                this.RaisePushStateEvent<CheckSensors>();
+                this.RaiseGotoStateEvent<CheckSensors>();
             }
         }
 
@@ -238,7 +237,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         }
 
         [OnEntry(nameof(OnReady))]
-        [IgnoreEvents(typeof(WaterLevelEvent))]
+        [IgnoreEvents(typeof(WaterLevelEvent), typeof(WaterHotEvent))]
         [OnEventGotoState(typeof(MakeCoffeeEvent), typeof(MakingCoffee))]
         private class Ready : State { }
 
