@@ -1,7 +1,6 @@
 # Coyote Samples
 
-[![Build Status](https://dev.azure.com/foundry99/Coyote/_apis/build/status/CoyoteSamples/Coyote-Samples-CI?branchName=master)](https://dev.azure.com/foundry99/Coyote/_build/latest?definitionId=53&branchName=master)
-[![License: MIT](https://img.shields.io/badge/License-MIT-blue.svg)](https://opensource.org/licenses/MIT)
+[![Build status](https://dev.azure.com/foundry99/Coyote/_apis/build/status/Samples/Coyote-Samples-VS-2019-CI)](https://dev.azure.com/foundry99/Coyote/_build/latest?definitionId=100)
 
 This repository contains a series of samples that highlight how to use
 [Coyote](https://github.com/microsoft/coyote) for building reliable services and applications.
