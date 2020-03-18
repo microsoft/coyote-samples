@@ -1,1 +1,2 @@
-dotnet %~dp0..\..\Coyote\bin\netcoreapp2.2\coyote.dll test %~dp0/../bin/netcoreapp2.2/Raft.Mocking.dll -i 1000 -ms 500 --timeout-delay 10 -graph-bug
+cd %~dp0
+dotnet ..\..\Coyote\bin\netcoreapp2.2\coyote.dll test /../bin/netcoreapp2.2/Raft.Mocking.dll -i 1000 -ms 500 -graph-bug
