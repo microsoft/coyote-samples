@@ -113,11 +113,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         }
 
         [OnEntry(nameof(OnStopTest))]
-        [OnEventDoAction(typeof(CoffeeMachine.HaltedEvent), nameof(OnHalted))]
+        [OnEventDoAction(typeof(CoffeeMachine.HaltedEvent), nameof(OnCoffeeMachineHalted))]
         [IgnoreEvents(typeof(CoffeeMachine.CoffeeCompletedEvent))]
         internal class Stop : State { }
 
-        internal void OnHalted()
+        internal void OnCoffeeMachineHalted()
         {
             // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
             this.RaiseGotoStateEvent<Stopped>();
@@ -136,6 +136,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
             else
             {
+                // Test is done, halt the mock sensors.
+                this.SendEvent(this.SensorsId, HaltEvent.Instance);
                 this.RaiseHaltEvent();
             }
         }
