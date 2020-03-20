@@ -18,17 +18,20 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private TimeSpan? Interval;
         private readonly Action Handler;
         private bool Stopped;
+        private readonly string Name;
 
-        public ControlledTimer(TimeSpan startDelay, TimeSpan interval, Action handler)
+        public ControlledTimer(string name, TimeSpan startDelay, TimeSpan interval, Action handler)
         {
+            this.Name = name;
             this.StartDelay = startDelay;
             this.Interval = interval;
             this.Handler = handler;
             this.StartTimer(startDelay);
         }
 
-        public ControlledTimer(TimeSpan dueTime, Action handler)
+        public ControlledTimer(string name, TimeSpan dueTime, Action handler)
         {
+            this.Name = name;
             this.StartDelay = dueTime;
             this.Handler = handler;
             this.StartTimer(dueTime);
@@ -59,6 +62,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             this.Stopped = true;
             this.Source.Cancel();
+        }
+
+        public override string ToString()
+        {
+            return this.Name;
         }
     }
 }

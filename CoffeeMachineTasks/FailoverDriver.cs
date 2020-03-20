@@ -36,8 +36,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             : base(log, runForever)
         {
             this.RunForever = runForever;
-            this.Sensors = new MockSensors(runForever);
             this.RandomGenerator = Generator.Create();
+            this.Sensors = new MockSensors(this.Log, runForever);
         }
 
         public async Task RunTest()
@@ -67,7 +67,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     // Setup a timer to randomly kill the coffee machine.   When the timer fires
                     // we will restart the coffee machine and this is testing that the machine can
                     // recover gracefully when that happens.
-                    this.HaltTimer = new ControlledTimer(TimeSpan.FromSeconds(this.RandomGenerator.NextInteger(7) + 1), new Action(this.OnStopTest));
+                    this.HaltTimer = new ControlledTimer("HaltTimer", TimeSpan.FromSeconds(this.RandomGenerator.NextInteger(7) + 1), new Action(this.OnStopTest));
 
                     // Request a coffee!
                     var shots = this.RandomGenerator.NextInteger(3) + 1;

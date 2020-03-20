@@ -16,9 +16,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public static void Main()
         {
             RunForever = true;
-            // bugbug: this is weird that I have to create an IActorRuntime
-            // in order to use the runtime.Logger.  We need a better way for
-            // Task based apps.
             ICoyoteRuntime runtime = RuntimeFactory.Create();
             _ = Execute(runtime);
             Console.ReadLine();
@@ -59,6 +56,26 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             if (this.Echo)
             {
                 Console.WriteLine(msg);
+            }
+        }
+
+        internal void WriteError(string format, params object[] args)
+        {
+            var msg = string.Format(format, args);
+            msg = string.Format("<{0}> {1}", this.GetType().Name, msg);
+            var saved = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            try
+            {
+                this.Log.WriteLine(msg);
+                if (this.Echo)
+                {
+                    Console.WriteLine(msg);
+                }
+            }
+            finally
+            {
+                Console.ForegroundColor = saved;
             }
         }
     }

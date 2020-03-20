@@ -86,13 +86,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
             if (this.Halted)
             {
-                return "Coffee machine is halted";
+                return "Ignoring MakeCoffeeAsync on halted Coffee machine";
             }
 
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
 
-            // make sure water is hot enough.
-            await this.StartHeatingWater();
+            if (!this.RefillRequired && !this.Halted)
+            {
+                // make sure water is hot enough.
+                await this.StartHeatingWater();
+            }
 
             this.WriteLine($"Coffee requested, shots={shots}");
             this.ShotsRequested = shots;
@@ -101,12 +104,12 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             // turn on shot button for desired time
             // dump the grinds, while checking for error conditions
             // like out of water or coffee beans.
-            if (!this.RefillRequired)
+            if (!this.RefillRequired && !this.Halted)
             {
                 await this.GrindBeans();
             }
 
-            if (!this.RefillRequired)
+            if (!this.RefillRequired && !this.Halted)
             {
                 await this.MakeShotsAsync();
             }
@@ -193,6 +196,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 this.WriteLine("Warming the water to 100 degrees");
                 Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
                 await this.MonitorWaterTemperature();
+            }
+            else
+            {
+                this.WriteLine("Ignoring StartHeatingWater on a Halted Coffee machine");
             }
         }
 
@@ -337,14 +344,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.Error = message;
             this.RefillRequired = true;
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteLine(message);
+            this.WriteError(message);
         }
 
         private void OnError()
         {
             this.Error = "Coffee machine needs fixing!";
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteLine(this.Error);
+            this.WriteError(this.Error);
         }
 
         public async Task TerminateAsync()
