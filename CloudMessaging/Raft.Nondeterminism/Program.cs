@@ -1,8 +1,9 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.TestingServices;
+using Microsoft.Coyote.SystematicTesting;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {

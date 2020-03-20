@@ -3,7 +3,6 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
@@ -14,14 +13,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     {
         private static bool RunForever = false;
 
-        public static async Task Main()
+        public static void Main()
         {
             RunForever = true;
             // bugbug: this is weird that I have to create an IActorRuntime
             // in order to use the runtime.Logger.  We need a better way for
             // Task based apps.
-            IActorRuntime runtime = ActorRuntimeFactory.Create();
-            await Execute(runtime);
+            ICoyoteRuntime runtime = RuntimeFactory.Create();
+            _ = Execute(runtime);
             Console.ReadLine();
             Console.WriteLine("User cancelled the test by pressing ENTER");
         }
@@ -31,8 +30,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             Console.WriteLine("### Failure: " + ex.Message);
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
-        public static async ControlledTask Execute(IActorRuntime runtime)
+        [Microsoft.Coyote.SystematicTesting.Test]
+        public static async Task Execute(ICoyoteRuntime runtime)
         {
             runtime.OnFailure += OnRuntimeFailure;
             Specification.RegisterMonitor<LivenessMonitor>();

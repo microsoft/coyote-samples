@@ -2,10 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
-using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.TestingServices;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
@@ -16,7 +13,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         public static void Main()
         {
             RunForever = true;
-            IActorRuntime runtime = ActorRuntimeFactory.Create(); // Configuration.Create().WithVerbosityEnabled());
+            IActorRuntime runtime = RuntimeFactory.Create(); // Configuration.Create().WithVerbosityEnabled());
             Execute(runtime);
             Console.ReadLine();
             Console.WriteLine("User cancelled the test by pressing ENTER");
@@ -27,11 +24,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             Console.WriteLine("Unhandled exception: {0}", ex.Message);
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
+        [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.OnFailure += OnRuntimeFailure;
-            runtime.RegisterMonitor(typeof(LivenessMonitor));
+            runtime.RegisterMonitor<LivenessMonitor>();
             ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
             runtime.SendEvent(driver, new FailoverDriver.StartTestEvent());
         }

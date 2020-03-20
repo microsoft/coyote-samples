@@ -105,7 +105,7 @@ namespace Microsoft.Coyote.Samples.Monitors
         private void CancelTimerAction2()
         {
             // A nondeterministic choice that is controlled by the Coyote runtime during testing.
-            if (this.Random())
+            if (this.RandomBoolean())
             {
                 this.SendEvent(this.Target, new CancelSuccess());
             }

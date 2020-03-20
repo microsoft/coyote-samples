@@ -25,7 +25,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         {
             // Register a safety monitor for checking the specification that
             // only one leader can be elected at any given term.
-            runtime.RegisterMonitor(typeof(SafetyMonitor));
+            runtime.RegisterMonitor<SafetyMonitor>();
 
             // Create the actor id for a client that will be sending requests to the Raft service.
             var client = runtime.CreateActorIdFromName(typeof(MockClient), "Client");

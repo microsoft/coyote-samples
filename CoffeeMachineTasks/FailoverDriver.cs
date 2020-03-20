@@ -3,7 +3,7 @@
 
 using System;
 using System.IO;
-using System.Threading.Tasks;
+using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
@@ -16,7 +16,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// </summary>
     internal interface IFailoverDriver
     {
-        ControlledTask RunTest();
+        Task RunTest();
     }
 
     /// <summary>
@@ -30,15 +30,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private bool RunForever;
         private int Iterations;
         private ControlledTimer HaltTimer;
+        private readonly Generator RandomGenerator;
 
         public FailoverDriver(bool runForever, TextWriter log)
             : base(log, runForever)
         {
             this.RunForever = runForever;
             this.Sensors = new MockSensors(runForever);
+            this.RandomGenerator = Generator.Create();
         }
 
-        public async ControlledTask RunTest()
+        public async Task RunTest()
         {
             bool halted = true;
             while (this.RunForever || this.Iterations <= 1)
@@ -65,10 +67,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     // Setup a timer to randomly kill the coffee machine.   When the timer fires
                     // we will restart the coffee machine and this is testing that the machine can
                     // recover gracefully when that happens.
-                    this.HaltTimer = new ControlledTimer(TimeSpan.FromSeconds(ControlledRandomValueGenerator.GetNextInteger(7) + 1), new Action(this.OnStopTest));
+                    this.HaltTimer = new ControlledTimer(TimeSpan.FromSeconds(this.RandomGenerator.NextInteger(7) + 1), new Action(this.OnStopTest));
 
                     // Request a coffee!
-                    var shots = ControlledRandomValueGenerator.GetNextInteger(3) + 1;
+                    var shots = this.RandomGenerator.NextInteger(3) + 1;
                     error = await this.CoffeeMachine.MakeCoffeeAsync(shots);
                 }
 
@@ -118,7 +120,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
             // to terminate, and it sends back a HaltedEvent when it really has been halted.
             this.WriteLine("forcing termination of CoffeeMachine.");
-            ControlledTask.Run(this.CoffeeMachine.TerminateAsync);
+            Task.Run(this.CoffeeMachine.TerminateAsync);
         }
     }
 }

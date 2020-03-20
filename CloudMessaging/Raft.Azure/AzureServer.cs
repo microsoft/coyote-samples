@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Coyote.Actors;
+using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Runtime;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
@@ -71,17 +72,17 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// <summary>
         /// Random generator for timeout values.
         /// </summary>
-        private readonly Random RandomValueGenerator;
+        private readonly Generator RandomValueGenerator;
 
         /// <summary>
         /// The leader election due time.
         /// </summary>
-        public TimeSpan LeaderElectionDueTime => TimeSpan.FromSeconds(this.RandomValueGenerator.Next(1, 10));
+        public TimeSpan LeaderElectionDueTime => TimeSpan.FromSeconds(1 + this.RandomValueGenerator.NextInteger(9));
 
         /// <summary>
         /// The leader election periodic time interval.
         /// </summary>
-        public TimeSpan LeaderElectionPeriod => TimeSpan.FromSeconds(this.RandomValueGenerator.Next(30, 60));
+        public TimeSpan LeaderElectionPeriod => TimeSpan.FromSeconds(30 + this.RandomValueGenerator.NextInteger(30));
 
         public AzureServer(IActorRuntime runtime, string connectionString, string topicName,
             int serverId, int numServers, ActorId clusterManager)
@@ -93,7 +94,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
             this.NumServers = numServers;
             this.ClusterManager = clusterManager;
             this.ServerId = $"Server-{serverId}";
-            this.RandomValueGenerator = new Random();
+            this.RandomValueGenerator = Generator.Create();
 
             this.RemoteServers = new HashSet<string>();
             for (int id = 0; id < numServers; id++)

@@ -2,8 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
-using Microsoft.Coyote;
-using Microsoft.Coyote.Runtime;
+using Microsoft.Coyote.Actors;
 
 namespace Microsoft.Coyote.Samples.Monitors
 {
@@ -27,7 +26,7 @@ namespace Microsoft.Coyote.Samples.Monitors
             var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
-            var runtime = ActorRuntimeFactory.Create(configuration);
+            var runtime = RuntimeFactory.Create(configuration);
 
             // Executes the Coyote program.
             Execute(runtime);
@@ -38,13 +37,13 @@ namespace Microsoft.Coyote.Samples.Monitors
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
+        [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
             // Monitors must be registered before the first Coyote machine
             // gets created (which will kickstart the runtime).
-            runtime.RegisterMonitor(typeof(Safety));
-            runtime.RegisterMonitor(typeof(Liveness));
+            runtime.RegisterMonitor<Safety>();
+            runtime.RegisterMonitor<Liveness>();
             runtime.CreateActor(typeof(Driver), new Driver.Config(2));
         }
     }

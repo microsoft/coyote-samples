@@ -199,7 +199,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.GrinderButton = false;
             this.PortaFilterCoffeeLevel = 0;
             this.ShotButton = false;
-            this.DoorOpen = this.Random(5);
+            this.DoorOpen = this.RandomBoolean(5);
 
             this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
             return base.OnInitializeAsync(initialEvent);

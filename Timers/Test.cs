@@ -3,7 +3,7 @@
 
 using System;
 using Microsoft.Coyote;
-using Microsoft.Coyote.Runtime;
+using Microsoft.Coyote.Actors;
 
 namespace Coyote.Examples.Timers
 {
@@ -16,7 +16,7 @@ namespace Coyote.Examples.Timers
             var configuration = Configuration.Create().WithVerbosityEnabled();
 
             // Creates a new Coyote runtime instance, and passes an optional configuration.
-            var runtime = ActorRuntimeFactory.Create(configuration);
+            var runtime = RuntimeFactory.Create(configuration);
 
             // Executes the Coyote program.
             Execute(runtime);
@@ -26,7 +26,7 @@ namespace Coyote.Examples.Timers
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
+        [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
             runtime.CreateActor(typeof(TimerSample));

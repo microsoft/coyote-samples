@@ -4,8 +4,6 @@
 using System;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
-using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.TestingServices;
 
 namespace Microsoft.Coyote.Samples.HelloWorld
 {
@@ -21,13 +19,13 @@ namespace Microsoft.Coyote.Samples.HelloWorld
                 ? MaxGreetings
                 : 7;
 
-            IActorRuntime runtime = ActorRuntimeFactory.Create();
+            IActorRuntime runtime = RuntimeFactory.Create();
             Execute(runtime);
 
             await CompletionSource.Task;
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
+        [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
             ActorId serverId = runtime.CreateActor(typeof(Server));

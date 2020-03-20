@@ -2,6 +2,7 @@
 // Licensed under the MIT License.
 
 using System;
+using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
 
@@ -18,29 +19,29 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// </summary>
     internal interface ISensors
     {
-        ControlledTask<bool> GetPowerSwitchAsync();
+        Tasks.Task<bool> GetPowerSwitchAsync();
 
-        ControlledTask SetPowerSwitchAsync(bool value);
+        Task SetPowerSwitchAsync(bool value);
 
-        ControlledTask<double> GetWaterLevelAsync();
+        Tasks.Task<double> GetWaterLevelAsync();
 
-        ControlledTask<double> GetHopperLevelAsync();
+        Tasks.Task<double> GetHopperLevelAsync();
 
-        ControlledTask<double> GetWaterTemperatureAsync();
+        Tasks.Task<double> GetWaterTemperatureAsync();
 
-        ControlledTask<double> GetPortaFilterCoffeeLevelAsync();
+        Tasks.Task<double> GetPortaFilterCoffeeLevelAsync();
 
-        ControlledTask<bool> GetReadDoorOpenAsync();
+        Tasks.Task<bool> GetReadDoorOpenAsync();
 
-        ControlledTask SetWaterHeaterButtonAsync(bool value);
+        Task SetWaterHeaterButtonAsync(bool value);
 
-        ControlledTask SetGrinderButtonAsync(bool value);
+        Task SetGrinderButtonAsync(bool value);
 
-        ControlledTask SetShotButtonAsync(bool value);
+        Task SetShotButtonAsync(bool value);
 
-        ControlledTask SetDumpGrindsButtonAsync(bool value);
+        Task SetDumpGrindsButtonAsync(bool value);
 
-        ControlledTask TerminateAsync();
+        Task TerminateAsync();
 
         /// <summary>
         /// An async event can be raised any time the water temperature changes.
@@ -88,6 +89,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private double PortaFilterCoffeeLevel;
         private bool ShotButton;
         private readonly bool DoorOpen;
+        private readonly Generator RandomGenerator;
 
         private readonly ControlledTimer WaterHeaterTimer;
         private ControlledTimer CoffeeLevelTimer;
@@ -110,69 +112,70 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public MockSensors(bool runSlowly)
         {
             this.RunSlowly = runSlowly;
+            this.RandomGenerator = Generator.Create();
 
             // The use of randomness here makes this mock a more interesting test as it will
             // make sure the coffee machine handles these values correctly.
-            this.WaterLevel = ControlledRandomValueGenerator.GetNextInteger(100);
-            this.HopperLevel = ControlledRandomValueGenerator.GetNextInteger(100);
+            this.WaterLevel = this.RandomGenerator.NextInteger(100);
+            this.HopperLevel = this.RandomGenerator.NextInteger(100);
             this.WaterHeaterButton = false;
-            this.WaterTemperature = ControlledRandomValueGenerator.GetNextInteger(50) + 30;
+            this.WaterTemperature = this.RandomGenerator.NextInteger(50) + 30;
             this.GrinderButton = false;
             this.PortaFilterCoffeeLevel = 0;
             this.ShotButton = false;
-            this.DoorOpen = ControlledRandomValueGenerator.GetNextBoolean(5);
+            this.DoorOpen = this.RandomGenerator.NextBoolean(5);
             this.WaterHeaterTimer = StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new Action(this.MonitorWaterTemperature));
         }
 
-        public ControlledTask TerminateAsync()
+        public Task TerminateAsync()
         {
             StopTimer(this.WaterHeaterTimer);
             StopTimer(this.CoffeeLevelTimer);
             StopTimer(this.ShotTimer);
             StopTimer(this.HopperLevelTimer);
-            return ControlledTask.CompletedTask;
+            return Task.CompletedTask;
         }
 
-        public async ControlledTask<bool> GetPowerSwitchAsync()
+        public async Tasks.Task<bool> GetPowerSwitchAsync()
         {
             // to model real async behavior we insert a delay here.
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.PowerOn;
         }
 
-        public async ControlledTask<double> GetWaterLevelAsync()
+        public async Tasks.Task<double> GetWaterLevelAsync()
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.WaterLevel;
         }
 
-        public async ControlledTask<double> GetHopperLevelAsync()
+        public async Tasks.Task<double> GetHopperLevelAsync()
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.HopperLevel;
         }
 
-        public async ControlledTask<double> GetWaterTemperatureAsync()
+        public async Tasks.Task<double> GetWaterTemperatureAsync()
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.WaterTemperature;
         }
 
-        public async ControlledTask<double> GetPortaFilterCoffeeLevelAsync()
+        public async Tasks.Task<double> GetPortaFilterCoffeeLevelAsync()
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.PortaFilterCoffeeLevel;
         }
 
-        public async ControlledTask<bool> GetReadDoorOpenAsync()
+        public async Tasks.Task<bool> GetReadDoorOpenAsync()
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             return this.DoorOpen;
         }
 
-        public async ControlledTask SetPowerSwitchAsync(bool value)
+        public async Task SetPowerSwitchAsync(bool value)
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             ControlledTimer timer1 = null;
             ControlledTimer timer2 = null;
             ControlledTimer timer3 = null;
@@ -207,9 +210,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             StopTimer(timer3);
         }
 
-        public async ControlledTask SetWaterHeaterButtonAsync(bool value)
+        public async Task SetWaterHeaterButtonAsync(bool value)
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
 
             lock (this.SyncObject)
             {
@@ -223,9 +226,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
         }
 
-        public async ControlledTask SetGrinderButtonAsync(bool value)
+        public async Task SetGrinderButtonAsync(bool value)
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             this.OnGrinderButtonChanged(value);
         }
 
@@ -265,9 +268,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
         }
 
-        public async ControlledTask SetShotButtonAsync(bool value)
+        public async Task SetShotButtonAsync(bool value)
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
 
             ControlledTimer timer = null;
             lock (this.SyncObject)
@@ -303,9 +306,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
         }
 
-        public async ControlledTask SetDumpGrindsButtonAsync(bool value)
+        public async Task SetDumpGrindsButtonAsync(bool value)
         {
-            await ControlledTask.Delay(1);
+            await Task.Delay(1);
             if (value)
             {
                 // this is a toggle button, in no time grinds are dumped (just for simplicity)

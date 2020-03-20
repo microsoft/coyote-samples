@@ -5,7 +5,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Coyote.Actors;
-using Microsoft.Coyote.Runtime;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {
@@ -101,7 +100,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
 
         public void NotifyElectedLeader(int term)
         {
-            this.Runtime.InvokeMonitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(term));
+            this.Runtime.Monitor<SafetyMonitor>(new SafetyMonitor.NotifyLeaderElected(term));
         }
     }
 }

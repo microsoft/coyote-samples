@@ -14,19 +14,19 @@ namespace Microsoft.Coyote.Samples.HelloWorld
 
         private string Value;
 
-        private async ControlledTask WriteWithDelayAsync(string value)
+        private async Task WriteWithDelayAsync(string value)
         {
-            await ControlledTask.Delay(100);
+            await Task.Delay(100);
             this.Value = value;
         }
 
-        public async ControlledTask RunAsync()
+        public async Task RunAsync()
         {
-            ControlledTask task1 = this.WriteWithDelayAsync(GoodMorning);
-            ControlledTask task2 = this.WriteWithDelayAsync(HelloWorld);
-            ControlledTask task3 = this.WriteWithDelayAsync(HelloWorld);
+            Task task1 = this.WriteWithDelayAsync(GoodMorning);
+            Task task2 = this.WriteWithDelayAsync(HelloWorld);
+            Task task3 = this.WriteWithDelayAsync(HelloWorld);
 
-            await ControlledTask.WhenAll(task1, task2, task3);
+            await Task.WhenAll(task1, task2, task3);
 
             Console.WriteLine(this.Value);
 

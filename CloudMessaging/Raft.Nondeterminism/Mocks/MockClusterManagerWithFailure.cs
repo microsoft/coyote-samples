@@ -30,7 +30,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                 {
                     var server = pair.Value;
                     this.SendEvent(server, request);
-                    if (this.Random())
+                    if (this.RandomBoolean())
                     {
                         // Nondeterministically send a duplicate vote to exercise the corner case
                         // where networking communication sends duplicate messages. This can cause

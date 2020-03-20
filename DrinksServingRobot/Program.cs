@@ -17,16 +17,16 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             // var conf = Configuration.Create().WithVerbosityEnabled();
 
             RunForever = true;
-            IActorRuntime runtime = ActorRuntimeFactory.Create(conf);
+            IActorRuntime runtime = Actors.RuntimeFactory.Create(conf);
             runtime.OnFailure += OnRuntimeFailure;
             Execute(runtime);
             Console.ReadLine();
         }
 
-        [Microsoft.Coyote.TestingServices.Test]
+        [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            runtime.RegisterMonitor(typeof(LivenessMonitor));
+            runtime.RegisterMonitor<LivenessMonitor>();
             ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
         }
 

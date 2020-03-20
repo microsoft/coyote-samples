@@ -529,7 +529,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         {
             // The timeout happens too often during testing, so we add a Random 1 in 10 chance here
             // to reduce that a bit.
-            if (this.Random(10))
+            if (this.RandomBoolean(10))
             {
                 this.RaiseGotoStateEvent<Candidate>();
             }

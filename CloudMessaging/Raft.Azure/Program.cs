@@ -10,7 +10,6 @@ using System.Threading.Tasks;
 using Microsoft.Azure.ServiceBus;
 using Microsoft.Azure.ServiceBus.Management;
 using Microsoft.Coyote.Actors;
-using Microsoft.Coyote.Runtime;
 
 namespace Microsoft.Coyote.Samples.CloudMessaging
 {
@@ -171,7 +170,7 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
                         new SubscriptionDescription(this.TopicName, subscriptionName));
                 }
 
-                IActorRuntime runtime = ActorRuntimeFactory.Create(Configuration.Create().WithVerbosityEnabled());
+                IActorRuntime runtime = RuntimeFactory.Create(Configuration.Create().WithVerbosityEnabled());
 
                 // We create a new Coyote actor runtime instance, and pass an optional configuration
                 // that increases the verbosity level to see the Coyote runtime log.

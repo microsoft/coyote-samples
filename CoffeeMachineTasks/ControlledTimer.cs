@@ -36,9 +36,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         private void StartTimer(TimeSpan dueTime)
         {
-            ControlledTask.Run(async () =>
+            Task.Run(async () =>
             {
-                await ControlledTask.Delay(dueTime, this.Source.Token);
+                await Task.Delay(dueTime, this.Source.Token);
                 this.OnTick();
             });
         }
