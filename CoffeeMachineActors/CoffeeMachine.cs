@@ -11,7 +11,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
     internal class CoffeeMachine : StateMachine
     {
         private ActorId Client;
-        private ActorId Sensors;
+        private ActorId WaterTank;
+        private ActorId CoffeeGrinder;
+        private ActorId DoorSensor;
         private bool Heating;
         private double? WaterLevel;
         private double? HopperLevel;
@@ -24,13 +26,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         internal class ConfigEvent : Event
         {
-            public ActorId Sensors;
+            public ActorId WaterTank;
+            public ActorId CoffeeGrinder;
             public ActorId Client;
+            public ActorId DoorSensor;
 
-            public ConfigEvent(ActorId sensors, ActorId client)
+            public ConfigEvent(ActorId waterTank, ActorId coffeeGrinder, ActorId doorSensor, ActorId client)
             {
-                this.Sensors = sensors;
+                this.WaterTank = waterTank;
+                this.CoffeeGrinder = coffeeGrinder;
                 this.Client = client;
+                this.DoorSensor = doorSensor;
             }
         }
 
@@ -64,16 +70,19 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             {
                 this.WriteLine("initializing...");
                 this.Client = configEvent.Client;
-                this.Sensors = configEvent.Sensors;
+                this.WaterTank = configEvent.WaterTank;
+                this.CoffeeGrinder = configEvent.CoffeeGrinder;
+                this.DoorSensor = configEvent.DoorSensor;
                 // register this class as a client of the sensors.
-                this.SendEvent(this.Sensors, new RegisterClientEvent(this.Id));
+                this.SendEvent(this.WaterTank, new RegisterClientEvent(this.Id));
+                this.SendEvent(this.CoffeeGrinder, new RegisterClientEvent(this.Id));
+                this.SendEvent(this.DoorSensor, new RegisterClientEvent(this.Id));
                 this.RaiseGotoStateEvent<CheckSensors>();
             }
         }
 
         [OnEntry(nameof(OnCheckSensors))]
         [DeferEvents(typeof(MakeCoffeeEvent))]
-        [OnEventDoAction(typeof(PowerButtonEvent), nameof(OnPowerButton))]
         [OnEventDoAction(typeof(WaterLevelEvent), nameof(OnWaterLevel))]
         [OnEventDoAction(typeof(HopperLevelEvent), nameof(OnHopperLevel))]
         [OnEventDoAction(typeof(DoorOpenEvent), nameof(OnDoorOpen))]
@@ -83,31 +92,18 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         private void OnCheckSensors()
         {
             this.WriteLine("checking initial state of sensors...");
-            // when this state machine starts it has to figure out the state of the sensors.
-            this.SendEvent(this.Sensors, new ReadPowerButtonEvent());
-        }
 
-        private void OnPowerButton(Event e)
-        {
-            if (e is PowerButtonEvent pe)
-            {
-                if (!pe.PowerOn)
-                {
-                    // coffee machine was off already, so this is the easy case, simply turn it on!
-                    this.SendEvent(this.Sensors, new PowerButtonEvent(true));
-                }
+            // make sure grinder, shot maker and water heater are off.
+            // notice how easy it is to queue up a whole bunch of async work!
+            this.SendEvent(this.CoffeeGrinder, new GrinderButtonEvent(false));
+            this.SendEvent(this.WaterTank, new PumpWaterEvent(false));
+            this.SendEvent(this.WaterTank, new WaterHeaterButtonEvent(false));
 
-                // make sure grinder, shot maker and water heater are off.
-                this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
-                this.SendEvent(this.Sensors, new ShotButtonEvent(false));
-                this.SendEvent(this.Sensors, new WaterHeaterButtonEvent(false));
-
-                // need to check water and hopper levels and if the porta filter has coffee in it we need to dump those grinds.
-                this.SendEvent(this.Sensors, new ReadWaterLevelEvent());
-                this.SendEvent(this.Sensors, new ReadHopperLevelEvent());
-                this.SendEvent(this.Sensors, new ReadDoorOpenEvent());
-                this.SendEvent(this.Sensors, new ReadPortaFilterCoffeeLevelEvent());
-            }
+            // need to check water and hopper levels and if the porta filter has coffee in it we need to dump those grinds.
+            this.SendEvent(this.WaterTank, new ReadWaterLevelEvent());
+            this.SendEvent(this.CoffeeGrinder, new ReadHopperLevelEvent());
+            this.SendEvent(this.DoorSensor, new ReadDoorOpenEvent());
+            this.SendEvent(this.CoffeeGrinder, new ReadPortaFilterCoffeeLevelEvent());
         }
 
         private void OnWaterLevel(Event e)
@@ -134,7 +130,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.WriteLine("Hopper level is {0} %", (int)this.HopperLevel.Value);
                 if ((int)this.HopperLevel.Value == 0)
                 {
-                    this.WriteLine("Coffee machine is out of coffee beans");
+                    this.WriteError("Coffee machine is out of coffee beans");
                     this.RaiseGotoStateEvent<RefillRequired>();
                 }
             }
@@ -149,8 +145,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.DoorOpen = de.Open;
                 if (this.DoorOpen.Value != false)
                 {
-                    this.WriteLine("Cannot safely operate coffee machine with the door open!");
+                    this.WriteError("Cannot safely operate coffee machine with the door open!");
                     this.RaiseGotoStateEvent<Error>();
+                    return;
                 }
             }
 
@@ -166,7 +163,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     // dump these grinds because they could be old, we have no idea how long the coffee machine was off (no real time clock sensor).
                     this.WriteLine("Dumping old smelly grinds!");
-                    this.SendEvent(this.Sensors, new DumpGrindsButtonEvent(true));
+                    this.SendEvent(this.CoffeeGrinder, new DumpGrindsButtonEvent(true));
                 }
             }
 
@@ -192,7 +189,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             // Start heater and keep monitoring the water temp till it reaches 100!
             this.WriteLine("Warming the water to 100 degrees");
             this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
-            this.SendEvent(this.Sensors, new ReadWaterTemperatureEvent());
+            this.SendEvent(this.WaterTank, new ReadWaterTemperatureEvent());
         }
 
         private void OnWaterHot()
@@ -203,7 +200,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.Heating = false;
                 // turn off the heater so we don't overheat it!
                 this.WriteLine("Turning off the water heater");
-                this.SendEvent(this.Sensors, new WaterHeaterButtonEvent(false));
+                this.SendEvent(this.WaterTank, new WaterHeaterButtonEvent(false));
             }
 
             this.RaiseGotoStateEvent<Ready>();
@@ -226,7 +223,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                         this.Heating = true;
                         // turn on the heater and wait for WaterHotEvent.
                         this.WriteLine("Turning on the water heater");
-                        this.SendEvent(this.Sensors, new WaterHeaterButtonEvent(true));
+                        this.SendEvent(this.WaterTank, new WaterHeaterButtonEvent(true));
                     }
                 }
 
@@ -235,8 +232,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         }
 
         [OnEntry(nameof(OnReady))]
-        [IgnoreEvents(typeof(WaterLevelEvent), typeof(WaterHotEvent))]
+        [IgnoreEvents(typeof(WaterLevelEvent), typeof(WaterHotEvent), typeof(HopperLevelEvent))]
         [OnEventGotoState(typeof(MakeCoffeeEvent), typeof(MakingCoffee))]
+        [OnEventDoAction(typeof(HopperEmptyEvent), nameof(OnHopperEmpty))]
         private class Ready : State { }
 
         private void OnReady()
@@ -279,9 +277,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             // grind beans until porta filter is full.
             this.WriteLine("Grinding beans...");
             // turn on the grinder!
-            this.SendEvent(this.Sensors, new GrinderButtonEvent(true));
+            this.SendEvent(this.CoffeeGrinder, new GrinderButtonEvent(true));
             // and keep monitoring the portafilter till it is full, and the bean level in case we get empty
-            this.SendEvent(this.Sensors, new ReadHopperLevelEvent());
+            this.SendEvent(this.CoffeeGrinder, new ReadHopperLevelEvent());
         }
 
         private void MonitorPortaFilter(Event e)
@@ -291,7 +289,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 if (pe.CoffeeLevel >= 100)
                 {
                     this.WriteLine("PortaFilter is full");
-                    this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
+                    this.SendEvent(this.CoffeeGrinder, new GrinderButtonEvent(false));
                     this.RaiseGotoStateEvent<MakingShots>();
                 }
                 else
@@ -315,15 +313,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 }
                 else
                 {
-                    this.SendEvent(this.Sensors, new ReadHopperLevelEvent());
+                    this.SendEvent(this.CoffeeGrinder, new ReadHopperLevelEvent());
                 }
             }
         }
 
         private void OnHopperEmpty()
         {
-            this.WriteLine("hopper is empty!");
-            this.SendEvent(this.Sensors, new GrinderButtonEvent(false));
+            this.WriteError("hopper is empty!");
+            this.SendEvent(this.CoffeeGrinder, new GrinderButtonEvent(false));
             this.RaiseGotoStateEvent<RefillRequired>();
         }
 
@@ -339,9 +337,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             // pour the shots.
             this.WriteLine("Making shots...");
             // turn on the grinder!
-            this.SendEvent(this.Sensors, new ShotButtonEvent(true));
+            this.SendEvent(this.WaterTank, new PumpWaterEvent(true));
             // and keep monitoring ththe water is empty while we wait for ShotCompleteEvent.
-            this.SendEvent(this.Sensors, new ReadWaterLevelEvent());
+            this.SendEvent(this.WaterTank, new ReadWaterLevelEvent());
         }
 
         private void OnShotComplete()
@@ -352,6 +350,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.WriteLine("{0} shots completed and {1} shots requested!", this.PreviousShotCount, this.ShotsRequested);
                 if (this.PreviousShotCount > this.ShotsRequested)
                 {
+                    this.WriteError("Made the wrong number of shots!");
                     this.Assert(false, "Made the wrong number of shots");
                 }
 
@@ -362,15 +361,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.WriteLine("Shot count is {0}", this.PreviousShotCount);
 
                 // request another shot!
-                this.SendEvent(this.Sensors, new ShotButtonEvent(true));
+                this.SendEvent(this.WaterTank, new PumpWaterEvent(true));
             }
         }
 
         private void OnWaterEmpty()
         {
-            this.WriteLine("Water is empty!");
+            this.WriteError("Water is empty!");
             // turn off the water pump
-            this.SendEvent(this.Sensors, new ShotButtonEvent(false));
+            this.SendEvent(this.WaterTank, new PumpWaterEvent(false));
             this.RaiseGotoStateEvent<RefillRequired>();
         }
 
@@ -393,7 +392,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         {
             // dump the grinds
             this.WriteLine("Dumping the grinds!");
-            this.SendEvent(this.Sensors, new DumpGrindsButtonEvent(true));
+            this.SendEvent(this.CoffeeGrinder, new DumpGrindsButtonEvent(true));
             if (this.Client != null)
             {
                 this.SendEvent(this.Client, new CoffeeCompletedEvent());
@@ -418,7 +417,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         }
 
         [OnEntry(nameof(OnError))]
-        [IgnoreEvents(typeof(MakeCoffeeEvent), typeof(WaterLevelEvent), typeof(PortaFilterCoffeeLevelEvent))]
+        [IgnoreEvents(typeof(MakeCoffeeEvent), typeof(WaterLevelEvent), typeof(PortaFilterCoffeeLevelEvent), typeof(HopperLevelEvent))]
         private class Error : State { }
 
         private void OnError()
@@ -429,7 +428,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
 
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteLine("Coffee machine needs fixing!");
+            this.WriteError("Coffee machine needs fixing!");
         }
 
         private void OnTerminate(Event e)
@@ -437,7 +436,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             if (e is TerminateEvent te)
             {
                 this.WriteLine("Coffee Machine Terminating...");
-                this.SendEvent(this.Sensors, new PowerButtonEvent(false));
+                // better turn everything off then!
+                this.SendEvent(this.CoffeeGrinder, new GrinderButtonEvent(false));
+                this.SendEvent(this.WaterTank, new PumpWaterEvent(false));
+                this.SendEvent(this.WaterTank, new WaterHeaterButtonEvent(false));
                 this.RaiseHaltEvent();
             }
         }
@@ -465,9 +467,26 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             Console.WriteLine(msg);
         }
 
+        internal void WriteError(string format, params object[] args)
+        {
+            var msg = string.Format(format, args);
+            msg = string.Format("<{0}> {1}", this.GetType().Name, msg);
+            var saved = Console.ForegroundColor;
+            Console.ForegroundColor = ConsoleColor.Red;
+            try
+            {
+                this.Logger.WriteLine(msg);
+                Console.WriteLine(msg);
+            }
+            finally
+            {
+                Console.ForegroundColor = saved;
+            }
+        }
+
         protected override Task OnEventUnhandledAsync(Event e, string state)
         {
-            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            this.WriteError("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
             return base.OnEventUnhandledAsync(e, state);
         }
     }

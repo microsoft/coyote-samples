@@ -6,181 +6,106 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Specifications;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
-    internal class RegisterClientEvent : Event
-    {
-        public ActorId Sender;
-
-        public RegisterClientEvent(ActorId sender) { this.Sender = sender; }
-    }
-
-    internal class ReadPowerButtonEvent : Event { }
-
-    internal class ReadWaterLevelEvent : Event { }
-
-    internal class ReadHopperLevelEvent : Event { }
-
-    internal class ReadWaterTemperatureEvent : Event { }
-
-    internal class ReadPortaFilterCoffeeLevelEvent : Event { }
-
-    internal class ReadDoorOpenEvent : Event { }
+    public class BusyEvent : Event { }
 
     /// <summary>
-    /// The following events can be sent to turn things on or off, and can be returned from the matching
-    /// read events.
+    /// This safety monitor ensure nothing bad happens while a door is open on the
+    /// coffee machine.
     /// </summary>
-    internal class PowerButtonEvent : Event
+    internal class DoorSafetyMonitor : Monitor
     {
-        public bool PowerOn; // true means the power is on.
+        [Start]
+        [OnEventGotoState(typeof(DoorOpenEvent), typeof(Error))]
+        [IgnoreEvents(typeof(BusyEvent))]
+        private class Init : State { }
 
-        public PowerButtonEvent(bool value) { this.PowerOn = value; }
-    }
+        [OnEventDoAction(typeof(BusyEvent), nameof(OnBusy))]
+        private class Error : State { }
 
-    internal class WaterHeaterButtonEvent : Event
-    {
-        public bool PowerOn; // true means the power is on.
-
-        public WaterHeaterButtonEvent(bool value) { this.PowerOn = value; }
-    }
-
-    internal class GrinderButtonEvent : Event
-    {
-        public bool PowerOn; // true means the power is on.
-
-        public GrinderButtonEvent(bool value) { this.PowerOn = value; }
-    }
-
-    internal class ShotButtonEvent : Event
-    {
-        public bool PowerOn; // true means the power is on, shot button produces 1 shot of espresso and turns off automatically, raising a ShowCompleteEvent press it multiple times to get multiple shots.
-
-        public ShotButtonEvent(bool value) { this.PowerOn = value; }
-    }
-
-    internal class DumpGrindsButtonEvent : Event
-    {
-        public bool PowerOn; // true means the power is on, empties the PortaFilter and turns off automatically.
-
-        public DumpGrindsButtonEvent(bool value) { this.PowerOn = value; }
+        private void OnBusy()
+        {
+            this.Assert(false, "Should not be doing anything while door is open");
+        }
     }
 
     /// <summary>
-    /// The following events are returned when the matching read events are received.
+    /// This Actor models is a sensor that detects whether any doors on the coffee machine are open.
+    /// For safe operation, all doors must be closed before machine will do anything.
     /// </summary>
-    internal class WaterLevelEvent : Event
+    [OnEventDoAction(typeof(ReadDoorOpenEvent), nameof(OnReadDoorOpen))]
+    [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
+    internal class MockDoorSensor : Actor
     {
-        public double WaterLevel; // starts at 100% full and drops when shot button is on.
+        private bool DoorOpen;
+        private ActorId Client;
 
-        public WaterLevelEvent(double value) { this.WaterLevel = value; }
-    }
+        protected override Task OnInitializeAsync(Event initialEvent)
+        {
+            // Since this is a mock, we randomly it to false with one chance out of 5 just
+            // to test this error condition, if the door is open, the machine should not
+            // agree to do anything for you.
+            this.DoorOpen = this.RandomBoolean(5);
+            if (this.DoorOpen)
+            {
+                this.Monitor<DoorSafetyMonitor>(new DoorOpenEvent(this.DoorOpen));
+            }
 
-    internal class HopperLevelEvent : Event
-    {
-        public double HopperLevel; // starts at 100% full of beans, and drops when grinder is on.
+            return base.OnInitializeAsync(initialEvent);
+        }
 
-        public HopperLevelEvent(double value) { this.HopperLevel = value; }
-    }
+        private void OnRegisterClient(Event e)
+        {
+            this.Client = ((RegisterClientEvent)e).Caller;
+        }
 
-    internal class WaterTemperatureEvent : Event
-    {
-        public double WaterTemperature; // starts at room temp, heats up to 100 when water heater is on.
-
-        public WaterTemperatureEvent(double value) { this.WaterTemperature = value; }
-    }
-
-    internal class PortaFilterCoffeeLevelEvent : Event
-    {
-        public double CoffeeLevel; // starts out empty=0, it gets filled to 100% with ground coffee while grinder is on
-
-        public PortaFilterCoffeeLevelEvent(double value) { this.CoffeeLevel = value; }
-    }
-
-    internal class ShotCompleteEvent : Event { }
-
-    internal class WaterHotEvent : Event { }
-
-    internal class WaterEmptyEvent : Event { }
-
-    internal class HopperEmptyEvent : Event { }
-
-    internal class DoorOpenEvent : Event
-    {
-        public bool Open; // true if open, a safety check to make sure machine is buttoned up properly before use.
-
-        public DoorOpenEvent(bool value) { this.Open = value; }
+        private void OnReadDoorOpen()
+        {
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new DoorOpenEvent(this.DoorOpen));
+            }
+        }
     }
 
     /// <summary>
-    /// This Actor models is a mock implementation of a set of sensors in the coffee machine, these sensors record a
-    /// state independent from the coffee machine brain and that state persists no matter what
-    /// happens with the coffee machine brain.  So this concept is modelled with a simple stateful
-    /// dictionary and the sensor states are modelled as simple floating point values.
+    /// This Actor models is a mock implementation of a the water tank inside the coffee machine.
+    /// It can heat the water, and run a water pump which runs pressurized water through the
+    /// portafilter when making an espresso shot.
     /// </summary>
     [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
-    [OnEventDoAction(typeof(ReadPowerButtonEvent), nameof(OnReadPowerButton))]
     [OnEventDoAction(typeof(ReadWaterLevelEvent), nameof(OnReadWaterLevel))]
-    [OnEventDoAction(typeof(ReadHopperLevelEvent), nameof(OnReadHopperLevel))]
     [OnEventDoAction(typeof(ReadWaterTemperatureEvent), nameof(OnReadWaterTemperature))]
-    [OnEventDoAction(typeof(ReadPortaFilterCoffeeLevelEvent), nameof(OnReadPortaFilterCoffeeLevel))]
-    [OnEventDoAction(typeof(ReadDoorOpenEvent), nameof(OnReadDoorOpen))]
-    [OnEventDoAction(typeof(PowerButtonEvent), nameof(OnPowerButton))]
     [OnEventDoAction(typeof(WaterHeaterButtonEvent), nameof(OnWaterHeaterButton))]
-    [OnEventDoAction(typeof(GrinderButtonEvent), nameof(OnGrinderButton))]
-    [OnEventDoAction(typeof(ShotButtonEvent), nameof(OnShotButton))]
-    [OnEventDoAction(typeof(DumpGrindsButtonEvent), nameof(OnDumpGrindsButton))]
     [OnEventDoAction(typeof(HeaterTimerEvent), nameof(MonitorWaterTemperature))]
-    [OnEventDoAction(typeof(GrinderTimerEvent), nameof(MonitorGrinder))]
-    [OnEventDoAction(typeof(ShotTimerEvent), nameof(MonitorShot))]
-    internal class MockSensors : Actor
+    [OnEventDoAction(typeof(PumpWaterEvent), nameof(OnPumpWater))]
+    [OnEventDoAction(typeof(WaterPumpTimerEvent), nameof(MonitorWaterPump))]
+    internal class MockWaterTank : Actor
     {
         private ActorId Client;
-        private bool PowerOn;
-        private bool WaterHeaterButton;
+        private bool RunSlowly;
         private double WaterLevel;
-        private double HopperLevel;
         private double WaterTemperature;
-        private bool GrinderButton;
-        private double PortaFilterCoffeeLevel;
-        private bool ShotButton;
-        private bool DoorOpen;
-
+        private bool WaterHeaterButton;
         private TimerInfo WaterHeaterTimer;
-        private TimerInfo CoffeeLevelTimer;
-        private TimerInfo ShotTimer;
-        private TimerInfo HopperLevelTimer;
-        public bool RunSlowly;
-
-        internal class ConfigEvent : Event
-        {
-            public bool RunSlowly;
-
-            public ConfigEvent(bool runSlowly)
-            {
-                this.RunSlowly = runSlowly;
-            }
-        }
-
-        internal void OnRegisterClient(Event e)
-        {
-            if (e is RegisterClientEvent re)
-            {
-                this.Client = re.Sender;
-            }
-        }
+        private bool WaterPump;
+        private TimerInfo WaterPumpTimer;
 
         internal class HeaterTimerEvent : TimerElapsedEvent
         {
         }
 
-        internal class GrinderTimerEvent : TimerElapsedEvent
+        internal class WaterPumpTimerEvent : TimerElapsedEvent
         {
         }
 
-        internal class ShotTimerEvent : TimerElapsedEvent
+        public MockWaterTank()
         {
+            this.WaterHeaterButton = false; // assume heater is off by default.
+            this.WaterPump = false;
         }
 
         protected override Task OnInitializeAsync(Event initialEvent)
@@ -190,81 +115,34 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.RunSlowly = ce.RunSlowly;
             }
 
-            // The use of randomness here makes this mock a more interesting test as it will
-            // make sure the coffee machine handles these values correctly.
+            // Since this is a mock, we randomly initialize the water temperature to
+            // some sort of room temperature between 20 and 50 degrees celcius.
+            this.WaterTemperature = this.RandomInteger(30) + 20;
+            // Since this is a mock, we randomly initialize the water level to some value
+            // between 0 and 100% full.
             this.WaterLevel = this.RandomInteger(100);
-            this.HopperLevel = this.RandomInteger(100);
-            this.WaterHeaterButton = false;
-            this.WaterTemperature = this.RandomInteger(50) + 30;
-            this.GrinderButton = false;
-            this.PortaFilterCoffeeLevel = 0;
-            this.ShotButton = false;
-            this.DoorOpen = this.RandomBoolean(5);
 
-            this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
             return base.OnInitializeAsync(initialEvent);
         }
 
-        private void OnReadPowerButton()
+        private void OnRegisterClient(Event e)
         {
-            this.SendEvent(this.Client, new PowerButtonEvent(this.PowerOn));
+            this.Client = ((RegisterClientEvent)e).Caller;
         }
 
         private void OnReadWaterLevel()
         {
-            this.SendEvent(this.Client, new WaterLevelEvent(this.WaterLevel));
-        }
-
-        private void OnReadHopperLevel()
-        {
-            this.SendEvent(this.Client, new HopperLevelEvent(this.HopperLevel));
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new WaterLevelEvent(this.WaterLevel));
+            }
         }
 
         private void OnReadWaterTemperature()
         {
-            this.SendEvent(this.Client, new WaterTemperatureEvent(this.WaterTemperature));
-        }
-
-        private void OnReadPortaFilterCoffeeLevel()
-        {
-            this.SendEvent(this.Client, new PortaFilterCoffeeLevelEvent(this.PortaFilterCoffeeLevel));
-        }
-
-        private void OnReadDoorOpen()
-        {
-            this.SendEvent(this.Client, new DoorOpenEvent(this.DoorOpen));
-        }
-
-        private void OnPowerButton(Event e)
-        {
-            if (e is PowerButtonEvent pe)
+            if (this.Client != null)
             {
-                this.PowerOn = pe.PowerOn;
-                if (!this.PowerOn)
-                {
-                    // master power override then also turns everything else off for safety!
-                    this.WaterHeaterButton = false;
-                    this.GrinderButton = false;
-                    this.ShotButton = false;
-
-                    if (this.CoffeeLevelTimer != null)
-                    {
-                        this.StopTimer(this.CoffeeLevelTimer);
-                        this.CoffeeLevelTimer = null;
-                    }
-
-                    if (this.ShotTimer != null)
-                    {
-                        this.StopTimer(this.ShotTimer);
-                        this.ShotTimer = null;
-                    }
-
-                    if (this.HopperLevelTimer != null)
-                    {
-                        this.StopTimer(this.HopperLevelTimer);
-                        this.HopperLevelTimer = null;
-                    }
-                }
+                this.SendEvent(this.Client, new WaterTemperatureEvent(this.WaterTemperature));
             }
         }
 
@@ -279,69 +157,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     this.Assert(false, "Please do not turn on heater if there is no water");
                 }
-            }
-        }
 
-        private void OnGrinderButton(Event e)
-        {
-            if (e is GrinderButtonEvent ge)
-            {
-                this.GrinderButton = ge.PowerOn;
-                this.OnGrinderButtonChanged();
-            }
-        }
-
-        private void OnGrinderButtonChanged()
-        {
-            if (this.GrinderButton)
-            {
-                // should never turn on the grinder when there is no coffee to grind
-                if (this.HopperLevel <= 0)
+                if (this.WaterHeaterButton)
                 {
-                    this.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
+                    this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                    this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
                 }
-
-                // start monitoring the coffee level.
-                this.CoffeeLevelTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new GrinderTimerEvent());
-            }
-            else if (this.CoffeeLevelTimer != null)
-            {
-                this.StopTimer(this.CoffeeLevelTimer);
-                this.CoffeeLevelTimer = null;
-            }
-        }
-
-        private void OnShotButton(Event e)
-        {
-            if (e is ShotButtonEvent se)
-            {
-                this.ShotButton = se.PowerOn;
-
-                if (this.ShotButton)
+                else if (this.WaterHeaterTimer != null)
                 {
-                    // should never turn on the make shots button when there is no water
-                    if (this.WaterLevel <= 0)
-                    {
-                        this.Assert(false, "Please do not turn on shot maker if there is no water");
-                    }
-
-                    // time the shot then send shot complete event.
-                    this.ShotTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new ShotTimerEvent());
+                    this.StopTimer(this.WaterHeaterTimer);
+                    this.WaterHeaterTimer = null;
                 }
-                else if (this.ShotTimer != null)
-                {
-                    this.StopTimer(this.ShotTimer);
-                    this.ShotTimer = null;
-                }
-            }
-        }
-
-        private void OnDumpGrindsButton(Event e)
-        {
-            if (e is DumpGrindsButtonEvent de && de.PowerOn)
-            {
-                // this is a toggle button, in no time grinds are dumped (just for simplicity)
-                this.PortaFilterCoffeeLevel = 0;
             }
         }
 
@@ -364,11 +190,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     temp = (int)temp + 10;
                     this.WaterTemperature = temp;
-                    this.SendEvent(this.Client, new WaterTemperatureEvent(this.WaterTemperature));
+                    if (this.Client != null)
+                    {
+                        this.SendEvent(this.Client, new WaterTemperatureEvent(this.WaterTemperature));
+                    }
                 }
                 else
                 {
-                    this.SendEvent(this.Client, new WaterHotEvent());
+                    if (this.Client != null)
+                    {
+                        this.SendEvent(this.Client, new WaterHotEvent());
+                    }
                 }
             }
             else
@@ -379,6 +211,160 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                     temp -= 0.1;
                     this.WaterTemperature = temp;
                 }
+            }
+        }
+
+        private void OnPumpWater(Event e)
+        {
+            if (e is PumpWaterEvent se)
+            {
+                this.WaterPump = se.PowerOn;
+
+                if (this.WaterPump)
+                {
+                    this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                    // should never turn on the make shots button when there is no water
+                    if (this.WaterLevel <= 0)
+                    {
+                        this.Assert(false, "Please do not turn on shot maker if there is no water");
+                    }
+
+                    // time the shot then send shot complete event.
+                    this.WaterPumpTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new WaterPumpTimerEvent());
+                }
+                else if (this.WaterPumpTimer != null)
+                {
+                    this.StopTimer(this.WaterPumpTimer);
+                    this.WaterPumpTimer = null;
+                }
+            }
+        }
+
+        private void MonitorWaterPump()
+        {
+            // one second of running water completes the shot.
+            this.WaterLevel -= 1;
+            if (this.WaterLevel > 0)
+            {
+                this.SendEvent(this.Client, new ShotCompleteEvent());
+            }
+            else
+            {
+                this.SendEvent(this.Client, new WaterEmptyEvent());
+            }
+
+            // automatically stop the water when shot is completed.
+            if (this.WaterPumpTimer != null)
+            {
+                this.StopTimer(this.WaterPumpTimer);
+                this.WaterPumpTimer = null;
+            }
+
+            // turn off the water.
+            this.WaterPump = false;
+        }
+
+        private void WriteLine(string format, params object[] args)
+        {
+            string msg = string.Format(format, args);
+            msg = "<MockSensors> " + msg;
+            this.Logger.WriteLine(msg);
+            Console.WriteLine(msg);
+        }
+
+        protected override Task OnEventUnhandledAsync(Event e, string state)
+        {
+            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            return base.OnEventUnhandledAsync(e, state);
+        }
+    }
+
+    /// <summary>
+    /// This Actor models is a mock implementation of the coffee grinder in the coffee machine.
+    /// This is connected to the hopper containing beans, and the portafilter that stores the ground
+    /// coffee before pouring a shot.
+    /// </summary>
+    [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
+    [OnEventDoAction(typeof(ReadPortaFilterCoffeeLevelEvent), nameof(OnReadPortaFilterCoffeeLevel))]
+    [OnEventDoAction(typeof(ReadHopperLevelEvent), nameof(OnReadHopperLevel))]
+    [OnEventDoAction(typeof(GrinderButtonEvent), nameof(OnGrinderButton))]
+    [OnEventDoAction(typeof(GrinderTimerEvent), nameof(MonitorGrinder))]
+    [OnEventDoAction(typeof(DumpGrindsButtonEvent), nameof(OnDumpGrindsButton))]
+    internal class MockCoffeeGrinder : Actor
+    {
+        private ActorId Client;
+        private bool RunSlowly;
+        private double PortaFilterCoffeeLevel;
+        private double HopperLevel;
+        private bool GrinderButton;
+        private TimerInfo GrinderTimer;
+
+        internal class GrinderTimerEvent : TimerElapsedEvent
+        {
+        }
+
+        protected override Task OnInitializeAsync(Event initialEvent)
+        {
+            if (initialEvent is ConfigEvent ce)
+            {
+                this.RunSlowly = ce.RunSlowly;
+            }
+
+            // Since this is a mock, we randomly initialize the hopper level to some value
+            // between 0 and 100% full.
+            this.HopperLevel = this.RandomInteger(100);
+
+            return base.OnInitializeAsync(initialEvent);
+        }
+
+        private void OnRegisterClient(Event e)
+        {
+            this.Client = ((RegisterClientEvent)e).Caller;
+        }
+
+        private void OnReadPortaFilterCoffeeLevel()
+        {
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new PortaFilterCoffeeLevelEvent(this.PortaFilterCoffeeLevel));
+            }
+        }
+
+        private void OnGrinderButton(Event e)
+        {
+            if (e is GrinderButtonEvent ge)
+            {
+                this.GrinderButton = ge.PowerOn;
+                this.OnGrinderButtonChanged();
+            }
+        }
+
+        private void OnReadHopperLevel()
+        {
+            if (this.Client != null)
+            {
+                this.SendEvent(this.Client, new HopperLevelEvent(this.HopperLevel));
+            }
+        }
+
+        private void OnGrinderButtonChanged()
+        {
+            if (this.GrinderButton)
+            {
+                this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                // should never turn on the grinder when there is no coffee to grind
+                if (this.HopperLevel <= 0)
+                {
+                    this.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
+                }
+
+                // start monitoring the coffee level.
+                this.GrinderTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new GrinderTimerEvent());
+            }
+            else if (this.GrinderTimer != null)
+            {
+                this.StopTimer(this.GrinderTimer);
+                this.GrinderTimer = null;
             }
         }
 
@@ -406,7 +392,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     level += 10;
                     this.PortaFilterCoffeeLevel = level;
-                    this.SendEvent(this.Client, new PortaFilterCoffeeLevelEvent(this.PortaFilterCoffeeLevel));
+                    if (this.Client != null)
+                    {
+                        this.SendEvent(this.Client, new PortaFilterCoffeeLevelEvent(this.PortaFilterCoffeeLevel));
+                    }
+
                     if (level == 100)
                     {
                         // turning off the grinder is automatic
@@ -424,37 +414,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             if (this.HopperLevel <= 0)
             {
                 hopperLevel = 0;
-                this.SendEvent(this.Client, new HopperEmptyEvent());
-                if (this.CoffeeLevelTimer != null)
+                if (this.Client != null)
                 {
-                    this.StopTimer(this.CoffeeLevelTimer);
-                    this.CoffeeLevelTimer = null;
+                    this.SendEvent(this.Client, new HopperEmptyEvent());
+                }
+
+                if (this.GrinderTimer != null)
+                {
+                    this.StopTimer(this.GrinderTimer);
+                    this.GrinderTimer = null;
                 }
             }
-        }
-
-        private void MonitorShot()
-        {
-            // one second of running water completes the shot.
-            this.WaterLevel -= 1;
-            if (this.WaterLevel > 0)
-            {
-                this.SendEvent(this.Client, new ShotCompleteEvent());
-            }
-            else
-            {
-                this.SendEvent(this.Client, new WaterEmptyEvent());
-            }
-
-            // automatically stop the water when shot is completed.
-            if (this.ShotTimer != null)
-            {
-                this.StopTimer(this.ShotTimer);
-                this.ShotTimer = null;
-            }
-
-            // turn off the water.
-            this.ShotButton = false;
         }
 
         private void WriteLine(string format, params object[] args)
@@ -469,6 +439,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         {
             this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
             return base.OnEventUnhandledAsync(e, state);
+        }
+
+        private void OnDumpGrindsButton(Event e)
+        {
+            if (e is DumpGrindsButtonEvent de && de.PowerOn)
+            {
+                this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                // this is a toggle button, in no time grinds are dumped (just for simplicity)
+                this.PortaFilterCoffeeLevel = 0;
+            }
         }
     }
 }

@@ -16,21 +16,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
     /// </summary>
     internal class FailoverDriver : StateMachine
     {
-        private ActorId SensorsId;
+        private ActorId WaterTankId;
+        private ActorId CoffeeGrinderId;
+        private ActorId DoorSensorId;
         private ActorId CoffeeMachineId;
         private bool RunForever;
         private int Iterations;
         private TimerInfo HaltTimer;
-
-        internal class ConfigEvent : Event
-        {
-            public bool RunForever;
-
-            public ConfigEvent(bool runForever)
-            {
-                this.RunForever = runForever;
-            }
-        }
 
         internal class StartTestEvent : Event { }
 
@@ -43,11 +35,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         {
             if (e is ConfigEvent ce)
             {
-                this.RunForever = ce.RunForever;
+                this.RunForever = ce.RunSlowly;
             }
 
             // Create the persistent sensor state.
-            this.SensorsId = this.CreateActor(typeof(MockSensors), new MockSensors.ConfigEvent(this.RunForever));
+            this.WaterTankId = this.CreateActor(typeof(MockWaterTank), new ConfigEvent(this.RunForever));
+            this.CoffeeGrinderId = this.CreateActor(typeof(MockCoffeeGrinder), new ConfigEvent(this.RunForever));
+            this.DoorSensorId = this.CreateActor(typeof(MockDoorSensor), new ConfigEvent(this.RunForever));
         }
 
         [OnEntry(nameof(OnStartTest))]
@@ -60,7 +54,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.WriteLine("#################################################################");
             this.WriteLine("starting new CoffeeMachine.");
             // Create a new CoffeeMachine instance
-            this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.SensorsId, this.Id));
+            this.CoffeeMachineId = this.CreateActor(typeof(CoffeeMachine), new CoffeeMachine.ConfigEvent(this.WaterTankId,
+                this.CoffeeGrinderId, this.DoorSensorId, this.Id));
 
             // Request a coffee!
             var shots = this.RandomInteger(3) + 1;
@@ -137,7 +132,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             else
             {
                 // Test is done, halt the mock sensors.
-                this.SendEvent(this.SensorsId, HaltEvent.Instance);
+                this.SendEvent(this.DoorSensorId, HaltEvent.Instance);
+                this.SendEvent(this.WaterTankId, HaltEvent.Instance);
+                this.SendEvent(this.CoffeeGrinderId, HaltEvent.Instance);
                 this.RaiseHaltEvent();
             }
         }

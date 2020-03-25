@@ -29,7 +29,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         {
             runtime.OnFailure += OnRuntimeFailure;
             runtime.RegisterMonitor<LivenessMonitor>();
-            ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
+            runtime.RegisterMonitor<DoorSafetyMonitor>();
+            ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new ConfigEvent(RunForever));
             runtime.SendEvent(driver, new FailoverDriver.StartTestEvent());
         }
     }
