@@ -5,33 +5,81 @@ using System;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 
-namespace Microsoft.Coyote.Samples.HelloWorld
+namespace Microsoft.Coyote.Samples.HelloWorldActors
 {
     public static class HostProgram
     {
-        private static long MaxGreetings = 7;
-
-        private static readonly TaskCompletionSource<bool> CompletionSource = new TaskCompletionSource<bool>();
-
-        public static async Task Main(string[] args)
+        public static void Main()
         {
-            MaxGreetings = (args != null && args.Length > 0 && long.TryParse(args[0], out MaxGreetings))
-                ? MaxGreetings
-                : 7;
-
-            IActorRuntime runtime = RuntimeFactory.Create();
+            var config = Configuration.Create();
+            IActorRuntime runtime = RuntimeFactory.Create(config);
             Execute(runtime);
 
-            await CompletionSource.Task;
+            runtime.OnFailure += OnRuntimeFailure;
+
+            // Coyote actors run in separate Tasks, so we have to stop the program
+            // from terminating prematurely, which can be done with a readline call.
+            Console.WriteLine("press ENTER to terminate...");
+            Console.ReadLine();
         }
 
+        private static void OnRuntimeFailure(Exception ex)
+        {
+            Console.WriteLine(ex.Message);
+        }
+
+        /// <summary>
+        /// In order to use Coyote test tool, you need a [Test] method. Such test
+        /// methods can receive an IActorRuntime runtime as input.  During testing
+        /// this will be a special type of runtime designed for testing.
+        /// </summary>
+        /// <param name="runtime">The runtime context</param>
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
-            ActorId serverId = runtime.CreateActor(typeof(Server));
-            runtime.CreateActor(typeof(Client), new Client.ConfigEvent(CompletionSource, serverId, MaxGreetings));
+            // In Coyote once an actor is created it lives forever until it is halted.
+            runtime.CreateActor(typeof(TestActor));
+        }
 
-            return;
+        /// <summary>
+        /// This TestActor is designed to test our "Greeter" by sending it one or more
+        /// RequestGreetingEvents.
+        /// </summary>
+        [OnEventDoAction(typeof(GreetingEvent), nameof(HandleGreeting))]
+        private class TestActor : Actor
+        {
+            private ActorId GreeterId;
+            private int Count;
+
+            protected override Task OnInitializeAsync(Event initialEvent)
+            {
+                // Greate the Greeter and hold onto the returned ActorId.  The ActorId
+                // is not the actual Greeter object instance, it is like a handle to the
+                // actor that is managed by the Coyote actor runtime.
+                this.GreeterId = this.CreateActor(typeof(Greeter));
+
+                // Now request a random number of greetings.  The SendEvent call here queues up
+                // work on the Greeter, but HandleGreeting will not be called until this meethod
+                // is done.
+                this.Count = 1 + this.RandomInteger(5);
+                Console.WriteLine("Requesting {0} greeting{1}", this.Count, this.Count == 1 ? string.Empty : "s");
+                for (int i = 0; i < this.Count; i++)
+                {
+                    this.SendEvent(this.GreeterId, new RequestGreetingEvent(this.Id));
+                }
+
+                return base.OnInitializeAsync(initialEvent);
+            }
+
+            private void HandleGreeting(Event e)
+            {
+                // this is perfectly thread safe, because all message handling in actors is
+                // serialized within the Actor class.
+                this.Count--;
+                string greeting = ((GreetingEvent)e).Greeting;
+                Console.WriteLine("Received greeting: {0}", greeting);
+                this.Assert(this.Count >= 0, "Too many greetings returned!");
+            }
         }
     }
 }
