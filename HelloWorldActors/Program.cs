@@ -11,14 +11,14 @@ namespace Microsoft.Coyote.Samples.HelloWorldActors
     {
         public static void Main()
         {
+            // Create a default configuration and a new Coyote runtime.
             var config = Configuration.Create();
             IActorRuntime runtime = RuntimeFactory.Create(config);
             Execute(runtime);
 
             runtime.OnFailure += OnRuntimeFailure;
 
-            // Coyote actors run in separate Tasks, so we have to stop the program
-            // from terminating prematurely, which can be done with a readline call.
+            // Coyote actors run in separate Tasks, so this stops the program from terminating prematurely!
             Console.WriteLine("press ENTER to terminate...");
             Console.ReadLine();
         }
@@ -29,9 +29,9 @@ namespace Microsoft.Coyote.Samples.HelloWorldActors
         }
 
         /// <summary>
-        /// In order to use Coyote test tool, you need a [Test] method. Such test
-        /// methods can receive an IActorRuntime runtime as input.  During testing
-        /// this will be a special type of runtime designed for testing.
+        /// In order to use Coyote test tool, you need a [Test] method. Such test methods can receive an
+        /// IActorRuntime runtime as input.  During testing this will be a special type of runtime designed
+        /// for testing.
         /// </summary>
         /// <param name="runtime">The runtime context</param>
         [Microsoft.Coyote.SystematicTesting.Test]
@@ -42,8 +42,7 @@ namespace Microsoft.Coyote.Samples.HelloWorldActors
         }
 
         /// <summary>
-        /// This TestActor is designed to test our "Greeter" by sending it one or more
-        /// RequestGreetingEvents.
+        /// This TestActor is designed to test our "Greeter" by sending it one or more RequestGreetingEvents.
         /// </summary>
         [OnEventDoAction(typeof(GreetingEvent), nameof(HandleGreeting))]
         private class TestActor : Actor
@@ -53,9 +52,9 @@ namespace Microsoft.Coyote.Samples.HelloWorldActors
 
             protected override Task OnInitializeAsync(Event initialEvent)
             {
-                // Greate the Greeter and hold onto the returned ActorId.  The ActorId
-                // is not the actual Greeter object instance, it is like a handle to the
-                // actor that is managed by the Coyote actor runtime.
+                // Greate the Greeter and hold onto the returned ActorId.  The ActorId is not the
+                // actual Greeter object instance, it is like a handle to the actor that is managed
+                // by the Coyote actor runtime.
                 this.GreeterId = this.CreateActor(typeof(Greeter));
 
                 // Now request a random number of greetings.  The SendEvent call here queues up
