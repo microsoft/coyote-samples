@@ -37,6 +37,11 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         TimeSpan LeaderElectionPeriod { get; }
 
         /// <summary>
+        /// The number of times to ignore HandleTimeout
+        /// </summary>
+        int TimeoutDelay { get; }
+
+        /// <summary>
         /// Initialize the server.
         /// </summary>
         void Initialize();

@@ -77,12 +77,17 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         /// <summary>
         /// The leader election due time.
         /// </summary>
-        public TimeSpan LeaderElectionDueTime => TimeSpan.FromSeconds(1 + this.RandomValueGenerator.NextInteger(9));
+        public TimeSpan LeaderElectionDueTime => TimeSpan.FromSeconds(10 + this.RandomValueGenerator.NextInteger(10));
 
         /// <summary>
         /// The leader election periodic time interval.
         /// </summary>
         public TimeSpan LeaderElectionPeriod => TimeSpan.FromSeconds(30 + this.RandomValueGenerator.NextInteger(30));
+
+        /// <summary>
+        /// The number of times to ignore HandleTimeout
+        /// </summary>
+        public int TimeoutDelay => 0;
 
         public AzureServer(IActorRuntime runtime, string connectionString, string topicName,
             int serverId, int numServers, ActorId clusterManager)

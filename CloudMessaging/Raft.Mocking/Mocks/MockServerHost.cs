@@ -63,6 +63,11 @@ namespace Microsoft.Coyote.Samples.CloudMessaging
         public TimeSpan LeaderElectionPeriod => TimeSpan.FromSeconds(1);
 
         /// <summary>
+        /// The number of times to ignore HandleTimeout
+        /// </summary>
+        public int TimeoutDelay => 10;
+
+        /// <summary>
         /// Actor id that provides access to the hosted <see cref="ClusterManager"/> state machine.
         /// </summary>
         private readonly ActorId ClusterManager;
