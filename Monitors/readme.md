@@ -1,6 +1,7 @@
-FailureDetector
-===============
+## Monitors
+
 This is an abstract implementation of a [failure detector](https://en.wikipedia.org/wiki/Failure_detector) in Coyote.
+See [Using Coyote](https://microsoft.github.io/coyote/learn/get-started/using-coyote).
 
 The aim of this sample is to showcase the testing capabilities of Coyote, and features such as nondeterministic timers
 and monitors (used to specify global safety and liveness properties).
