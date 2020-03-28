@@ -9,7 +9,7 @@ This repository contains a series of samples that highlight how to use
 - [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it locally.
 - [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
 - [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your Coyote applications using asynchronous tasks.
-- [Robot Navigator Failover (Actors)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
+- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
 - [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
 This sample is made up of the following parts:
     - [Raft](./CloudMessaging/Raft) - a core C# class library that implements the [Raft Consensus Algorithm](https://raft.github.io/) using the Coyote [Actor Programming Model](https://microsoft.github.io/coyote/programming-models/actors/overview).
