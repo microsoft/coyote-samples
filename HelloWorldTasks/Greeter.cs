@@ -25,8 +25,10 @@ namespace Microsoft.Coyote.Samples.HelloWorld
             Task task1 = this.WriteWithDelayAsync(GoodMorning);
             Task task2 = this.WriteWithDelayAsync(HelloWorld);
             Task task3 = this.WriteWithDelayAsync(HelloWorld);
+            Task task4 = this.WriteWithDelayAsync(HelloWorld);
+            Task task5 = this.WriteWithDelayAsync(HelloWorld);
 
-            await Task.WhenAll(task1, task2, task3);
+            await Task.WhenAll(task1, task2, task3, task4, task5);
 
             Console.WriteLine(this.Value);
 
