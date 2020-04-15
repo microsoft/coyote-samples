@@ -4,7 +4,7 @@
     <Description>The drinks serving robot failover sample.</Description>
     <AssemblyName>DrinksServingRobotActors</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2;net47;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net47;net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>

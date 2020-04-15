@@ -4,7 +4,7 @@
     <Description>Raft on AKS tutorial.</Description>
     <AssemblyName>Raft.Mocking</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">

@@ -4,7 +4,7 @@
     <Description>Coyote sample using Timers.</Description>
     <AssemblyName>Timers</AssemblyName>
     <RootNamespace>Timers</RootNamespace>
-    <TargetFrameworks>net46;net47;netcoreapp2.2</TargetFrameworks>
+    <TargetFrameworks>net46;net47;netcoreapp3.1</TargetFrameworks>
     <OutputPath>..\bin\</OutputPath>
     <ApplicationIcon />
     <OutputType>Exe</OutputType>

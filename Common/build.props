@@ -8,9 +8,6 @@
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation.</Copyright>
     <LangVersion>7.3</LangVersion>
-    <CoreFxVersion>4.3.0</CoreFxVersion>
-    <NETStandardImplicitPackageVersion>$(BundledNETStandardPackageVersion)</NETStandardImplicitPackageVersion>
-    <XunitVersion>2.2.0</XunitVersion>
     <CodeAnalysisRuleSetLocation>$(MSBuildThisFileDirectory)</CodeAnalysisRuleSetLocation>
     <CodeAnalysisRuleSet>$(CodeAnalysisRuleSetLocation)\codeanalysis.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>

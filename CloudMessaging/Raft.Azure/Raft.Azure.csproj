@@ -4,7 +4,7 @@
     <Description>Raft on AKS tutorial.</Description>
     <AssemblyName>Raft.Azure</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2;net47</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net47</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\..\bin\</OutputPath>
   </PropertyGroup>

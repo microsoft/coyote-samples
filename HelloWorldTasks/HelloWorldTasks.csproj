@@ -4,7 +4,7 @@
     <Description>The HelloWorldTasks sample</Description>
     <AssemblyName>HelloWorldTasks</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.HelloWorld</RootNamespace>
-    <TargetFrameworks>netcoreapp2.2;net47;net46</TargetFrameworks>
+    <TargetFrameworks>netcoreapp3.1;net47;net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
