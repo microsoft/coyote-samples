@@ -16,5 +16,6 @@ Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Monitors\Monitors.sl
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineActors\CoffeeMachineActors.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineTasks\CoffeeMachineTasks.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\DrinksServingRobotActors\DrinksServingRobotActors.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\BoundedBuffer\BoundedBuffer.sln" -config $configuration
 
 Write-Comment -prefix "." -text "Successfully built the Coyote samples" -color "green"
