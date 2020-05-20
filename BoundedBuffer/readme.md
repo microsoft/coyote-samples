@@ -1,6 +1,6 @@
 # Extreme Programming meets Systematic Testing using Coyote
 
-by Immad Naseer and Chris Lovett
+by Immad Naseer, Chris Lovett and Pantazis Deligiannis
 
 Our world is increasingly reliant on cloud and software services and these services are expected to
 have high availability and handle high throughput with minimal latency. They are expected to be
@@ -475,3 +475,6 @@ without sacrificing quality. There is no tool that can magically find all bugs, 
 one which works with the developer, enabling them to follow their intuition and helping them design
 the most efficient and maintainable tests and services. We think Coyote is indeed one such
 tool.
+
+The [complete code for this article](http://github.com/microsoft/coyote-samples/tree/master/BoundedBuffer)
+is available on GitHub.
