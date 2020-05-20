@@ -4,7 +4,6 @@
     <Description>The CoffeeMachine actors sample</Description>
     <AssemblyName>CoffeeMachineActors</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.CoffeeMachineActors</RootNamespace>
-    <TargetFrameworks>net47;netcoreapp3.1;net46</TargetFrameworks>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>

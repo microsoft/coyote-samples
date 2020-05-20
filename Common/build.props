@@ -10,6 +10,34 @@
     <LangVersion>7.3</LangVersion>
     <CodeAnalysisRuleSetLocation>$(MSBuildThisFileDirectory)</CodeAnalysisRuleSetLocation>
     <CodeAnalysisRuleSet>$(CodeAnalysisRuleSetLocation)\codeanalysis.ruleset</CodeAnalysisRuleSet>
+    <Framework46Supported Condition="'$(Framework46Supported)'==''">true</Framework46Supported>
+  </PropertyGroup>
+  <PropertyGroup>
+    <DotNetSdkDir>$(ProgramFiles)/dotnet/sdk</DotNetSdkDir>
+    <DotNetSdkDir Condition="'$(ProgramW6432)'!=''">$(ProgramFiles)/dotnet/sdk</DotNetSdkDir>
+    <NetCore31Dir>$(DotNetSdkDir)/3.1.201</NetCore31Dir>
+    <Framework46Dir>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.6</Framework46Dir>
+    <Framework47Dir>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.7</Framework47Dir>
+    <Framework48Dir>$(MSBuildProgramFiles32)\Reference Assemblies\Microsoft\Framework\.NETFramework\v4.8</Framework48Dir>
+  </PropertyGroup>
+  <PropertyGroup>
+    <NetCore31Installed>false</NetCore31Installed>
+    <Framework46Installed>false</Framework46Installed>
+    <Framework47Installed>false</Framework47Installed>
+    <Framework48Installed>false</Framework48Installed>
+    <NetCore31Installed Condition="Exists($(DotNetSdkDir))">true</NetCore31Installed>
+    <TargetFrameworks Condition="$(Framework46Installed) and $(Framework46Supported)">$(TargetFrameworks);net46</TargetFrameworks>
+    <Framework47Installed Condition="Exists($(Framework47Dir))">true</Framework47Installed>
+    <Framework48Installed Condition="Exists($(Framework48Dir))">true</Framework48Installed>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'=='Windows_NT'">
+    <TargetFrameworks Condition='$(NetCore31Installed)'>netcoreapp3.1</TargetFrameworks>
+    <TargetFrameworks Condition="$(Framework46Installed) and $(Framework46Supported)">$(TargetFrameworks);net46</TargetFrameworks>
+    <TargetFrameworks Condition="$(Framework47Installed)">$(TargetFrameworks);net47</TargetFrameworks>
+    <TargetFrameworks Condition="$(Framework48Installed)">$(TargetFrameworks);net48</TargetFrameworks>
+  </PropertyGroup>
+  <PropertyGroup Condition="'$(OS)'!='Windows_NT'">
+    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
   </PropertyGroup>
   <PropertyGroup>
     <DebugType>full</DebugType>
