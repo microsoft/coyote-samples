@@ -333,7 +333,8 @@ ASALocalRun/
 # MFractors (Xamarin productivity tool) working folder
 .mfractor/
 
-.vscode/settings.json
+.vscode/
+
 ### Jekyll ###
 _site
 .sass-cache
