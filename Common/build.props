@@ -26,7 +26,7 @@
     <Framework47Installed>false</Framework47Installed>
     <Framework48Installed>false</Framework48Installed>
     <NetCore31Installed Condition="Exists($(DotNetSdkDir))">true</NetCore31Installed>
-    <TargetFrameworks Condition="$(Framework46Installed) and $(Framework46Supported)">$(TargetFrameworks);net46</TargetFrameworks>
+    <Framework46Installed Condition="Exists($(Framework46Dir))">true</Framework46Installed>
     <Framework47Installed Condition="Exists($(Framework47Dir))">true</Framework47Installed>
     <Framework48Installed Condition="Exists($(Framework48Dir))">true</Framework48Installed>
   </PropertyGroup>
