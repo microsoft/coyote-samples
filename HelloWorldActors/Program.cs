@@ -52,13 +52,13 @@ namespace Microsoft.Coyote.Samples.HelloWorldActors
 
             protected override Task OnInitializeAsync(Event initialEvent)
             {
-                // Greate the Greeter and hold onto the returned ActorId.  The ActorId is not the
+                // Create the Greeter and hold onto the returned ActorId.  The ActorId is not the
                 // actual Greeter object instance, it is like a handle to the actor that is managed
                 // by the Coyote actor runtime.
                 this.GreeterId = this.CreateActor(typeof(Greeter));
 
                 // Now request a random number of greetings.  The SendEvent call here queues up
-                // work on the Greeter, but HandleGreeting will not be called until this meethod
+                // work on the Greeter, but HandleGreeting will not be called until this method
                 // is done.
                 this.Count = 1 + this.RandomInteger(5);
                 Console.WriteLine("Requesting {0} greeting{1}", this.Count, this.Count == 1 ? string.Empty : "s");
