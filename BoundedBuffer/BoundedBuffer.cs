@@ -1,7 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
-// 
-// With thanks to Tom Cargill and 
+
+// With thanks to Tom Cargill and
 // http://wiki.c2.com/?ExtremeProgrammingChallengeFourteen
 
 using Microsoft.Coyote.Runtime;
@@ -25,7 +25,7 @@ namespace BoundedBufferExample
         public BoundedBuffer(int bufferSize, ICoyoteRuntime runtime)
         {
             this.Runtime = runtime;
-            Buffer = new object[bufferSize];
+            this.Buffer = new object[bufferSize];
         }
 
         public void Put(object x)
@@ -43,7 +43,7 @@ namespace BoundedBufferExample
                 if (BugFixed)
                 {
                     monitor.PulseAll();
-                } 
+                }
                 else
                 {
                     monitor.Pulse();
@@ -73,6 +73,7 @@ namespace BoundedBufferExample
                     monitor.Pulse();
                 }
             }
+
             return result;
         }
     }

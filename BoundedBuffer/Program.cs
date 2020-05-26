@@ -1,18 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Tasks;
 using System;
 using System.Collections.Generic;
+using Microsoft.Coyote.Runtime;
+using Microsoft.Coyote.Tasks;
 
 namespace BoundedBufferExample
 {
-    class Program
+    public static class Program
     {
-        static void Main(string[] args)
+        public static void Main()
         {
-            var runtime = Microsoft.Coyote.Runtime.RuntimeFactory.Create();
+            var runtime = RuntimeFactory.Create();
             var task = Task.Run(() => TestBoundedBufferNoDeadlock(runtime));
             Task.WaitAll(task);
             Console.WriteLine("Test complete - no deadlocks!");
@@ -47,6 +47,7 @@ namespace BoundedBufferExample
                 {
                     w += remainder;
                 }
+
                 x += w;
                 tasks.Add(Task.Run(() => Writer(buffer, w)));
             }
@@ -55,12 +56,13 @@ namespace BoundedBufferExample
 
             Task.WaitAll(tasks.ToArray());
         }
-        
+
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void TestBoundedBufferMinimalDeadlock(ICoyoteRuntime runtime)
         {
             BoundedBuffer buffer = new BoundedBuffer(1, runtime);
-            var tasks = new List<Task>() {
+            var tasks = new List<Task>()
+            {
                 Task.Run(() => Reader(buffer, 5)),
                 Task.Run(() => Reader(buffer, 5)),
                 Task.Run(() => Writer(buffer, 10))
@@ -74,7 +76,8 @@ namespace BoundedBufferExample
         {
             BoundedBuffer.BugFixed = true;
             BoundedBuffer buffer = new BoundedBuffer(1, runtime);
-            var tasks = new List<Task>() {
+            var tasks = new List<Task>()
+            {
                 Task.Run(() => Reader(buffer, 5)),
                 Task.Run(() => Reader(buffer, 5)),
                 Task.Run(() => Writer(buffer, 10))

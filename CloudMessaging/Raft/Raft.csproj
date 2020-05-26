@@ -5,7 +5,6 @@
     <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
     <OutputType>Library</OutputType>
     <OutputPath>..\..\bin\</OutputPath>
-    <Framework46Supported>false</Framework46Supported>
   </PropertyGroup>
   <Import Project="..\..\Common\build.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">

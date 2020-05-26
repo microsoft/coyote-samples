@@ -1,9 +1,7 @@
 <Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\Common\build.props" />
   <PropertyGroup>
     <OutputType>Exe</OutputType>
-    <TargetFrameworks>netcoreapp3.1</TargetFrameworks>
+    <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
-  <ItemGroup>
-    <PackageReference Include="Microsoft.Coyote" Version="1.0.6" />
-  </ItemGroup>
 </Project>
