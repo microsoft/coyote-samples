@@ -22,9 +22,9 @@ namespace Microsoft.Coyote.Samples.HelloWorld
 
         public async Task RunAsync()
         {
-            Task task1 = this.WriteWithDelayAsync(GoodMorning);
             Task task2 = this.WriteWithDelayAsync(HelloWorld);
             Task task3 = this.WriteWithDelayAsync(HelloWorld);
+            Task task1 = this.WriteWithDelayAsync(GoodMorning);
             Task task4 = this.WriteWithDelayAsync(HelloWorld);
             Task task5 = this.WriteWithDelayAsync(HelloWorld);
 

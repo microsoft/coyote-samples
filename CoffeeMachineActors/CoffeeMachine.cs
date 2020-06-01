@@ -23,6 +23,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         private int ShotsRequested;
         private double PreviousCoffeeLevel;
         private double PreviousShotCount;
+        private static ConsoleColor DefaultColor = Console.ForegroundColor;
 
         internal class ConfigEvent : Event
         {
@@ -471,7 +472,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         {
             var msg = string.Format(format, args);
             msg = string.Format("<{0}> {1}", this.GetType().Name, msg);
-            var saved = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             try
             {
@@ -480,7 +480,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
             finally
             {
-                Console.ForegroundColor = saved;
+                Console.ForegroundColor = DefaultColor;
             }
         }
 

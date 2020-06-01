@@ -71,21 +71,6 @@ namespace BoundedBufferExample
             Task.WaitAll(tasks.ToArray());
         }
 
-        [Microsoft.Coyote.SystematicTesting.Test]
-        public static void TestBoundedBufferNoDeadlock(ICoyoteRuntime runtime)
-        {
-            BoundedBuffer.BugFixed = true;
-            BoundedBuffer buffer = new BoundedBuffer(1, runtime);
-            var tasks = new List<Task>()
-            {
-                Task.Run(() => Reader(buffer, 5)),
-                Task.Run(() => Reader(buffer, 5)),
-                Task.Run(() => Writer(buffer, 10))
-            };
-
-            Task.WaitAll(tasks.ToArray());
-        }
-
         private static void Reader(BoundedBuffer buffer, int iterations)
         {
             for (int i = 0; i < iterations; i++)
@@ -100,6 +85,21 @@ namespace BoundedBufferExample
             {
                 buffer.Put("hello " + i);
             }
+        }
+
+        [Microsoft.Coyote.SystematicTesting.Test]
+        public static void TestBoundedBufferNoDeadlock(ICoyoteRuntime runtime)
+        {
+            BoundedBuffer.PulseAll = true;
+            BoundedBuffer buffer = new BoundedBuffer(1, runtime);
+            var tasks = new List<Task>()
+            {
+                Task.Run(() => Reader(buffer, 5)),
+                Task.Run(() => Reader(buffer, 5)),
+                Task.Run(() => Writer(buffer, 10))
+            };
+
+            Task.WaitAll(tasks.ToArray());
         }
     }
 }

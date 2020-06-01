@@ -14,8 +14,8 @@ namespace BoundedBufferExample
     /// </summary>
     public class BoundedBuffer
     {
+        public static bool PulseAll = false;
         private readonly ICoyoteRuntime Runtime;
-        public static bool BugFixed;
         private readonly object SyncObject = new object();
         private readonly object[] Buffer;
         private int PutAt;
@@ -40,7 +40,7 @@ namespace BoundedBufferExample
                 ++this.Occupied;
                 this.PutAt %= this.Buffer.Length;
                 this.Buffer[this.PutAt++] = x;
-                if (BugFixed)
+                if (PulseAll)
                 {
                     monitor.PulseAll();
                 }
@@ -64,7 +64,7 @@ namespace BoundedBufferExample
                 --this.Occupied;
                 this.TakeAt %= this.Buffer.Length;
                 result = this.Buffer[this.TakeAt++];
-                if (BugFixed)
+                if (PulseAll)
                 {
                     monitor.PulseAll();
                 }

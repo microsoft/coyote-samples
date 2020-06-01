@@ -65,7 +65,6 @@ namespace Coyote.Examples.Timers
         {
             // this little trick allows you to see our log messages in a different color when running
             // Timers.exe directly, just to make it easier to differentiate Coyote log messages from ours.
-            var saved = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Yellow;
             try
             {
@@ -73,8 +72,10 @@ namespace Coyote.Examples.Timers
             }
             finally
             {
-                Console.ForegroundColor = saved;
+                Console.ForegroundColor = DefaultColor;
             }
         }
+
+        private static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
     }
 }

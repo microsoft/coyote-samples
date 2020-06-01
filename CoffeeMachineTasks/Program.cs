@@ -41,6 +41,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     {
         protected readonly TextWriter Log;
         private readonly bool Echo = false;
+        private static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
 
         public Loggable(TextWriter writer, bool echo)
         {
@@ -63,7 +64,6 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             var msg = string.Format(format, args);
             msg = string.Format("<{0}> {1}", this.GetType().Name, msg);
-            var saved = Console.ForegroundColor;
             Console.ForegroundColor = ConsoleColor.Red;
             try
             {
@@ -75,7 +75,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
             finally
             {
-                Console.ForegroundColor = saved;
+                Console.ForegroundColor = DefaultColor;
             }
         }
     }
