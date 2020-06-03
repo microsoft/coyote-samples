@@ -49,7 +49,8 @@
   </PropertyGroup>
   <ItemGroup>
     <PackageReference Include="Microsoft.Coyote" Version="$(Version)" />
-    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.1" PrivateAssets="All" />
+    <PackageReference Include="Microsoft.Coyote.Test" Version="$(Version)" />
+    <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.2" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
   </ItemGroup>
   <ItemGroup>
