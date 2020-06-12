@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot
@@ -23,6 +24,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private ActorId CognitiveServiceId;
         private ActorId RoutePlannerServiceId;
         private bool Terminating;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         private const string DrinkOrderStorageKey = "DrinkOrderStorageKey";
 
@@ -133,10 +135,10 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void OnWakeUp(Event e)
         {
-            this.WriteLine("<Navigator> Navigator starting");
+            this.Log.WriteLine("<Navigator> starting");
             if (e is WakeUpEvent wpe)
             {
-                this.WriteLine("<Navigator> Got RobotId");
+                this.Log.WriteLine("<Navigator> Got RobotId");
                 this.RobotId = wpe.ClientId;
 
                 // tell this client robot about this new navigator.  During failover testing
@@ -169,11 +171,11 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (e != null)
             {
                 this.ProcessDrinkOrder(e);
-                this.WriteLine("<Navigator> Restarting the pending Robot's request to find drink clients ...");
+                this.Log.WriteLine("<Navigator> Restarting the pending Robot's request to find drink clients ...");
             }
             else
             {
-                this.WriteLine("<Navigator> There was no prior pending request to find drink clients ...");
+                this.Log.WriteLine("<Navigator> There was no prior pending request to find drink clients ...");
             }
         }
 
@@ -248,7 +250,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.SendEvent(this.RobotId, drivingInstructionsEvent);
 
                 // The drink order is now completed, so we can delete the persistent job.
-                this.WriteLine("<Navigator> drink order is complete, deleting the job record.");
+                this.Log.WriteLine("<Navigator> drink order is complete, deleting the job record.");
                 this.SendEvent(this.StorageId, new DeleteKeyEvent(this.Id, DrinkOrderStorageKey));
             }
         }
@@ -271,25 +273,18 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (!this.Terminating)
             {
                 this.Terminating = true;
-                this.WriteLine("<Navigator> Terminating as previously ordered ...");
+                this.Log.WriteLine("<Navigator> Terminating as previously ordered ...");
 
                 this.SendEvent(this.CognitiveServiceId, HaltEvent.Instance);
                 this.SendEvent(this.RoutePlannerServiceId, HaltEvent.Instance);
                 this.CognitiveServiceId = this.RoutePlannerServiceId = null;
 
-                this.WriteLine("<Navigator> Sent Termination Confirmation to my Creator ...");
+                this.Log.WriteLine("<Navigator> Sent Termination Confirmation to my Creator ...");
                 this.SendEvent(this.CreatorId, new HaltedEvent());
-                this.WriteLine("<Navigator> Halting now ...");
+                this.Log.WriteLine("<Navigator> Halting now ...");
 
                 this.RaiseHaltEvent();
             }
-        }
-
-        private void WriteLine(string s)
-        {
-            Console.WriteLine(s);
-            // this ensures all our logging shows up in the coyote test trace which is handy!
-            this.Logger.WriteLine(s);
         }
 
         protected override Task OnEventUnhandledAsync(Event e, string state)

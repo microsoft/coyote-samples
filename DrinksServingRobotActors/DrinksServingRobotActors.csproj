@@ -20,6 +20,9 @@
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
+    <Compile Include="..\Common\LogWriter.cs" Link="LogWriter.cs" />
+  </ItemGroup>
+  <ItemGroup>
     <PackageReference Include="System.Collections" Version="4.3.0" />
   </ItemGroup>
   <ItemGroup>

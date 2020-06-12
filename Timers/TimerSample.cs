@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Microsoft.Coyote;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Samples.Common;
 
 namespace Coyote.Examples.Timers
 {
@@ -17,6 +18,11 @@ namespace Coyote.Examples.Timers
         /// Timer used in a periodic timer.
         /// </summary>
         private TimerInfo PeriodicTimer;
+
+        /// <summary>
+        /// The log to write output to
+        /// </summary>
+        private readonly LogWriter Log = LogWriter.Instance;
 
         /// <summary>
         /// A custom timer event
@@ -31,7 +37,7 @@ namespace Coyote.Examples.Timers
 
         protected override Task OnInitializeAsync(Event initialEvent)
         {
-            this.WriteMessage("<Client> Starting a non-periodic timer");
+            this.Log.WriteWarning("<Client> Starting a non-periodic timer");
             this.StartTimer(TimeSpan.FromSeconds(1));
             return base.OnInitializeAsync(initialEvent);
         }
@@ -40,42 +46,25 @@ namespace Coyote.Examples.Timers
         {
             TimerElapsedEvent te = (TimerElapsedEvent)e;
 
-            this.WriteMessage("<Client> Handling timeout from timer");
+            this.Log.WriteWarning("<Client> Handling timeout from timer");
 
-            this.WriteMessage("<Client> Starting a period timer");
+            this.Log.WriteWarning("<Client> Starting a period timer");
             this.PeriodicTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new CustomTimerEvent());
         }
 
         private void HandlePeriodicTimeout(Event e)
         {
-            this.WriteMessage("<Client> Handling timeout from periodic timer");
+            this.Log.WriteWarning("<Client> Handling timeout from periodic timer");
             if (e is CustomTimerEvent ce)
             {
                 ce.Count++;
                 if (ce.Count == 3)
                 {
-                    this.WriteMessage("<Client> Stopping the periodic timer");
-                    this.WriteMessage("<Client> Press ENTER to terminate.");
+                    this.Log.WriteWarning("<Client> Stopping the periodic timer");
+                    this.Log.WriteWarning("<Client> Press ENTER to terminate.");
                     this.StopTimer(this.PeriodicTimer);
                 }
             }
         }
-
-        private void WriteMessage(string msg, params object[] args)
-        {
-            // this little trick allows you to see our log messages in a different color when running
-            // Timers.exe directly, just to make it easier to differentiate Coyote log messages from ours.
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            try
-            {
-                this.Logger.WriteLine(msg, args);
-            }
-            finally
-            {
-                Console.ForegroundColor = DefaultColor;
-            }
-        }
-
-        private static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
     }
 }

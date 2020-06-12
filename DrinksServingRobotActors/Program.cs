@@ -4,6 +4,7 @@
 using System;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
+using Microsoft.Coyote.Samples.Common;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot
 {
@@ -26,13 +27,14 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
+            LogWriter.Initialize(runtime.Logger, RunForever);
             runtime.RegisterMonitor<LivenessMonitor>();
             ActorId driver = runtime.CreateActor(typeof(FailoverDriver), new FailoverDriver.ConfigEvent(RunForever));
         }
 
         private static void OnRuntimeFailure(Exception ex)
         {
-            Console.WriteLine("### Error: {0}", ex.Message);
+            LogWriter.Instance.WriteError("### Error: {0}", ex.Message);
         }
     }
 }

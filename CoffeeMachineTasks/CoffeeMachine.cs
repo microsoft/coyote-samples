@@ -3,6 +3,7 @@
 
 using System;
 using System.IO;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
 
@@ -37,7 +38,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// <summary>
     /// Implementation of the ICoffeeMachine interface.
     /// </summary>
-    internal class CoffeeMachine : Loggable, ICoffeeMachine
+    internal class CoffeeMachine : ICoffeeMachine
     {
         private readonly object SyncObject = new object();
         private bool Initialized;
@@ -54,15 +55,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private string Error;
         private bool Halted;
         private System.Threading.Tasks.TaskCompletionSource<bool> ShotCompleteSource;
+        private readonly LogWriter Log = LogWriter.Instance;
 
-        public CoffeeMachine(TextWriter log, bool echo)
-            : base(log, echo)
+        public CoffeeMachine()
         {
         }
 
         public async Tasks.Task<bool> InitializeAsync(ISensors sensors)
         {
-            this.WriteLine("initializing...");
+            this.Log.WriteLine("initializing...");
 
             lock (this.SyncObject)
             {
@@ -97,7 +98,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 await this.StartHeatingWater();
             }
 
-            this.WriteLine($"Coffee requested, shots={shots}");
+            this.Log.WriteLine($"Coffee requested, shots={shots}");
             this.ShotsRequested = shots;
 
             // grind beans until porta filter is full.
@@ -126,7 +127,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         public async Task CheckSensors()
         {
-            this.WriteLine("checking initial state of sensors...");
+            this.Log.WriteLine("checking initial state of sensors...");
 
             // when this state machine starts it has to figure out the state of the sensors.
             if (!await this.Sensors.GetPowerSwitchAsync())
@@ -150,7 +151,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private async Task CheckWaterLevelAsync()
         {
             this.WaterLevel = await this.Sensors.GetWaterLevelAsync();
-            this.WriteLine("Water level is {0} %", (int)this.WaterLevel.Value);
+            this.Log.WriteLine("Water level is {0} %", (int)this.WaterLevel.Value);
             if ((int)this.WaterLevel.Value <= 0)
             {
                 this.OnRefillRequired("is out of water");
@@ -160,7 +161,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private async Task CheckHopperLevelAsync()
         {
             this.HopperLevel = await this.Sensors.GetHopperLevelAsync();
-            this.WriteLine("Hopper level is {0} %", (int)this.HopperLevel.Value);
+            this.Log.WriteLine("Hopper level is {0} %", (int)this.HopperLevel.Value);
             if ((int)this.HopperLevel.Value == 0)
             {
                 this.OnRefillRequired("out of coffee beans");
@@ -173,7 +174,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             if (this.PortaFilterCoffeeLevel > 0)
             {
                 // dump these grinds because they could be old, we have no idea how long the coffee machine was off (no real time clock sensor).
-                this.WriteLine("Dumping old smelly grinds!");
+                this.Log.WriteLine("Dumping old smelly grinds!");
                 await this.Sensors.SetDumpGrindsButtonAsync(true);
             }
         }
@@ -183,7 +184,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.DoorOpen = await this.Sensors.GetReadDoorOpenAsync();
             if (this.DoorOpen.Value != false)
             {
-                this.WriteLine("Cannot safely operate coffee machine with the door open!");
+                this.Log.WriteLine("Cannot safely operate coffee machine with the door open!");
                 this.OnError();
             }
         }
@@ -193,25 +194,25 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             if (!this.Halted)
             {
                 // Start heater and keep monitoring the water temp till it reaches 100!
-                this.WriteLine("Warming the water to 100 degrees");
+                this.Log.WriteLine("Warming the water to 100 degrees");
                 Specification.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
                 await this.MonitorWaterTemperature();
             }
             else
             {
-                this.WriteLine("Ignoring StartHeatingWater on a Halted Coffee machine");
+                this.Log.WriteLine("Ignoring StartHeatingWater on a Halted Coffee machine");
             }
         }
 
         private async Task OnWaterHot()
         {
-            this.WriteLine("Coffee machine water temperature is now 100");
+            this.Log.WriteLine("Coffee machine water temperature is now 100");
             if (this.Heating)
             {
                 this.Heating = false;
                 // turn off the heater so we don't overheat it!
                 await this.Sensors.SetWaterHeaterButtonAsync(false);
-                this.WriteLine("Turning off the water heater");
+                this.Log.WriteLine("Turning off the water heater");
             }
 
             this.OnReady();
@@ -234,12 +235,12 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     {
                         this.Heating = true;
                         // turn on the heater and wait for WaterHotEvent.
-                        this.WriteLine("Turning on the water heater");
+                        this.Log.WriteLine("Turning on the water heater");
                         await this.Sensors.SetWaterHeaterButtonAsync(true);
                     }
                 }
 
-                this.WriteLine("Coffee machine is warming up ({0} degrees)...", (int)this.WaterTemperature);
+                this.Log.WriteLine("Coffee machine is warming up ({0} degrees)...", this.WaterTemperature);
 
                 await Task.Delay(TimeSpan.FromSeconds(0.1));
             }
@@ -248,13 +249,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private void OnReady()
         {
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteLine("Coffee machine is ready to make coffee (green light is on)");
+            this.Log.WriteLine("Coffee machine is ready to make coffee (green light is on)");
         }
 
         private async Task GrindBeans()
         {
             // grind beans until porta filter is full.
-            this.WriteLine("Grinding beans...");
+            this.Log.WriteLine("Grinding beans...");
 
             // turn on the grinder!
             await this.Sensors.SetGrinderButtonAsync(true);
@@ -281,7 +282,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private async Task MakeShotsAsync()
         {
             // pour the shots.
-            this.WriteLine("Making shots...");
+            this.Log.WriteLine("Making shots...");
 
             // first we assume user placed a new cup in the machine, and so the shot count is zero.
             this.PreviousShotCount = 0;
@@ -294,7 +295,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             while (!this.IsBroken)
             {
-                this.WriteLine("Shot count is {0}", this.PreviousShotCount);
+                this.Log.WriteLine("Shot count is {0}", this.PreviousShotCount);
 
                 // so we can wait for async event to come back from the sensors.
                 var completion = new System.Threading.Tasks.TaskCompletionSource<bool>();
@@ -319,7 +320,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                         this.PreviousShotCount++;
                         if (this.PreviousShotCount >= this.ShotsRequested && !this.IsBroken)
                         {
-                            this.WriteLine("{0} shots completed and {1} shots requested!", this.PreviousShotCount, this.ShotsRequested);
+                            this.Log.WriteLine("{0} shots completed and {1} shots requested!", this.PreviousShotCount, this.ShotsRequested);
                             if (this.PreviousShotCount > this.ShotsRequested)
                             {
                                 Specification.Assert(false, "Made the wrong number of shots");
@@ -335,7 +336,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private async Task CleanupAsync()
         {
             // dump the grinds
-            this.WriteLine("Dumping the grinds!");
+            this.Log.WriteLine("Dumping the grinds!");
             await this.Sensors.SetDumpGrindsButtonAsync(true);
         }
 
@@ -344,20 +345,20 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.Error = message;
             this.RefillRequired = true;
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteError(message);
+            this.Log.WriteError(message);
         }
 
         private void OnError()
         {
             this.Error = "Coffee machine needs fixing!";
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteError(this.Error);
+            this.Log.WriteError(this.Error);
         }
 
         public async Task TerminateAsync()
         {
             this.Halted = true;
-            this.WriteLine("Coffee Machine Terminating...");
+            this.Log.WriteLine("Coffee Machine Terminating...");
             var sensors = this.Sensors;
             if (sensors != null)
             {
@@ -374,10 +375,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.RegisterSensorEvents(false);
 
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.WriteLine("#################################################################");
-            this.WriteLine("# Coffee Machine Halted                                         #");
-            this.WriteLine("#################################################################");
-            this.WriteLine(string.Empty);
+            this.Log.WriteLine("#################################################################");
+            this.Log.WriteLine("# Coffee Machine Halted                                         #");
+            this.Log.WriteLine("#################################################################");
+            this.Log.WriteLine(string.Empty);
         }
 
         private void RegisterSensorEvents(bool register)
@@ -449,14 +450,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 if (level >= 100)
                 {
                     this.PortaFilterCoffeeLevel = level;
-                    this.WriteLine("PortaFilter is full");
+                    this.Log.WriteLine("PortaFilter is full");
                 }
                 else
                 {
                     if (level != this.PortaFilterCoffeeLevel)
                     {
                         this.PortaFilterCoffeeLevel = level;
-                        this.WriteLine("PortaFilter is {0} % full", (int)level);
+                        this.Log.WriteLine("PortaFilter is {0} % full", (int)level);
                     }
                 }
             }

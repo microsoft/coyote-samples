@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using Microsoft.Coyote.Random;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
 
@@ -78,7 +79,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// <summary>
     /// This is a mock implementation of the ISensor interface.
     /// </summary>
-    internal class MockSensors : Loggable, ISensors
+    internal class MockSensors : ISensors
     {
         private readonly AsyncLock Lock;
         private bool PowerOn;
@@ -96,6 +97,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private ControlledTimer CoffeeLevelTimer;
         private ControlledTimer ShotTimer;
         public bool RunSlowly;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         public event EventHandler<double> WaterTemperatureChanged;
 
@@ -109,8 +111,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         public event EventHandler<bool> WaterEmpty;
 
-        public MockSensors(TextWriter log, bool runSlowly)
-            : base(log, runSlowly)
+        public MockSensors(bool runSlowly)
         {
             this.Lock = AsyncLock.Create();
             this.RunSlowly = runSlowly;
@@ -360,7 +361,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                         if (!this.RunSlowly && level < 99)
                         {
                             hopperLevel -= 98 - (int)level;
-                            this.WriteLine("### HopperLevel: RunSlowly = {0}, level = {1}", this.RunSlowly, hopperLevel);
+                            this.Log.WriteLine("### HopperLevel: RunSlowly = {0}, level = {1}", this.RunSlowly, hopperLevel);
                             level = 99;
                         }
 

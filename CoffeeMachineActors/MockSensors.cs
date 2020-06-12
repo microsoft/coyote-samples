@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
@@ -93,6 +94,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         private TimerInfo WaterHeaterTimer;
         private bool WaterPump;
         private TimerInfo WaterPumpTimer;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         internal class HeaterTimerEvent : TimerElapsedEvent
         {
@@ -264,17 +266,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             this.WaterPump = false;
         }
 
-        private void WriteLine(string format, params object[] args)
-        {
-            string msg = string.Format(format, args);
-            msg = "<MockSensors> " + msg;
-            this.Logger.WriteLine(msg);
-            Console.WriteLine(msg);
-        }
-
         protected override Task OnEventUnhandledAsync(Event e, string state)
         {
-            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            this.Log.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
             return base.OnEventUnhandledAsync(e, state);
         }
     }
@@ -298,6 +292,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         private double HopperLevel;
         private bool GrinderButton;
         private TimerInfo GrinderTimer;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         internal class GrinderTimerEvent : TimerElapsedEvent
         {
@@ -427,17 +422,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
         }
 
-        private void WriteLine(string format, params object[] args)
-        {
-            string msg = string.Format(format, args);
-            msg = "<MockSensors> " + msg;
-            this.Logger.WriteLine(msg);
-            Console.WriteLine(msg);
-        }
-
         protected override Task OnEventUnhandledAsync(Event e, string state)
         {
-            this.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
+            this.Log.WriteLine("### Unhandled event {0} in state {1}", e.GetType().FullName, state);
             return base.OnEventUnhandledAsync(e, state);
         }
 

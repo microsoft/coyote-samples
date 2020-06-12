@@ -4,6 +4,7 @@
 using System;
 using System.IO;
 using Microsoft.Coyote.Random;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
@@ -22,7 +23,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// <summary>
     /// This class implements the IFailoverDriver.
     /// </summary>
-    internal class FailoverDriver : Loggable, IFailoverDriver
+    internal class FailoverDriver : IFailoverDriver
     {
         private readonly ISensors Sensors;
         private ICoffeeMachine CoffeeMachine;
@@ -31,13 +32,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private int Iterations;
         private ControlledTimer HaltTimer;
         private readonly Generator RandomGenerator;
+        private readonly LogWriter Log = LogWriter.Instance;
 
-        public FailoverDriver(bool runForever, TextWriter log)
-            : base(log, runForever)
+        public FailoverDriver(bool runForever)
         {
             this.RunForever = runForever;
             this.RandomGenerator = Generator.Create();
-            this.Sensors = new MockSensors(this.Log, runForever);
+            this.Sensors = new MockSensors(runForever);
         }
 
         public async Task RunTest()
@@ -45,15 +46,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             bool halted = true;
             while (this.RunForever || this.Iterations <= 1)
             {
-                this.WriteLine("#################################################################");
+                this.Log.WriteLine("#################################################################");
 
                 // Create a new CoffeeMachine instance
                 string error = null;
                 if (halted)
                 {
-                    this.WriteLine("starting new CoffeeMachine iteration {0}.", this.Iterations);
+                    this.Log.WriteLine("starting new CoffeeMachine iteration {0}.", this.Iterations);
                     this.IsInitialized = false;
-                    this.CoffeeMachine = new CoffeeMachine(this.Log, this.RunForever);
+                    this.CoffeeMachine = new CoffeeMachine();
                     halted = false;
                     this.IsInitialized = await this.CoffeeMachine.InitializeAsync(this.Sensors);
                     if (!this.IsInitialized)
@@ -77,26 +78,26 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 if (string.Compare(error, "<halted>", StringComparison.OrdinalIgnoreCase) == 0)
                 {
                     // then OnStopTest did it's thing, so it is time to create new coffee machine.
-                    this.WriteLine("CoffeeMachine is halted.");
+                    this.Log.WriteWarning("CoffeeMachine is halted.");
                     halted = true;
                 }
                 else if (!string.IsNullOrEmpty(error))
                 {
-                    this.WriteLine("CoffeeMachine reported an error.");
+                    this.Log.WriteWarning("CoffeeMachine reported an error.");
                     this.RunForever = false; // no point trying to make more coffee.
                     this.Iterations = 10;
                 }
                 else
                 {
                     // in this case we let the same CoffeeMachine continue on then.
-                    this.WriteLine("CoffeeMachine completed the job.");
+                    this.Log.WriteLine("CoffeeMachine completed the job.");
                 }
 
                 this.Iterations++;
             }
 
             // Shutdown the sensors because test is now complete.
-            this.WriteLine("Test is complete, press ENTER to continue...");
+            this.Log.WriteLine("Test is complete, press ENTER to continue...");
             await this.Sensors.TerminateAsync();
         }
 
@@ -119,7 +120,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             // will get confused if two CoffeeMachines are running at the same time.
             // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
             // to terminate, and it sends back a HaltedEvent when it really has been halted.
-            this.WriteLine("forcing termination of CoffeeMachine.");
+            this.Log.WriteLine("forcing termination of CoffeeMachine.");
             Task.Run(this.CoffeeMachine.TerminateAsync);
         }
     }

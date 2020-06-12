@@ -3,6 +3,8 @@
 
 using System;
 using Microsoft.Coyote.Actors;
+using Microsoft.Coyote.Samples.Common;
+using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
@@ -27,6 +29,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
+            LogWriter.Initialize(runtime.Logger, RunForever);
+
             runtime.OnFailure += OnRuntimeFailure;
             runtime.RegisterMonitor<LivenessMonitor>();
             runtime.RegisterMonitor<DoorSafetyMonitor>();

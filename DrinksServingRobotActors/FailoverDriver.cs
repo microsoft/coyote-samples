@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Samples.Common;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot
 {
@@ -16,6 +17,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private ActorId NavigatorId;
 
         private bool RunForever;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         private TimerInfo HaltTimer;
         private int Iterations;
@@ -44,8 +46,8 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.RunForever = ce.RunForever;
             }
 
-            this.WriteLine("<FailoverDriver> #################################################################");
-            this.WriteLine("<FailoverDriver> Starting the Robot.");
+            this.Log.WriteLine("<FailoverDriver> #################################################################");
+            this.Log.WriteLine("<FailoverDriver> Starting the Robot.");
             this.StorageId = this.CreateActor(typeof(MockStorage));
             this.NavigatorId = this.CreateNavigator();
 
@@ -98,27 +100,27 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private void OnTerminateNavigator()
         {
             this.StopTimer();
-            this.WriteLine("<FailoverDriver> #################################################################");
-            this.WriteLine("<FailoverDriver> #       Starting the fail over of the Navigator                 #");
-            this.WriteLine("<FailoverDriver> #################################################################");
+            this.Log.WriteLine("<FailoverDriver> #################################################################");
+            this.Log.WriteLine("<FailoverDriver> #       Starting the fail over of the Navigator                 #");
+            this.Log.WriteLine("<FailoverDriver> #################################################################");
             this.SendEvent(this.NavigatorId, new Navigator.TerminateEvent());
         }
 
         private void OnHalted()
         {
-            this.WriteLine("<FailoverDriver> *****  The Navigator confirmed that it has terminated ***** ");
+            this.Log.WriteLine("<FailoverDriver> *****  The Navigator confirmed that it has terminated ***** ");
 
             // Create a new Navigator.
-            this.WriteLine("<FailoverDriver> *****   Created a new Navigator -- paused *****");
+            this.Log.WriteLine("<FailoverDriver> *****   Created a new Navigator -- paused *****");
             this.NavigatorId = this.CreateNavigator();
 
-            this.WriteLine("<FailoverDriver> *****   Waking up the new Navigator *****");
+            this.Log.WriteLine("<FailoverDriver> *****   Waking up the new Navigator *****");
             this.SendEvent(this.NavigatorId, new Navigator.WakeUpEvent(this.RobotId));
         }
 
         private void OnNavigatorReset()
         {
-            this.WriteLine("<FailoverDriver> *****   Robot confirmed it reset to the new Navigator *****");
+            this.Log.WriteLine("*****   Robot confirmed it reset to the new Navigator *****");
 
             this.Iterations++;
             if (this.Iterations == 1 || this.RunForever)

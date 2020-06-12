@@ -33,7 +33,6 @@ namespace Microsoft.Coyote.Samples.Monitors
 
             // The Coyote runtime executes asynchronously, so we wait
             // to not terminate the process.
-            Console.WriteLine("Press Enter to terminate...");
             Console.ReadLine();
         }
 

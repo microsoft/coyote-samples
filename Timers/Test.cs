@@ -4,6 +4,7 @@
 using System;
 using Microsoft.Coyote;
 using Microsoft.Coyote.Actors;
+using Microsoft.Coyote.Samples.Common;
 
 namespace Coyote.Examples.Timers
 {
@@ -29,6 +30,7 @@ namespace Coyote.Examples.Timers
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void Execute(IActorRuntime runtime)
         {
+            LogWriter.Initialize(runtime.Logger, false);
             runtime.CreateActor(typeof(TimerSample));
         }
     }

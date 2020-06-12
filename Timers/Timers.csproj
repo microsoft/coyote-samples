@@ -21,4 +21,7 @@
     <Optimize>true</Optimize>
     <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
+  <ItemGroup>
+    <Compile Include="..\Common\LogWriter.cs" Link="LogWriter.cs" />
+  </ItemGroup>
 </Project>

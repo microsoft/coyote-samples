@@ -4,6 +4,7 @@
 using System;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Samples.Common;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot
 {
@@ -32,6 +33,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
     internal class MockCognitiveService : StateMachine
     {
         private const double WorkTime = 1.5;
+        private readonly LogWriter Log = LogWriter.Instance;
 
         internal class RecognitionTimerEvent : TimerElapsedEvent
         {
@@ -45,7 +47,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void OnInit()
         {
-            Console.WriteLine("<CognitiveService> CognitiveService is starting.");
+            this.Log.WriteLine("<CognitiveService> starting.");
             this.RaiseGotoStateEvent<Active>();
         }
 
