@@ -14,8 +14,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     internal class ControlledTimer
     {
         private readonly CancellationTokenSource Source = new CancellationTokenSource();
-        private TimeSpan StartDelay;
-        private TimeSpan? Interval;
+        private readonly TimeSpan StartDelay;
+        private readonly TimeSpan? Interval;
         private readonly Action Handler;
         private bool Stopped;
         private readonly string Name;

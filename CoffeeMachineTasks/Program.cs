@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;

@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
 using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
@@ -21,19 +20,19 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
     /// </summary>
     internal interface ISensors
     {
-        Tasks.Task<bool> GetPowerSwitchAsync();
+        Task<bool> GetPowerSwitchAsync();
 
         Task SetPowerSwitchAsync(bool value);
 
-        Tasks.Task<double> GetWaterLevelAsync();
+        Task<double> GetWaterLevelAsync();
 
-        Tasks.Task<double> GetHopperLevelAsync();
+        Task<double> GetHopperLevelAsync();
 
-        Tasks.Task<double> GetWaterTemperatureAsync();
+        Task<double> GetWaterTemperatureAsync();
 
-        Tasks.Task<double> GetPortaFilterCoffeeLevelAsync();
+        Task<double> GetPortaFilterCoffeeLevelAsync();
 
-        Tasks.Task<bool> GetReadDoorOpenAsync();
+        Task<bool> GetReadDoorOpenAsync();
 
         Task SetWaterHeaterButtonAsync(bool value);
 
@@ -138,38 +137,38 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             return Task.CompletedTask;
         }
 
-        public async Tasks.Task<bool> GetPowerSwitchAsync()
+        public async Task<bool> GetPowerSwitchAsync()
         {
             // to model real async behavior we insert a delay here.
             await Task.Delay(1);
             return this.PowerOn;
         }
 
-        public async Tasks.Task<double> GetWaterLevelAsync()
+        public async Task<double> GetWaterLevelAsync()
         {
             await Task.Delay(1);
             return this.WaterLevel;
         }
 
-        public async Tasks.Task<double> GetHopperLevelAsync()
+        public async Task<double> GetHopperLevelAsync()
         {
             await Task.Delay(1);
             return this.HopperLevel;
         }
 
-        public async Tasks.Task<double> GetWaterTemperatureAsync()
+        public async Task<double> GetWaterTemperatureAsync()
         {
             await Task.Delay(1);
             return this.WaterTemperature;
         }
 
-        public async Tasks.Task<double> GetPortaFilterCoffeeLevelAsync()
+        public async Task<double> GetPortaFilterCoffeeLevelAsync()
         {
             await Task.Delay(1);
             return this.PortaFilterCoffeeLevel;
         }
 
-        public async Tasks.Task<bool> GetReadDoorOpenAsync()
+        public async Task<bool> GetReadDoorOpenAsync()
         {
             await Task.Delay(1);
             return this.DoorOpen;
@@ -308,17 +307,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 {
                     temp = (int)temp + 10;
                     this.WaterTemperature = temp;
-                    if (this.WaterTemperatureChanged != null)
-                    {
-                        this.WaterTemperatureChanged(this, this.WaterTemperature);
-                    }
+                    this.WaterTemperatureChanged?.Invoke(this, this.WaterTemperature);
                 }
                 else
                 {
-                    if (this.WaterHot != null)
-                    {
-                        this.WaterHot(this, true);
-                    }
+                    this.WaterHot?.Invoke(this, true);
                 }
             }
             else
@@ -435,17 +428,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 // event callbacks should not be inside the lock otherwise we could get deadlocks.
                 if (this.WaterLevel > 0)
                 {
-                    if (this.ShotComplete != null)
-                    {
-                        this.ShotComplete(this, true);
-                    }
+                    this.ShotComplete?.Invoke(this, true);
                 }
                 else
                 {
-                    if (this.WaterEmpty != null)
-                    {
-                        this.WaterEmpty(this, true);
-                    }
+                    this.WaterEmpty?.Invoke(this, true);
                 }
             });
         }

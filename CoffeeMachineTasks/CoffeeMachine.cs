@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
@@ -19,14 +18,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         /// </summary>
         /// <param name="sensors">The persistent sensor state</param>
         /// <returns>True if everything looks good, false if we cannot make coffee at this time.</returns>
-        Tasks.Task<bool> InitializeAsync(ISensors sensors);
+        Task<bool> InitializeAsync(ISensors sensors);
 
         /// <summary>
         /// Make a coffee.  This is a long running async operation.
         /// </summary>
         /// <param name="shots">The number of espresso shots.</param>
         /// <returns>An async task that can be controlled by Coyote tester containing an optional string error message.</returns>
-        Tasks.Task<string> MakeCoffeeAsync(int shots);
+        Task<string> MakeCoffeeAsync(int shots);
 
         /// <summary>
         /// Reboot the coffee machine!
@@ -54,14 +53,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         private bool RefillRequired;
         private string Error;
         private bool Halted;
-        private System.Threading.Tasks.TaskCompletionSource<bool> ShotCompleteSource;
+        private TaskCompletionSource<bool> ShotCompleteSource;
         private readonly LogWriter Log = LogWriter.Instance;
 
-        public CoffeeMachine()
-        {
-        }
-
-        public async Tasks.Task<bool> InitializeAsync(ISensors sensors)
+        public async Task<bool> InitializeAsync(ISensors sensors)
         {
             this.Log.WriteLine("initializing...");
 
@@ -78,7 +73,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             return this.Initialized;
         }
 
-        public async Tasks.Task<string> MakeCoffeeAsync(int shots)
+        public async Task<string> MakeCoffeeAsync(int shots)
         {
             if (!this.Initialized)
             {
@@ -279,7 +274,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.OnRefillRequired("out of coffee beans");
         }
 
-        private async Task MakeShotsAsync()
+        private Task MakeShotsAsync()
         {
             // pour the shots.
             this.Log.WriteLine("Making shots...");
@@ -288,56 +283,56 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.PreviousShotCount = 0;
 
             // wait for shots to be completed.
-            await this.MonitorShotsAsync();
+            return this.MonitorShotsAsync();
         }
 
         private async Task MonitorShotsAsync()
         {
-            while (!this.IsBroken)
+            try
             {
-                this.Log.WriteLine("Shot count is {0}", this.PreviousShotCount);
-
-                // so we can wait for async event to come back from the sensors.
-                var completion = new System.Threading.Tasks.TaskCompletionSource<bool>();
-                this.ShotCompleteSource = completion;
-
-                // request another shot!
-                await this.Sensors.SetShotButtonAsync(true);
-
-                if (!this.IsBroken)
+                while (!this.IsBroken)
                 {
-                    // wait for shots complete event, but we cannot do this:
-                    //   "await completion.Task.ToControlledTask();"
-                    // because completion.Task is not a Coyote ControlledTask.
-                    // So we have to do this instead:
-                    while (!completion.Task.IsCompleted)
-                    {
-                        await Task.Yield();
-                    }
+                    this.Log.WriteLine("Shot count is {0}", this.PreviousShotCount);
+
+                    // so we can wait for async event to come back from the sensors.
+                    var completion = TaskCompletionSource.Create<bool>();
+                    this.ShotCompleteSource = completion;
+
+                    // request another shot!
+                    await this.Sensors.SetShotButtonAsync(true);
 
                     if (!this.IsBroken)
                     {
-                        this.PreviousShotCount++;
-                        if (this.PreviousShotCount >= this.ShotsRequested && !this.IsBroken)
-                        {
-                            this.Log.WriteLine("{0} shots completed and {1} shots requested!", this.PreviousShotCount, this.ShotsRequested);
-                            if (this.PreviousShotCount > this.ShotsRequested)
-                            {
-                                Specification.Assert(false, "Made the wrong number of shots");
-                            }
+                        await completion.Task;
 
-                            break; // done!
+                        if (!this.IsBroken)
+                        {
+                            this.PreviousShotCount++;
+                            if (this.PreviousShotCount >= this.ShotsRequested && !this.IsBroken)
+                            {
+                                this.Log.WriteLine("{0} shots completed and {1} shots requested!", this.PreviousShotCount, this.ShotsRequested);
+                                if (this.PreviousShotCount > this.ShotsRequested)
+                                {
+                                    Specification.Assert(false, "Made the wrong number of shots");
+                                }
+
+                                break; // done!
+                            }
                         }
                     }
                 }
             }
+            catch (OperationCanceledException)
+            {
+                // cancelled.
+            }
         }
 
-        private async Task CleanupAsync()
+        private Task CleanupAsync()
         {
             // dump the grinds
             this.Log.WriteLine("Dumping the grinds!");
-            await this.Sensors.SetDumpGrindsButtonAsync(true);
+            return this.Sensors.SetDumpGrindsButtonAsync(true);
         }
 
         private void OnRefillRequired(string message)
@@ -436,7 +431,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 {
                     this.ShotCompleteSource.SetResult(value);
                 }
-                catch
+                catch (InvalidOperationException)
                 {
                     // cancelled.
                 }
@@ -465,12 +460,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             Task.Run(this.UpdatePortaFilterLevelAsync);
         }
 
-        private async Task UpdatePortaFilterLevelAsync()
+        private Task UpdatePortaFilterLevelAsync()
         {
             if (this.PortaFilterCoffeeLevel >= 100)
             {
-                await this.Sensors.SetGrinderButtonAsync(false);
+                return this.Sensors.SetGrinderButtonAsync(false);
             }
+
+            return Task.CompletedTask;
         }
 
         private void OnHopperEmpty(object sender, bool value)
