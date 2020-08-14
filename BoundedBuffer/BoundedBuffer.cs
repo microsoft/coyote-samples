@@ -4,77 +4,70 @@
 // With thanks to Tom Cargill and
 // http://wiki.c2.com/?ExtremeProgrammingChallengeFourteen
 
-using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Tasks;
+using System.Threading;
 
 namespace BoundedBufferExample
 {
-    /// <summary>
-    /// This is a C# version of Tom's extreme programming challenge.
-    /// </summary>
     public class BoundedBuffer
     {
-        public static bool PulseAll = false;
-        private readonly ICoyoteRuntime Runtime;
         private readonly object SyncObject = new object();
         private readonly object[] Buffer;
+        private readonly bool PulseAll;
         private int PutAt;
         private int TakeAt;
         private int Occupied;
 
-        public BoundedBuffer(int bufferSize, ICoyoteRuntime runtime)
+        public BoundedBuffer(int bufferSize, bool pulseAll = false)
         {
-            this.Runtime = runtime;
+            this.PulseAll = pulseAll;
             this.Buffer = new object[bufferSize];
         }
 
         public void Put(object x)
         {
-            using (var monitor = SynchronizedBlock.Lock(this.SyncObject))
+            lock (this.SyncObject)
             {
                 while (this.Occupied == this.Buffer.Length)
                 {
-                    monitor.Wait();
+                    Monitor.Wait(this.SyncObject);
                 }
 
                 ++this.Occupied;
                 this.PutAt %= this.Buffer.Length;
                 this.Buffer[this.PutAt++] = x;
-                if (PulseAll)
-                {
-                    monitor.PulseAll();
-                }
-                else
-                {
-                    monitor.Pulse();
-                }
+                this.Pulse();
             }
         }
 
         public object Take()
         {
             object result = null;
-            using (var monitor = SynchronizedBlock.Lock(this.SyncObject))
+            lock (this.SyncObject)
             {
                 while (this.Occupied == 0)
                 {
-                    monitor.Wait();
+                    Monitor.Wait(this.SyncObject);
                 }
 
                 --this.Occupied;
                 this.TakeAt %= this.Buffer.Length;
                 result = this.Buffer[this.TakeAt++];
-                if (PulseAll)
-                {
-                    monitor.PulseAll();
-                }
-                else
-                {
-                    monitor.Pulse();
-                }
+                this.Pulse();
             }
 
             return result;
+        }
+
+        private void Pulse()
+        {
+            if (this.PulseAll)
+            {
+                Monitor.PulseAll(this.SyncObject);
+            }
+            else
+            {
+                Monitor.Pulse(this.SyncObject);
+            }
         }
     }
 }

@@ -3,8 +3,10 @@
 
 using System;
 using System.Collections.Generic;
+using System.Reflection;
+using System.Threading.Tasks;
 using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Tasks;
+using Microsoft.Coyote.SystematicTesting;
 
 namespace BoundedBufferExample
 {
@@ -13,7 +15,7 @@ namespace BoundedBufferExample
         public static void Main()
         {
             var runtime = RuntimeFactory.Create();
-            var task = Task.Run(() => TestBoundedBufferNoDeadlock(runtime));
+            var task = Task.Run(() => TestBoundedBufferNoDeadlock());
             Task.WaitAll(task);
             Console.WriteLine("Test complete - no deadlocks!");
         }
@@ -21,6 +23,7 @@ namespace BoundedBufferExample
         [Microsoft.Coyote.SystematicTesting.Test]
         public static void TestBoundedBufferFindDeadlockConfiguration(ICoyoteRuntime runtime)
         {
+            CheckRewritten();
             var random = Microsoft.Coyote.Random.Generator.Create();
             int bufferSize = random.NextInteger(5) + 1;
             int readers = random.NextInteger(5) + 1;
@@ -32,7 +35,7 @@ namespace BoundedBufferExample
 
             runtime.Logger.WriteLine("Testing buffer size {0}, reader={1}, writer={2}, iterations={3}", bufferSize, readers, writers, iterations);
 
-            BoundedBuffer buffer = new BoundedBuffer(bufferSize, runtime);
+            BoundedBuffer buffer = new BoundedBuffer(bufferSize);
             var tasks = new List<Task>();
             for (int i = 0; i < readers; i++)
             {
@@ -58,9 +61,10 @@ namespace BoundedBufferExample
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static void TestBoundedBufferMinimalDeadlock(ICoyoteRuntime runtime)
+        public static void TestBoundedBufferMinimalDeadlock()
         {
-            BoundedBuffer buffer = new BoundedBuffer(1, runtime);
+            CheckRewritten();
+            BoundedBuffer buffer = new BoundedBuffer(1);
             var tasks = new List<Task>()
             {
                 Task.Run(() => Reader(buffer, 5)),
@@ -88,10 +92,10 @@ namespace BoundedBufferExample
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static void TestBoundedBufferNoDeadlock(ICoyoteRuntime runtime)
+        public static void TestBoundedBufferNoDeadlock()
         {
-            BoundedBuffer.PulseAll = true;
-            BoundedBuffer buffer = new BoundedBuffer(1, runtime);
+            CheckRewritten();
+            BoundedBuffer buffer = new BoundedBuffer(1, true);
             var tasks = new List<Task>()
             {
                 Task.Run(() => Reader(buffer, 5)),
@@ -100,6 +104,14 @@ namespace BoundedBufferExample
             };
 
             Task.WaitAll(tasks.ToArray());
+        }
+
+        private static void CheckRewritten()
+        {
+            if (!Microsoft.Coyote.Rewriting.AssemblyRewriter.IsAssemblyRewritten(typeof(Program).Assembly))
+            {
+                throw new Exception(string.Format("Error: please rewrite this assembly using coyote rewrite {0}", typeof(Program).Assembly.Location));
+            }
         }
     }
 }
