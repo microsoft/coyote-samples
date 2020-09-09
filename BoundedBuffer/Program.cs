@@ -15,7 +15,7 @@ namespace BoundedBufferExample
         public static void Main()
         {
             var runtime = RuntimeFactory.Create();
-            var task = Task.Run(() => TestBoundedBufferNoDeadlock());
+            var task = Task.Run(() => TestBoundedBufferMinimalDeadlock());
             Task.WaitAll(task);
             Console.WriteLine("Test complete - no deadlocks!");
         }
