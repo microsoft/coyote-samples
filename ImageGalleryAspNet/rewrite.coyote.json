@@ -1,0 +1,10 @@
+{
+  "AssembliesPath": "./bin/netcoreapp3.1",
+  "OutputPath": "./bin/coyote",
+  "Assemblies": [
+    "ImageGalleryService.dll",
+    "ImageGalleryTests.dll",
+    "Microsoft.AspNetCore.Mvc.Testing.dll",
+    "Microsoft.AspNetCore.TestHost.dll"
+  ]
+}
