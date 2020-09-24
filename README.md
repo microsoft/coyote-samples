@@ -11,12 +11,9 @@ This repository contains a series of samples that highlight how to use
 - [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your Coyote applications using asynchronous tasks.
 - [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
 - [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
-This sample is made up of the following parts:
-    - [Raft](./CloudMessaging/Raft) - a core C# class library that implements the [Raft Consensus Algorithm](https://raft.github.io/) using the Coyote [Actor Programming Model](https://microsoft.github.io/coyote/programming-models/actors/overview).
-    - [Raft.Azure](./CloudMessaging/Raft.Azure) - a C# executable that shows how to run Coyote messages through an [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/).
-    - [Raft.Mocking](./CloudMessaging/Raft.Mocking): demonstrates how to use mocks to systematically test in-memory the [CloudMessaging](./CloudMessaging) sample application.
-    - [Raft.Nondeterminism](./CloudMessaging/Raft.Nondeterminism): demonstrates how to introduce controlled nondeterminism in your Coyote tests to systematically exercise corner-cases.
 - [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
+- [BoundedBuffer](/.BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in unmodified C# code.
+- [ImageGalleryAspNet](/.ImageGalleryAspNet): demonstrates how to use coyote to test ASP.NET websites.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```
