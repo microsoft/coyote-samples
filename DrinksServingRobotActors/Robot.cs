@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Actors.Timers;
+using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot
@@ -17,6 +18,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         internal ActorId NavigatorId { get; set; }
 
+        private readonly LogWriter Log = LogWriter.Instance;
         internal bool RunForever;
 
         private static readonly Location StartingLocation = new Location(1, 1);
@@ -81,7 +83,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 }
                 else
                 {
-                    this.WriteLine("<Robot> received a new Navigator, and pending drink order={0}!!!", this.DrinkOrderPending);
+                    this.Log.WriteLine("<Robot> received a new Navigator, and pending drink order={0}!!!", this.DrinkOrderPending);
 
                     // continue on with the new navigator.
                     this.NavigatorId = sne.NewNavigatorId;
@@ -110,7 +112,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
             if (!this.DrinkOrderPending)
             {
                 this.SendEvent(this.NavigatorId, new Navigator.GetDrinkOrderEvent(this.GetPicture()));
-                this.WriteLine("<Robot> Asked for a new Drink Order");
+                this.Log.WriteLine("<Robot> Asked for a new Drink Order");
             }
 
             this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
@@ -125,7 +127,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         public RoomPicture GetPicture()
         {
             var now = DateTime.UtcNow;
-            this.WriteLine($"<Robot> Obtained a Room Picture at {now} UTC");
+            this.Log.WriteLine($"<Robot> Obtained a Room Picture at {now} UTC");
             return new RoomPicture() { TimeTaken = now, Image = ReadCamera() };
         }
 
@@ -144,7 +146,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
             if (this.CurrentOrder != null)
             {
-                this.WriteLine("<Robot> Received new Drink Order. Executing ...");
+                this.Log.WriteLine("<Robot> Received new Drink Order. Executing ...");
                 this.ExecuteOrder();
             }
         }
@@ -152,7 +154,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         private void ExecuteOrder()
         {
             var clientLocation = this.CurrentOrder.ClientDetails.Coordinates;
-            this.WriteLine($"<Robot> Asked for driving instructions from {this.Coordinates} to {clientLocation}");
+            this.Log.WriteLine($"<Robot> Asked for driving instructions from {this.Coordinates} to {clientLocation}");
 
             this.SendEvent(this.NavigatorId, new Navigator.GetDrivingInstructionsEvent(this.Coordinates, clientLocation));
             this.Monitor<LivenessMonitor>(new LivenessMonitor.BusyEvent());
@@ -192,7 +194,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
                 this.StopMoving();
                 this.RaiseGotoStateEvent<ServingClient>();
 
-                this.WriteLine("<Robot> Reached Client.");
+                this.Log.WriteLine("<Robot> Reached Client.");
                 Specification.Assert(
                     this.Coordinates == this.CurrentOrder.ClientDetails.Coordinates,
                     "Having reached the Client the Robot's coordinates must be the same as the Client's, but they aren't");
@@ -223,7 +225,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void MoveTo(Location there)
         {
-            this.WriteLine($"<Robot> Moving from {this.Coordinates} to {there}");
+            this.Log.WriteLine($"<Robot> Moving from {this.Coordinates} to {there}");
             this.Coordinates = there;
         }
 
@@ -232,7 +234,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void ServeClient()
         {
-            this.WriteLine("<Robot> Serving order");
+            this.Log.WriteLine("<Robot> Serving order");
             var drinkType = this.SelectDrink();
             var glassOfDrink = this.GetFullFlass(drinkType);
 
@@ -241,9 +243,9 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void FinishOrder()
         {
-            this.WriteLine("<Robot> Finished serving the order. Retreating.");
-            this.WriteLine("==================================================");
-            this.WriteLine(string.Empty);
+            this.Log.WriteLine("<Robot> Finished serving the order. Retreating.");
+            this.Log.WriteLine("==================================================");
+            this.Log.WriteLine(string.Empty);
             this.MoveTo(StartingLocation);
             this.CurrentOrder = null;
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
@@ -261,14 +263,14 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         {
             var clientType = this.CurrentOrder.ClientDetails.PersonType;
             var selectedDrink = this.GetRandomDrink(clientType);
-            this.WriteLine($"<Robot> Selected \"{selectedDrink}\" for {clientType} client");
+            this.Log.WriteLine($"<Robot> Selected \"{selectedDrink}\" for {clientType} client");
             return selectedDrink;
         }
 
         private Glass GetFullFlass(DrinkType drinkType)
         {
             var fillLevel = 100;
-            this.WriteLine($"<Robot> Filled a new glass of {drinkType} to {fillLevel}% level");
+            this.Log.WriteLine($"<Robot> Filled a new glass of {drinkType} to {fillLevel}% level");
             return new Glass(drinkType, fillLevel);
         }
 
@@ -293,14 +295,6 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
         {
             // this can be handy for debugging.
             return base.OnEventUnhandledAsync(e, state);
-        }
-
-        private void WriteLine(string s, params object[] args)
-        {
-            string msg = string.Format(s, args);
-            Console.WriteLine(msg);
-            // this ensures all our logging shows up in the coyote test trace which is handy!
-            this.Logger.WriteLine(msg);
         }
     }
 }

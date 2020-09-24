@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Reflection;
 using System.Threading.Tasks;
+using Microsoft.Coyote.IO;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.SystematicTesting;
 
@@ -33,7 +34,7 @@ namespace BoundedBufferExample
             int writerIterations = totalIterations / writers;
             int remainder = totalIterations % writers;
 
-            runtime.Logger.WriteLine("Testing buffer size {0}, reader={1}, writer={2}, iterations={3}", bufferSize, readers, writers, iterations);
+            runtime.Logger.WriteLine(LogSeverity.Important, "Testing buffer size {0}, reader={1}, writer={2}, iterations={3}", bufferSize, readers, writers, iterations);
 
             BoundedBuffer buffer = new BoundedBuffer(bufferSize);
             var tasks = new List<Task>();

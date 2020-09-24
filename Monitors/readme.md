@@ -20,5 +20,5 @@ To test for the bug execute the following command:
 ```
 coyote test Monitors.dll -i 500000 --max-steps 200
 ```
-To find this bug more quickly, add the following command line option `--sch pct 10` to use the priority-based probabilistic
+To find this bug more quickly, add the following command line option `--sch-pct 10` to use the priority-based probabilistic
 scheduling strategy which can probabilistically control how many context switches will be explored during each test.

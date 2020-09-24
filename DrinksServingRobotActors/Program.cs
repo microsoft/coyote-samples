@@ -3,7 +3,6 @@
 
 using System;
 using Microsoft.Coyote.Actors;
-using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Samples.Common;
 
 namespace Microsoft.Coyote.Samples.DrinksServingRobot

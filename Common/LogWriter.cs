@@ -2,17 +2,16 @@
 // Licensed under the MIT License.
 
 using System;
-using System.IO;
+using Microsoft.Coyote.IO;
 
 namespace Microsoft.Coyote.Samples.Common
 {
     internal class LogWriter
     {
-        private static readonly ConsoleColor DefaultColor = Console.ForegroundColor;
-        private readonly TextWriter Log;
+        private readonly ILogger Log;
         private readonly bool Echo;
 
-        private LogWriter(TextWriter log, bool echo)
+        private LogWriter(ILogger log, bool echo)
         {
             this.Log = log;
             this.Echo = echo;
@@ -20,7 +19,7 @@ namespace Microsoft.Coyote.Samples.Common
 
         public static LogWriter Instance;
 
-        public static void Initialize(TextWriter log, bool echo)
+        public static void Initialize(ILogger log, bool echo)
         {
             Instance = new LogWriter(log, echo);
         }
@@ -37,36 +36,36 @@ namespace Microsoft.Coyote.Samples.Common
         public void WriteWarning(string format, params object[] args)
         {
             var msg = string.Format(format, args);
-            Console.ForegroundColor = ConsoleColor.Yellow;
-            try
+            this.Log.WriteLine(LogSeverity.Warning, msg);
+            if (this.Echo)
             {
-                this.Log.WriteLine(msg);
-                if (this.Echo)
+                try
                 {
+                    Console.ForegroundColor = ConsoleColor.Yellow;
                     Console.WriteLine(msg);
                 }
-            }
-            finally
-            {
-                Console.ForegroundColor = DefaultColor;
+                finally
+                {
+                    Console.ResetColor();
+                }
             }
         }
 
         internal void WriteError(string format, params object[] args)
         {
             var msg = string.Format(format, args);
-            Console.ForegroundColor = ConsoleColor.Red;
-            try
+            this.Log.WriteLine(LogSeverity.Error, msg);
+            if (this.Echo)
             {
-                this.Log.WriteLine(msg);
-                if (this.Echo)
+                try
                 {
+                    Console.ForegroundColor = ConsoleColor.Red;
                     Console.WriteLine(msg);
                 }
-            }
-            finally
-            {
-                Console.ForegroundColor = DefaultColor;
+                finally
+                {
+                    Console.ResetColor();
+                }
             }
         }
     }

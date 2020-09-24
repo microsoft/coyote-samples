@@ -449,10 +449,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         protected override Task OnHaltAsync(Event e)
         {
             this.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.Log.WriteLine("#################################################################");
-            this.Log.WriteLine("# Coffee Machine Halted                                         #");
-            this.Log.WriteLine("#################################################################");
-            Console.WriteLine();
+            this.Log.WriteWarning("#################################################################");
+            this.Log.WriteWarning("# Coffee Machine Halted                                         #");
+            this.Log.WriteWarning("#################################################################");
+            this.Log.WriteLine(string.Empty);
             if (this.Client != null)
             {
                 this.SendEvent(this.Client, new HaltedEvent());

@@ -370,9 +370,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.RegisterSensorEvents(false);
 
             Specification.Monitor<LivenessMonitor>(new LivenessMonitor.IdleEvent());
-            this.Log.WriteLine("#################################################################");
-            this.Log.WriteLine("# Coffee Machine Halted                                         #");
-            this.Log.WriteLine("#################################################################");
+            this.Log.WriteWarning("#################################################################");
+            this.Log.WriteWarning("# Coffee Machine Halted                                         #");
+            this.Log.WriteWarning("#################################################################");
             this.Log.WriteLine(string.Empty);
         }
 

@@ -152,9 +152,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void WriteLine(string s)
         {
-            Console.WriteLine(s);
-            // this ensures all our logging shows up in the coyote test trace which is handy!
-            this.Logger.WriteLine(s);
+            this.Log.WriteLine(s);
         }
     }
 }
