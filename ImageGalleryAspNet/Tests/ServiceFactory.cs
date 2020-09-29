@@ -10,6 +10,7 @@ using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc.Testing;
 using Microsoft.AspNetCore.TestHost;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 
 namespace ImageGallery.Tests
 {
@@ -41,7 +42,7 @@ namespace ImageGallery.Tests
             builder.ConfigureServices((context, services) =>
             {
                 // Inject the mock logger that writes to the console.
-                services.AddSingleton<TextWriter>(this.Logger);
+                services.AddSingleton<ILogger<ApplicationLogs>>(this.Logger);
 
                 // Inject the mocks.
                 services.AddSingleton(this.AzureStorageProvider);

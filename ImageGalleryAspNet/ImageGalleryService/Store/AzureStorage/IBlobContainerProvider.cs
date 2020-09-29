@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace ImageGallery.Store.AzureStorage
@@ -21,12 +22,16 @@ namespace ImageGallery.Store.AzureStorage
 
         Task CreateBlobAsync(string containerName, string blobName, byte[] blobContents);
 
-        Task<string> GetBlobAsync(string containerName, string blobName);
+        Task<byte[]> GetBlobAsync(string containerName, string blobName);
 
         Task<bool> ExistsBlobAsync(string containerName, string blobName);
 
         Task DeleteBlobAsync(string containerName, string blobName);
 
         Task<bool> DeleteBlobIfExistsAsync(string containerName, string blobName);
+
+        Task<BlobPage> GetBlobListAsync(string containerName, string continuationId, int pageSize);
+
+        Task DeleteAllBlobsAsync(string containerName);
     }
 }

@@ -9,6 +9,8 @@ namespace ImageGallery.Models
 
         public string Name { get; set; }
 
+        public string Password { get; set; }
+
         public string Email { get; set; }
 
         public Account()
@@ -25,13 +27,5 @@ namespace ImageGallery.Models
         public override bool Equals(object obj) => obj is Account account && Id == account.Id;
 
         public override int GetHashCode() => this.Id.GetHashCode();
-
-        internal static Account FromEntity(AccountEntity entity) =>
-            new Account()
-            {
-                Id = entity.Id,
-                Name = entity.Name,
-                Email = entity.Email
-            };
     }
 }

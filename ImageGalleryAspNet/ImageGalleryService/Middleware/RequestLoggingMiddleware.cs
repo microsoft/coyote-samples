@@ -23,7 +23,7 @@ namespace ImageGallery.Middleware
 
         public async Task InvokeAsync(HttpContext httpContext)
         {
-            RequestId.Create();
+            RequestId.Create(httpContext.TraceIdentifier);
             await NextRequest(httpContext);
         }
     }

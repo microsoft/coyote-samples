@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using ImageGallery.Logging;
 using ImageGallery.Store.Cosmos;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 
 namespace ImageGallery.Tests.Mocks.Cosmos
 {
@@ -28,7 +29,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
             // Used to model asynchrony in the request.
             await Task.Yield();
 
-            this.Logger.WriteLine("Creating database '{0}'.", id);
+            this.Logger.LogInformation("Creating database '{0}'.", id);
             this.CosmosState.EnsureDatabaseDoesNotExist(id);
             this.CosmosState.Databases[id] = new ConcurrentDictionary<string,
                 ConcurrentDictionary<PartitionKey, ConcurrentDictionary<string, object>>>();
@@ -39,7 +40,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Creating database '{0}' if it does not exist.", id);
+            this.Logger.LogInformation("Creating database '{0}' if it does not exist.", id);
             this.CosmosState.Databases[id] = new ConcurrentDictionary<string,
                 ConcurrentDictionary<PartitionKey, ConcurrentDictionary<string, object>>>();
             return new MockDatabaseProvider(id, this.CosmosState, this.Logger);
@@ -47,7 +48,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
 
         public IDatabaseProvider GetDatabase(string id)
         {
-            this.Logger.WriteLine("Getting database '{0}'.", id);
+            this.Logger.LogInformation("Getting database '{0}'.", id);
             this.CosmosState.EnsureDatabaseExists(id);
             return new MockDatabaseProvider(id, this.CosmosState, this.Logger);
         }

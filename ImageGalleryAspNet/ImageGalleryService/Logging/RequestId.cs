@@ -8,15 +8,18 @@ namespace ImageGallery.Logging
 {
     public static class RequestId
     {
-        private static readonly AsyncLocal<Guid> AsyncLocalInstance = new AsyncLocal<Guid>();
+        private static readonly AsyncLocal<string> AsyncLocalInstance = new AsyncLocal<string>();
 
-        internal static Guid Create()
+        internal static string Create(string id)
         {
-            var id = Guid.NewGuid();
             AsyncLocalInstance.Value = id;
             return id;
         }
 
-        public static Guid Get() => AsyncLocalInstance.Value;
+        public static string Get() => AsyncLocalInstance.Value;
+    }
+
+    public class ApplicationLogs
+    {
     }
 }

@@ -53,14 +53,14 @@ namespace ImageGallery.Tests
             if (testingEngine.TestReport.NumOfFoundBugs > 0)
             {
                 var error = testingEngine.TestReport.BugReports.First();
-                var traceFile = WriteReproducableTrace(testingEngine.ReproducableTrace, testName);
+                var traceFile = WriteReproducibleTrace(testingEngine.ReproducibleTrace, testName);
 
                 Assert.Fail("Found bug: {0}\n   Replay trace using Coyote by running:\n     TraceReplayer.exe {1} {2}",
                     error, testName, traceFile);
             }
         }
 
-        private static string WriteReproducableTrace(string trace, string testName)
+        private static string WriteReproducibleTrace(string trace, string testName)
         {
             string assemblyPath = Assembly.GetAssembly(typeof(SystematicTests)).Location;
             string directory = Path.GetDirectoryName(assemblyPath);

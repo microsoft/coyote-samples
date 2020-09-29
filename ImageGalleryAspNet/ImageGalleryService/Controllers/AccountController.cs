@@ -3,25 +3,37 @@
 
 using System.IO;
 using System.Threading.Tasks;
+using ImageGallery.Logging;
 using ImageGallery.Models;
 using ImageGallery.Store.AzureStorage;
 using ImageGallery.Store.Cosmos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace ImageGallery.Controllers
 {
     [ApiController]
     public class AccountController : ControllerBase
     {
-        private readonly IContainerProvider AccountContainer;
+        private readonly IDatabaseProvider DatabaseProvider;
+        private IContainerProvider AccountContainer;
         private readonly IBlobContainerProvider StorageProvider;
-        private readonly TextWriter Logger;
+        private readonly ILogger Logger;
 
-        public AccountController(IDatabaseProvider databaseProvider, IBlobContainerProvider storageProvider, TextWriter logger)
+        public AccountController(IDatabaseProvider databaseProvider, IBlobContainerProvider storageProvider, ILogger<ApplicationLogs> logger)
         {
-            this.AccountContainer = databaseProvider.GetContainer(Constants.AccountCollectionName);
+            this.DatabaseProvider = databaseProvider;
             this.StorageProvider = storageProvider;
             this.Logger = logger;
+        }
+
+        private async Task<IContainerProvider> GetOrCreateContainer()
+        {
+            if (this.AccountContainer == null)
+            {
+                this.AccountContainer = await this.DatabaseProvider.CreateContainerIfNotExistsAsync(Constants.AccountCollectionName, "/id");
+            }
+            return this.AccountContainer;
         }
 
         [HttpPut]
@@ -29,11 +41,12 @@ namespace ImageGallery.Controllers
         [Route("api/account/create")]
         public async Task<ActionResult<Account>> Create(Account account)
         {
-            this.Logger.WriteLine("Creating account with id '{0}' (name: '{1}', email: '{2}').",
+            this.Logger.LogInformation("Creating account with id '{0}' (name: '{1}', email: '{2}').",
                 account.Id, account.Name, account.Email);
 
             // Check if the account exists in Cosmos DB.
-            var exists = await this.AccountContainer.ExistsItemAsync<AccountEntity>(account.Id, account.Id);
+            var container = await GetOrCreateContainer();
+            var exists = await container.ExistsItemAsync<AccountEntity>(account.Id, account.Id);
             if (exists)
             {
                 return this.NotFound();
@@ -45,7 +58,7 @@ namespace ImageGallery.Controllers
             // it here just for the purposes of this buggy sample service.
 
             // The account does not exist, so create it in Cosmos DB.
-            var entity = await this.AccountContainer.CreateItemAsync(new AccountEntity(account));
+            var entity = await container.CreateItemAsync(new AccountEntity(account));
             return this.Ok(entity.GetAccount());
         }
 
@@ -54,11 +67,12 @@ namespace ImageGallery.Controllers
         [Route("api/account/update")]
         public async Task<ActionResult<Account>> Update(Account account)
         {
-            this.Logger.WriteLine("Updating account with id '{0}' (name: '{1}', email: '{2}').",
+            this.Logger.LogInformation("Updating account with id '{0}' (name: '{1}', email: '{2}').",
                 account.Id, account.Name, account.Email);
 
             // Check if the account exists in Cosmos DB.
-            var exists = await this.AccountContainer.ExistsItemAsync<AccountEntity>(account.Id, account.Id);
+            var container = await GetOrCreateContainer();
+            var exists = await container.ExistsItemAsync<AccountEntity>(account.Id, account.Id);
             if (!exists)
             {
                 return this.NotFound();
@@ -70,7 +84,7 @@ namespace ImageGallery.Controllers
             // by properly handling ReplaceItemAsync and returning a `NotFound` instead.
 
             // Update the account in Cosmos DB.
-            var entity = await this.AccountContainer.ReplaceItemAsync(new AccountEntity(account));
+            var entity = await container.ReplaceItemAsync(new AccountEntity(account));
             return this.Ok(entity.GetAccount());
         }
 
@@ -79,10 +93,11 @@ namespace ImageGallery.Controllers
         [Route("api/account/get/")]
         public async Task<ActionResult<Account>> Get(string id)
         {
-            this.Logger.WriteLine("Getting account with id '{0}'.", id);
+            this.Logger.LogInformation("Getting account with id '{0}'.", id);
 
             // Check if the account exists in Cosmos DB.
-            var exists = await this.AccountContainer.ExistsItemAsync<AccountEntity>(id, id);
+            var container = await GetOrCreateContainer();
+            var exists = await container.ExistsItemAsync<AccountEntity>(id, id);
             if (!exists)
             {
                 return this.NotFound();
@@ -92,7 +107,7 @@ namespace ImageGallery.Controllers
             // and can, for example, fail due to another concurrent request that deleted the account.
 
             // The account exists, so get it from Cosmos DB.
-            var entity = await this.AccountContainer.ReadItemAsync<AccountEntity>(id, id);
+            var entity = await container.ReadItemAsync<AccountEntity>(id, id);
             return this.Ok(entity.GetAccount());
         }
 
@@ -101,10 +116,11 @@ namespace ImageGallery.Controllers
         [Route("api/account/delete/")]
         public async Task<ActionResult> Delete(string id)
         {
-            this.Logger.WriteLine("Deleting account with id '{0}'.", id);
+            this.Logger.LogInformation("Deleting account with id '{0}'.", id);
 
             // Check if the account exists in Cosmos DB.
-            var exists = await this.AccountContainer.ExistsItemAsync<AccountEntity>(id, id);
+            var container = await GetOrCreateContainer();
+            var exists = await container.ExistsItemAsync<AccountEntity>(id, id);
             if (!exists)
             {
                 return this.NotFound();
@@ -114,7 +130,7 @@ namespace ImageGallery.Controllers
             // fail due to another concurrent request.
 
             // The account exists, so delete it from Cosmos DB.
-            await this.AccountContainer.DeleteItemAsync<AccountEntity>(id, id);
+            await container.DeleteItemAsync<AccountEntity>(id, id);
 
             // Finally, if there is an image container for this account, then also delete it.
             var containerName = Constants.GetContainerName(id);

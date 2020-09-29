@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using ImageGallery.Logging;
 using ImageGallery.Store.Cosmos;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 
 namespace ImageGallery.Tests.Mocks.Cosmos
 {
@@ -31,7 +32,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
             // Used to model asynchrony in the request.
             await Task.Yield();
 
-            this.Logger.WriteLine("Creating container '{0}' in database '{1}'.", id, this.DatabaseName);
+            this.Logger.LogInformation("Creating container '{0}' in database '{1}'.", id, this.DatabaseName);
 
             this.CosmosState.EnsureDatabaseExists(this.DatabaseName);
 
@@ -52,7 +53,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Creating container '{0}' in database '{1}' if it does not exist.", id, this.DatabaseName);
+            this.Logger.LogInformation("Creating container '{0}' in database '{1}' if it does not exist.", id, this.DatabaseName);
 
             this.CosmosState.EnsureDatabaseExists(this.DatabaseName);
 
@@ -74,7 +75,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
 
         public IContainerProvider GetContainer(string id)
         {
-            this.Logger.WriteLine("Getting container '{0}' from database '{1}'.", id, this.DatabaseName);
+            this.Logger.LogInformation("Getting container '{0}' from database '{1}'.", id, this.DatabaseName);
 
             this.CosmosState.EnsureDatabaseExists(this.DatabaseName);
             var database = this.CosmosState.Databases[this.DatabaseName];
@@ -85,7 +86,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         public async Task DeleteAsync()
         {
             await Task.Yield();
-            this.Logger.WriteLine("Deleting database '{0}'.", this.DatabaseName);
+            this.Logger.LogInformation("Deleting database '{0}'.", this.DatabaseName);
             this.CosmosState.DeleteDatabase(this.DatabaseName);
         }
     }

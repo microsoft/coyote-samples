@@ -9,6 +9,6 @@ namespace ImageGallery
         public static string AccountCollectionName = "Accounts";
         public static string GalleryContainerName = "Gallery";
 
-        public static string GetContainerName(string accountId) => $"{GalleryContainerName}_{accountId}";
+        public static string GetContainerName(string accountId) => $"{GalleryContainerName}-{accountId}".ToLowerInvariant();
     }
 }

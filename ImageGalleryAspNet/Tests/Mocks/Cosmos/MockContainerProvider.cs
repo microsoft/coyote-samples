@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 using ImageGallery.Logging;
 using ImageGallery.Store.Cosmos;
 using Microsoft.Azure.Cosmos;
+using Microsoft.Extensions.Logging;
 
 namespace ImageGallery.Tests.Mocks.Cosmos
 {
@@ -37,7 +38,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
             // Used to model asynchrony in the request.
             await Task.Yield();
 
-            this.Logger.WriteLine("Creating new item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Creating new item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
                 entity.PartitionKey, entity.Id, this.ContainerName, this.DatabaseName);
 
             var timestamp = DateTime.UtcNow;
@@ -66,7 +67,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Replacing item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Replacing item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
                 entity.PartitionKey, entity.Id, this.ContainerName, this.DatabaseName);
 
             var timestamp = DateTime.UtcNow;
@@ -89,7 +90,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Upserting item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Upserting item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
                 entity.PartitionKey, entity.Id, this.ContainerName, this.DatabaseName);
 
             var timestamp = DateTime.UtcNow;
@@ -119,7 +120,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Deleting item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Deleting item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
                 partitionKey, id, this.ContainerName, this.DatabaseName);
 
             var container = this.CosmosState.EnsureContainerExistsInDatabaseAndGetIt(this.DatabaseName, this.ContainerName);
@@ -138,7 +139,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Reading item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Reading item with partition key '{0}' and id '{1}' in container '{2}' of database '{3}'.",
                 partitionKey, id, this.ContainerName, this.DatabaseName);
 
             var container = this.CosmosState.EnsureContainerExistsInDatabaseAndGetIt(this.DatabaseName, this.ContainerName);
@@ -155,7 +156,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Reading items across partitions in container '{1}' of database '{2}'.",
+            this.Logger.LogInformation("Reading items across partitions in container '{1}' of database '{2}'.",
                 this.ContainerName, this.DatabaseName);
 
             var container = this.CosmosState.EnsureContainerExistsInDatabaseAndGetIt(this.DatabaseName, this.ContainerName);
@@ -177,7 +178,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Reading items with partition key '{0}' in container '{1}' of database '{2}'.",
+            this.Logger.LogInformation("Reading items with partition key '{0}' in container '{1}' of database '{2}'.",
                 partitionKey, this.ContainerName, this.DatabaseName);
 
             var container = this.CosmosState.EnsureContainerExistsInDatabaseAndGetIt(this.DatabaseName, this.ContainerName);
@@ -199,7 +200,7 @@ namespace ImageGallery.Tests.Mocks.Cosmos
         {
             await Task.Yield();
 
-            this.Logger.WriteLine("Checking if item with partition key '{0}' and id '{1}' exists in container '{2}' of database '{3}'.",
+            this.Logger.LogInformation("Checking if item with partition key '{0}' and id '{1}' exists in container '{2}' of database '{3}'.",
                 partitionKey, id, this.ContainerName, this.DatabaseName);
 
             try

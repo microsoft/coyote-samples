@@ -1,7 +1,10 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
+using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
 using Azure.Storage.Blobs;
 
@@ -50,11 +53,13 @@ namespace ImageGallery.Store.AzureStorage
             await blobClient.UploadAsync(new MemoryStream(blobContents));
         }
 
-        public async Task<string> GetBlobAsync(string containerName, string blobName)
+        public async Task<byte[]> GetBlobAsync(string containerName, string blobName)
         {
             var blobClient = new BlobClient(this.ConnectionString, containerName, blobName);
             var downloadInfo = await blobClient.DownloadAsync();
-            return new StreamReader(downloadInfo.Value.Content).ReadToEnd();
+            var buffer = new MemoryStream();
+            downloadInfo.Value.Content.CopyTo(buffer);
+            return buffer.ToArray();
         }
 
         public async Task<bool> ExistsBlobAsync(string containerName, string blobName)
@@ -75,6 +80,29 @@ namespace ImageGallery.Store.AzureStorage
             var blobClient = new BlobClient(this.ConnectionString, containerName, blobName);
             var deleteInfo = await blobClient.DeleteIfExistsAsync();
             return deleteInfo.Value;
+        }
+
+        public async Task DeleteAllBlobsAsync(string containerName)
+        {
+            var blobContainerClient = new BlobContainerClient(this.ConnectionString, containerName);
+            await blobContainerClient.DeleteAsync();
+            await blobContainerClient.CreateIfNotExistsAsync();
+        }
+
+        public async Task<BlobPage> GetBlobListAsync(string containerName, string continuationId, int pageSize)
+        {
+            BlobPage page = new BlobPage();
+            var blobContainerClient = new BlobContainerClient(this.ConnectionString, containerName);
+            var pageable = blobContainerClient.GetBlobsAsync();
+            await foreach(var item in pageable.AsPages(continuationId, pageSizeHint: pageSize))
+            {
+                List<string> names = new List<string>(item.Values.Select(b => b.Name));
+                page.Names = names.ToArray();
+                page.ContinuationId = item.ContinuationToken;
+                return page;
+            }
+
+            return null;
         }
     }
 }

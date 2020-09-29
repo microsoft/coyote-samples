@@ -1,6 +1,7 @@
 // Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using Microsoft.Extensions.Logging;
 using System;
 using System.IO;
 using System.Text;
@@ -10,26 +11,9 @@ namespace ImageGallery.Logging
     /// <summary>
     /// Simple logger that writes text to the console.
     /// </summary>
-    internal sealed class MockLogger : TextWriter
+    internal sealed class MockLogger : ILogger<ApplicationLogs>
     {
         private static readonly object ColorLock = new object();
-
-        public override Encoding Encoding => Console.OutputEncoding;
-
-        public override void Write(char value)
-        {
-            Console.Write($"{GetRequestId()}{value}");
-        }
-
-        public override void Write(string value)
-        {
-            Console.Write($"{GetRequestId()}{value}");
-        }
-
-        public override void WriteLine(string value)
-        {
-            Console.WriteLine($"{GetRequestId()}{value}");
-        }
 
         public void WriteErrorLine(string value)
         {
@@ -38,7 +22,6 @@ namespace ImageGallery.Logging
                 try
                 {
                     Console.ForegroundColor = ConsoleColor.Red;
-                    var requestId = RequestId.Get();
                     Console.WriteLine($"{GetRequestId()}{value}");
                 }
                 finally
@@ -64,10 +47,46 @@ namespace ImageGallery.Logging
             }
         }
 
+        public void WriteInformationLine(string value)
+        {
+            lock (ColorLock)
+            {
+                Console.WriteLine($"{GetRequestId()}{value}");
+            }
+        }
+
         private static string GetRequestId()
         {
             var requestId = RequestId.Get();
-            return requestId == Guid.Empty ? string.Empty : $"[{requestId}] ";
+            return string.IsNullOrEmpty(requestId) ? string.Empty : $"[{requestId}] ";
+        }
+
+        public void Log<TState>(LogLevel logLevel, EventId eventId, TState state, Exception exception, Func<TState, Exception, string> formatter)
+        {
+            var msg = formatter(state, exception);
+            switch (logLevel)
+            {
+                case LogLevel.Warning:
+                    WriteWarningLine(msg);
+                    break;
+                case LogLevel.Error:
+                case LogLevel.Critical:
+                    WriteErrorLine(msg);
+                    break;
+                default:
+                    WriteInformationLine(msg);
+                    break;
+            }
+        }
+
+        public bool IsEnabled(LogLevel logLevel)
+        {
+            return true;
+        }
+
+        public IDisposable BeginScope<TState>(TState state)
+        {
+            return null;
         }
     }
 }

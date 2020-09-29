@@ -6,6 +6,7 @@ using System.Net;
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using ImageGallery.Client;
 using ImageGallery.Logging;
 using ImageGallery.Models;
 using ImageGallery.Store.Cosmos;
@@ -27,22 +28,26 @@ namespace ImageGallery.Tests
             using var factory = new ServiceFactory(cosmosState, logger);
             await factory.InitializeCosmosDbAsync();
 
-            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions()
+            var options = new WebApplicationFactoryClientOptions()
             {
                 AllowAutoRedirect = false,
                 HandleCookies = false
-            });
+            };
+
+            using var client = factory.CreateClient(options);
+            using var wrapper = new ImageGalleryClient(client);
 
             // Try create a new account, and wait for it to be created before proceeding with the test.
             var account = new Account("0", "alice", "alice@coyote.com");
-            var createAccountRes = await client.PutAsJsonAsync(new Uri($"api/account/create", UriKind.RelativeOrAbsolute), account);
-            createAccountRes.EnsureSuccessStatusCode();
+
+            var result = await wrapper.CreateAccountAsync(account);
+            Assert.IsTrue(result);
 
             var updatedAccount = new Account("0", "alice", "alice@microsoft.com");
 
             // Try update the account and delete it concurrently, which can cause a data race and a bug.
-            var updateTask = client.PutAsJsonAsync(new Uri($"api/account/update", UriKind.RelativeOrAbsolute), updatedAccount);
-            var deleteTask = client.DeleteAsync(new Uri($"api/account/delete?id={updatedAccount.Id}", UriKind.RelativeOrAbsolute));
+            var updateTask = wrapper.UpdateAccountAsync(updatedAccount);
+            var deleteTask = wrapper.DeleteAccountAsync(updatedAccount.Id);
 
             // Wait for the two concurrent requests to complete.
             await Task.WhenAll(updateTask, deleteTask);
@@ -50,13 +55,10 @@ namespace ImageGallery.Tests
             // Bug: the update request can nondeterministically fail due to an unhandled exception (500 error code).
             // See the `Update` handler in the account controller for more info.
             var updateAccountRes = updateTask.Result;
-            if (!(updateAccountRes.StatusCode == HttpStatusCode.OK || updateAccountRes.StatusCode == HttpStatusCode.NotFound))
-            {
-                throw new AssertFailedException("Found unexpected error code.");
-            }
 
             var deleteAccountRes = deleteTask.Result;
-            deleteAccountRes.EnsureSuccessStatusCode();
+            // deleteAccountRes.EnsureSuccessStatusCode();
+            Assert.IsTrue(deleteAccountRes);
         }
 
         [TestMethod]
@@ -68,21 +70,22 @@ namespace ImageGallery.Tests
             using var factory = new ServiceFactory(cosmosState, logger);
             IDatabaseProvider databaseProvider = await factory.InitializeCosmosDbAsync();
 
-            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions()
+            var options = new WebApplicationFactoryClientOptions()
             {
                 AllowAutoRedirect = false,
                 HandleCookies = false
-            });
+            };
+
+            using var wrapper = new ImageGalleryClient(factory.CreateClient(options));
 
             // Try create a new account, and wait for it to be created before proceeding with the test.
             var account = new Account("0", "alice", "alice@coyote.com");
-            var createAccountRes = await client.PutAsJsonAsync(new Uri($"api/account/create", UriKind.RelativeOrAbsolute), account);
-            createAccountRes.EnsureSuccessStatusCode();
+            var createAccountRes = await wrapper.CreateAccountAsync(account);
 
             // Try store the image and delete the account concurrently, which can cause a data race and a bug.
             var image = new Image(account.Id, "beach", Encoding.Default.GetBytes("waves"));
-            var storeImageTask = client.PutAsJsonAsync(new Uri($"api/gallery/store", UriKind.RelativeOrAbsolute), image);
-            var deleteAccountTask = client.DeleteAsync(new Uri($"api/account/delete?id={account.Id}", UriKind.RelativeOrAbsolute));
+            var storeImageTask = wrapper.CreateOrUpdateImageAsync(image);
+            var deleteAccountTask = wrapper.DeleteAccountAsync(account.Id);
 
             // Wait for the two concurrent requests to complete.
             await Task.WhenAll(storeImageTask, deleteAccountTask);
