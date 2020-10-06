@@ -1,6 +1,10 @@
 # Coyote Samples
 
-[![Build status](https://dev.azure.com/foundry99/Coyote/_apis/build/status/Samples/Coyote-Samples-VS-2019-CI)](https://dev.azure.com/foundry99/Coyote/_build/latest?definitionId=100)
+[![NuGet](https://img.shields.io/nuget/v/Microsoft.Coyote.svg)](https://www.nuget.org/packages/Microsoft.Coyote/)
+![Windows CI](https://github.com/microsoft/coyote-samples/workflows/Windows%20CI/badge.svg)
+![Linux CI](https://github.com/microsoft/coyote-samples/workflows/Linux%20CI/badge.svg)
+![macOS CI](https://github.com/microsoft/coyote-samples/workflows/macOS%20CI/badge.svg)
+[![Join the chat at https://gitter.im/Microsoft/coyote](https://badges.gitter.im/Microsoft/coyote.svg)](https://gitter.im/Microsoft/coyote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
 This repository contains a series of samples that highlight how to use
 [Coyote](https://github.com/microsoft/coyote) for building reliable services and applications.
