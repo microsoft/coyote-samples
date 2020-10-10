@@ -109,7 +109,7 @@ namespace BoundedBufferExample
 
         private static void CheckRewritten()
         {
-            if (!Microsoft.Coyote.Rewriting.AssemblyRewriter.IsAssemblyRewritten(typeof(Program).Assembly))
+            if (!Microsoft.Coyote.Rewriting.RewritingEngine.IsAssemblyRewritten(typeof(Program).Assembly))
             {
                 throw new Exception(string.Format("Error: please rewrite this assembly using coyote rewrite {0}", typeof(Program).Assembly.Location));
             }
