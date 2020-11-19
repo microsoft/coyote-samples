@@ -190,6 +190,7 @@ namespace Microsoft.Coyote.Samples.DrinksServingRobot
 
         private void InitActive()
         {
+            this.Log.WriteLine("<Navigator> initialized.");
         }
 
         private void GetDrinkOrder(Event e)
