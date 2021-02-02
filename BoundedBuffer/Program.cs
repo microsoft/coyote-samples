@@ -13,12 +13,51 @@ namespace BoundedBufferExample
 {
     public static class Program
     {
-        public static void Main()
+        private static bool RunningMain = false;
+
+        public static void Main(string[] args)
         {
-            var runtime = RuntimeFactory.Create();
-            var task = Task.Run(() => TestBoundedBufferMinimalDeadlock());
-            Task.WaitAll(task);
-            Console.WriteLine("Test complete - no deadlocks!");
+            if (args.Length == 0)
+            {
+                PrintUsage();
+            }
+
+            RunningMain = true;
+
+            foreach (var arg in args)
+            {
+                if (arg[0] == '-')
+                {
+                    switch (arg.ToUpperInvariant().Trim('-'))
+                    {
+                        case "M":
+                            Console.WriteLine("Running with minimal deadlock...");
+                            TestBoundedBufferMinimalDeadlock();
+                            break;
+                        case "F":
+                            Console.WriteLine("Running with no deadlock...");
+                            TestBoundedBufferNoDeadlock();
+                            break;
+                        case "?":
+                        case "H":
+                        case "HELP":
+                            PrintUsage();
+                            return;
+                        default:
+                            Console.WriteLine("### Unknown arg: " + arg);
+                            PrintUsage();
+                            break;
+                    }
+                }
+            }
+        }
+
+        private static void PrintUsage()
+        {
+            Console.WriteLine("Usage: BoundedBuffer [option]");
+            Console.WriteLine("Options:");
+            Console.WriteLine("  -m    Run with minimal deadlock");
+            Console.WriteLine("  -f    Run fixed version which should not deadlock");
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
@@ -109,7 +148,7 @@ namespace BoundedBufferExample
 
         private static void CheckRewritten()
         {
-            if (!Microsoft.Coyote.Rewriting.RewritingEngine.IsAssemblyRewritten(typeof(Program).Assembly))
+            if (!RunningMain && !Microsoft.Coyote.Rewriting.RewritingEngine.IsAssemblyRewritten(typeof(Program).Assembly))
             {
                 throw new Exception(string.Format("Error: please rewrite this assembly using coyote rewrite {0}", typeof(Program).Assembly.Location));
             }
