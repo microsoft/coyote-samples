@@ -17,6 +17,7 @@ This repository contains a series of samples that highlight how to use
 - [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
 - [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
 - [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in unmodified C# code.
+- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use coyote to test ASP.NET websites.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```
