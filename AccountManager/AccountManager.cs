@@ -48,5 +48,22 @@ namespace Microsoft.Coyote.Samples.AccountManager
             await this.AccountCollection.DeleteRow(accountName);
             return true;
         }
+
+        /*
+        // Returns true if the account is deleted, else false.
+        // Fixed version.
+        public async Task<bool> DeleteAccount(string userName)
+        {
+            try
+            {
+                await this.AccountCollection.DeleteRow(userName);
+                return true;
+            }
+            catch (RowNotFoundException)
+            {
+                return false;
+            }
+        }
+        */
     }
 }
