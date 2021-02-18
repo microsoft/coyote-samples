@@ -22,7 +22,6 @@ Write-Comment -text "Using .NET SDK version $sdk_version" -color yellow
 Write-Comment -prefix "." -text "Building the Coyote samples" -color "yellow"
 
 # Build the task-based samples
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldTasks\HelloWorldTasks.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\AccountManager\AccountManager.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\BoundedBuffer\BoundedBuffer.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineTasks\CoffeeMachineTasks.sln" -config $configuration

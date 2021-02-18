@@ -11,11 +11,9 @@ This repository contains two sets of [Coyote](https://github.com/microsoft/coyot
 The first set of samples shows how you can use Coyote to systematically test unmodified C#
 task-based applications and services:
 
-- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple task-based C# application
-  and then systematically test it using Coyote.
 - [AccountManager](./AccountManager): demonstrates how to write a simple task-based C# application
-  to create, get and delete user account records in a backend NoSQL database and then systematically
-  test this application using Coyote.
+  to create, get and delete account records in a backend NoSQL database and then systematically test
+  this application using Coyote to find a race condition.
 - [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in
   unmodified C# code.
 - [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test
