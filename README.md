@@ -6,19 +6,37 @@
 ![macOS CI](https://github.com/microsoft/coyote-samples/workflows/macOS%20CI/badge.svg)
 [![Join the chat at https://gitter.im/Microsoft/coyote](https://badges.gitter.im/Microsoft/coyote.svg)](https://gitter.im/Microsoft/coyote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This repository contains a series of samples that highlight how to use
-[Coyote](https://github.com/microsoft/coyote) for building reliable services and applications.
+This repository contains two sets of [Coyote](https://github.com/microsoft/coyote) samples. The
+first shows how to use Coyote to systematically test unmodified C# task-based applications and
+services:
 
-- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple task-based application and then systematically test it using Coyote.
-- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it.
-- [UserAccountManager](./UserAccountManager): demonstrates how to write a simple Coyote application to create, get and delete user account records in a backend NoSQL database and test this application using Coyote.
-- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your task-based applications.
-- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test the failover logic in your Coyote actor applications.
-- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote actors applications.
-- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communicate with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging queue.
-- [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
-- [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in unmodified C# code.
-- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use coyote to test an ASP.NET Core service.
+- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple task-based C# application
+  and then systematically test it using Coyote.
+- [AccountManager](./AccountManager): demonstrates how to write a simple task-based C# application
+  to create, get and delete user account records in a backend NoSQL database and then systematically
+  test this application using Coyote.
+- [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in
+  unmodified C# code.
+- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
+  service.
+- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test
+  the failover logic in your task-based applications.
+
+The second set of samples shows how to use the Coyote
+[actor](https://microsoft.github.io/coyote/programming-models/actors/overview/) programming model
+to build reliable applications and services:
+
+- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application
+  using actors, and then run and systematically test it.
+- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test
+  the failover logic in your Coyote actor applications.
+- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to
+  systematically test the failover logic in your Coyote actors applications.
+- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains
+  components that communicate with each other using the [Azure Service
+  Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging queue.
+- [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor
+  programming model.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```

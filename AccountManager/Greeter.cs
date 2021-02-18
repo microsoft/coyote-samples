@@ -5,7 +5,7 @@ using System;
 using Microsoft.Coyote.Specifications;
 using Microsoft.Coyote.Tasks;
 
-namespace Microsoft.Coyote.Samples.UserAccountManager
+namespace Microsoft.Coyote.Samples.AccountManager
 {
     internal class Greeter
     {

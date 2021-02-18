@@ -1,9 +1,9 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\build.props" />
   <PropertyGroup>
-    <Description>The UserAccountManager sample</Description>
-    <AssemblyName>UserAccountManager</AssemblyName>
-    <RootNamespace>Microsoft.Coyote.Samples.UserAccountManager</RootNamespace>
+    <Description>The account manager sample.</Description>
+    <AssemblyName>AccountManager</AssemblyName>
+    <RootNamespace>Microsoft.Coyote.Samples.AccountManager</RootNamespace>
     <OutputType>Exe</OutputType>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>

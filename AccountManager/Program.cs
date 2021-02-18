@@ -5,7 +5,7 @@ using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Samples.HelloWorld;
 using Microsoft.Coyote.Tasks;
 
-namespace Microsoft.Coyote.Samples.UserAccountManager
+namespace Microsoft.Coyote.Samples.AccountManager
 {
     public static class Program
     {
