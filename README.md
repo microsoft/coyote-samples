@@ -18,10 +18,10 @@ task-based applications and services:
   test this application using Coyote.
 - [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in
   unmodified C# code.
-- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
-  service.
 - [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test
   the failover logic in your task-based applications.
+- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
+  service.
 
 The second set of samples shows how you can use the Coyote
 [actor](https://microsoft.github.io/coyote/programming-models/actors/overview/) programming model
