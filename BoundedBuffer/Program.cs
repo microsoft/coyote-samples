@@ -148,7 +148,8 @@ namespace BoundedBufferExample
         {
             if (!RunningMain && !Microsoft.Coyote.Rewriting.RewritingEngine.IsAssemblyRewritten(typeof(Program).Assembly))
             {
-                throw new Exception(string.Format("Error: please rewrite this assembly using coyote rewrite {0}", typeof(Program).Assembly.Location));
+                throw new Exception(string.Format("Error: please rewrite this assembly using coyote rewrite {0}",
+                    typeof(Program).Assembly.Location));
             }
         }
     }
