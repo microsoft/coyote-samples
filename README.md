@@ -6,9 +6,10 @@
 ![macOS CI](https://github.com/microsoft/coyote-samples/workflows/macOS%20CI/badge.svg)
 [![Join the chat at https://gitter.im/Microsoft/coyote](https://badges.gitter.im/Microsoft/coyote.svg)](https://gitter.im/Microsoft/coyote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This repository contains two sets of [Coyote](https://github.com/microsoft/coyote) samples. The
-first shows how to use Coyote to systematically test unmodified C# task-based applications and
-services:
+This repository contains two sets of [Coyote](https://github.com/microsoft/coyote) samples.
+
+The first set of samples shows how you can use Coyote to systematically test unmodified C#
+task-based applications and services:
 
 - [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple task-based C# application
   and then systematically test it using Coyote.
@@ -22,7 +23,7 @@ services:
 - [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test
   the failover logic in your task-based applications.
 
-The second set of samples shows how to use the Coyote
+The second set of samples shows how you can use the Coyote
 [actor](https://microsoft.github.io/coyote/programming-models/actors/overview/) programming model
 to build reliable applications and services:
 
