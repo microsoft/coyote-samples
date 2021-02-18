@@ -9,15 +9,16 @@
 This repository contains a series of samples that highlight how to use
 [Coyote](https://github.com/microsoft/coyote) for building reliable services and applications.
 
-- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple Coyote application using asynchronous tasks, and then run and systematically test it locally.
-- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it locally.
-- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
-- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your Coyote applications using asynchronous tasks.
-- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
-- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
+- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple task-based application and then systematically test it using Coyote.
+- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it.
+- [UserAccountManager](./UserAccountManager): demonstrates how to write a simple Coyote application to create, get and delete user account records in a backend NoSQL database and test this application using Coyote.
+- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your task-based applications.
+- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test the failover logic in your Coyote actor applications.
+- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote actors applications.
+- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communicate with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging queue.
 - [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
 - [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in unmodified C# code.
-- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use coyote to test ASP.NET websites.
+- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use coyote to test an ASP.NET Core service.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```
