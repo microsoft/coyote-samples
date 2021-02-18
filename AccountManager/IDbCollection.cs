@@ -1,15 +1,18 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using System;
+using System.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.AccountManager
 {
-    public class RowAlreadyExistsException : Exception
+    public interface IDbCollection
     {
-    }
+        Task CreateRow(string key, string value);
 
-    public class RowNotFoundException : Exception
-    {
+        Task<bool> DoesRowExist(string key);
+
+        Task<string> GetRow(string key);
+
+        Task DeleteRow(string key);
     }
 }
