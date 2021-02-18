@@ -21,15 +21,18 @@ Write-Comment -text "Using .NET SDK version $sdk_version" -color yellow
 
 Write-Comment -prefix "." -text "Building the Coyote samples" -color "yellow"
 
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldTasks\HelloWorldTasks.sln" -config $configuration
+# Build the task-based samples
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\AccountManager\AccountManager.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\BoundedBuffer\BoundedBuffer.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineTasks\CoffeeMachineTasks.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\ImageGalleryAspNet\ImageGallery.sln" -config $configuration
+
+# Build the actor samples
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\HelloWorldActors\HelloWorldActors.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineActors\CoffeeMachineActors.sln" -config $configuration
+Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\DrinksServingRobotActors\DrinksServingRobotActors.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CloudMessaging\CloudMessaging.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Timers\Timers.sln" -config $configuration
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\Monitors\Monitors.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineActors\CoffeeMachineActors.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\CoffeeMachineTasks\CoffeeMachineTasks.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\DrinksServingRobotActors\DrinksServingRobotActors.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\BoundedBuffer\BoundedBuffer.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\ImageGalleryAspNet\ImageGallery.sln" -config $configuration
 
 Write-Comment -prefix "." -text "Successfully built the Coyote samples" -color "green"

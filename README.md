@@ -6,18 +6,36 @@
 ![macOS CI](https://github.com/microsoft/coyote-samples/workflows/macOS%20CI/badge.svg)
 [![Join the chat at https://gitter.im/Microsoft/coyote](https://badges.gitter.im/Microsoft/coyote.svg)](https://gitter.im/Microsoft/coyote?utm_source=badge&utm_medium=badge&utm_campaign=pr-badge&utm_content=badge)
 
-This repository contains a series of samples that highlight how to use
-[Coyote](https://github.com/microsoft/coyote) for building reliable services and applications.
+This repository contains two sets of [Coyote](https://github.com/microsoft/coyote) samples.
 
-- [HelloWorldTasks](./HelloWorldTasks): demonstrates how to write a simple Coyote application using asynchronous tasks, and then run and systematically test it locally.
-- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application using actors, and then run and systematically test it locally.
-- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
-- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test the failover logic in your Coyote applications using asynchronous tasks.
-- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to systematically test the failover logic in your Coyote applications using actors.
-- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains components that communication with each other using the [Azure Service Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging framework.
-- [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor programming model.
-- [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in unmodified C# code.
-- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use coyote to test ASP.NET websites.
+The first set of samples shows how you can use Coyote to systematically test unmodified C#
+task-based applications and services:
+
+- [AccountManager](./AccountManager): demonstrates how to write a simple task-based C# application
+  to create, get and delete account records in a backend NoSQL database and then systematically test
+  this application using Coyote to find a race condition.
+- [BoundedBuffer](./BoundedBuffer): demonstrates how to use `coyote rewrite` to find deadlocks in
+  unmodified C# code.
+- [Coffee Machine Failover (Tasks)](./CoffeeMachineTasks): demonstrates how to systematically test
+  the failover logic in your task-based applications.
+- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
+  service.
+
+The second set of samples shows how you can use the Coyote
+[actor](https://microsoft.github.io/coyote/programming-models/actors/overview/) programming model
+to build reliable applications and services:
+
+- [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application
+  using actors, and then run and systematically test it.
+- [Coffee Machine Failover (Actors)](./CoffeeMachineActors): demonstrates how to systematically test
+  the failover logic in your Coyote actor applications.
+- [Robot Navigator Failover (Actors)](./DrinksServingRobotActors): demonstrates how to
+  systematically test the failover logic in your Coyote actors applications.
+- [CloudMessaging](./CloudMessaging): demonstrates how to write a Coyote application that contains
+  components that communicate with each other using the [Azure Service
+  Bus](https://azure.microsoft.com/en-us/services/service-bus/) cloud messaging queue.
+- [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor
+  programming model.
 
 To get started, clone this repository and build the samples by running the following PowerShell script:
 ```
