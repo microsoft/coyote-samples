@@ -1,21 +1,19 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
-using Microsoft.Coyote.Runtime;
-using Microsoft.Coyote.Samples.HelloWorld;
-using Microsoft.Coyote.Tasks;
+using System.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.HelloWorldTasks
 {
     public static class Program
     {
-        public static async System.Threading.Tasks.Task Main()
+        public static async Task Main()
         {
             await Execute();
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static async Tasks.Task Execute()
+        public static async Task Execute()
         {
             var greeter = new Greeter();
             await greeter.RunAsync();
