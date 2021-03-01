@@ -22,7 +22,7 @@ task-based applications and services:
   service.
 
 The second set of samples shows how you can use the Coyote
-[actor](https://microsoft.github.io/coyote/programming-models/actors/overview/) programming model
+[actor](https://microsoft.github.io/coyote/advanced-topics/actors/overview/) programming model
 to build reliable applications and services:
 
 - [HelloWorldActors](./HelloWorldActors): demonstrates how to write a simple Coyote application
