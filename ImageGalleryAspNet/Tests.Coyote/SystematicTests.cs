@@ -35,7 +35,7 @@ namespace ImageGallery.Tests
         /// exploration strategy (by default a uniform probabilistic strategy).
         /// </summary>
         /// <remarks>
-        /// Learn more in our documentation: https://microsoft.github.io/coyote/learn/tools/unit-testing
+        /// Learn more in our documentation: https://microsoft.github.io/coyote/how-to/unit-testing
         /// </remarks>
         private static void RunSystematicTest(Func<Task> test, string testName)
         {

@@ -16,7 +16,7 @@ namespace ImageGallery.Tests
         /// Uses the Coyote testing engine in replay mode to reproduce a buggy trace.
         /// </summary>
         /// <remarks>
-        /// Learn more in our documentation: https://microsoft.github.io/coyote/learn/tools/unit-testing#replaying-a-trace
+        /// Learn more in our documentation: https://microsoft.github.io/coyote/how-to/unit-testing
         /// </remarks>
         public static void Main(string[] args)
         {
