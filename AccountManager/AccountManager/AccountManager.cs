@@ -22,8 +22,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 return false;
             }
 
-            await this.AccountCollection.CreateRow(accountName, accountPayload);
-            return true;
+            return await this.AccountCollection.CreateRow(accountName, accountPayload);
         }
 
         // Returns the accountPayload, else null.
@@ -45,25 +44,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 return false;
             }
 
-            await this.AccountCollection.DeleteRow(accountName);
-            return true;
+            return await this.AccountCollection.DeleteRow(accountName);
         }
-
-        /*
-        // Returns true if the account is deleted, else false.
-        // Fixed version.
-        public async Task<bool> DeleteAccount(string userName)
-        {
-            try
-            {
-                await this.AccountCollection.DeleteRow(userName);
-                return true;
-            }
-            catch (RowNotFoundException)
-            {
-                return false;
-            }
-        }
-        */
     }
 }

@@ -1,6 +1,5 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <PropertyGroup>
-    <Description>Raft on AKS tutorial.</Description>
     <AssemblyName>Raft.Azure</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.CloudMessaging</RootNamespace>
     <OutputType>Exe</OutputType>

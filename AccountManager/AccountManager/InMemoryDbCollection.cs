@@ -15,27 +15,17 @@ namespace Microsoft.Coyote.Samples.AccountManager
             this.Collection = new ConcurrentDictionary<string, string>();
         }
 
-        public Task CreateRow(string key, string value)
+        public Task<bool> CreateRow(string key, string value)
         {
             return Task.Run(() =>
             {
-                var result = this.Collection.TryAdd(key, value);
-                if (!result)
+                bool success = this.Collection.TryAdd(key, value);
+                if (!success)
                 {
                     throw new RowAlreadyExistsException();
                 }
-            });
-        }
 
-        public Task DeleteRow(string key)
-        {
-            return Task.Run(() =>
-            {
-                var removed = this.Collection.TryRemove(key, out string value);
-                if (!removed)
-                {
-                    throw new RowNotFoundException();
-                }
+                return true;
             });
         }
 
@@ -51,12 +41,27 @@ namespace Microsoft.Coyote.Samples.AccountManager
         {
             return Task.Run(() =>
             {
-                var result = this.Collection.TryGetValue(key, out string value);
-                if (!result)
+                bool success = this.Collection.TryGetValue(key, out string value);
+                if (!success)
                 {
                     throw new RowNotFoundException();
                 }
+
                 return value;
+            });
+        }
+
+        public Task<bool> DeleteRow(string key)
+        {
+            return Task.Run(() =>
+            {
+                bool success = this.Collection.TryRemove(key, out string value);
+                if (!success)
+                {
+                    throw new RowNotFoundException();
+                }
+
+                return true;
             });
         }
     }

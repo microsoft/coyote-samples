@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="..\Common\build.props" />
   <PropertyGroup>
-    <Description>The Monitors sample.</Description>
     <AssemblyName>Monitors</AssemblyName>
     <RootNamespace>Microsoft.Coyote.Samples.Monitors</RootNamespace>
     <OutputType>Exe</OutputType>
