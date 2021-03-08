@@ -25,7 +25,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
             return await this.AccountCollection.CreateRow(accountName, accountPayload);
         }
 
-        // Returns the accountPayload, else null.
+        // Returns the accountPayload if the account is found, else null.
         public async Task<string> GetAccount(string accountName)
         {
             if (!await this.AccountCollection.DoesRowExist(accountName))

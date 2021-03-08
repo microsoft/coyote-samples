@@ -12,4 +12,8 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
     public class RowNotFoundException : Exception
     {
     }
+
+    public class MismatchedETagException : Exception
+    {
+    }
 }

@@ -1,6 +1,7 @@
 ﻿// Copyright (c) Microsoft Corporation.
 // Licensed under the MIT License.
 
+using System;
 using System.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.AccountManager.ETags
@@ -11,7 +12,9 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
 
         Task<bool> DoesRowExist(string key);
 
-        Task<string> GetRow(string key);
+        Task<(string value, Guid etag)> GetRow(string key);
+
+        Task<bool> UpdateRow(string key, string value, Guid etag);
 
         Task<bool> DeleteRow(string key);
     }

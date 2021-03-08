@@ -55,7 +55,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.TryRemove(key, out string value);
+                bool success = this.Collection.TryRemove(key, out string _);
                 if (!success)
                 {
                     throw new RowNotFoundException();

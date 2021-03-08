@@ -10,45 +10,46 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
     {
         public static async Task Main()
         {
-            await TestConcurrentAccountCreation();
+            await TestConcurrentAccountUpdate();
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static async Task TestAccountCreation()
+        public static async Task TestAccountUpdate()
         {
             // Initialize the mock in-memory DB and account manager.
             var dbCollection = new InMemoryDbCollection();
             var accountManager = new AccountManager(dbCollection);
 
-            // Create some dummy data.
             string accountName = "MyAccount";
-            string accountPayload = "...";
 
             // Create the account, it should complete successfully and return true.
-            var result = await accountManager.CreateAccount(accountName, accountPayload);
+            var result = await accountManager.CreateAccount(accountName, "first_version", 1);
             Assert.True(result);
 
-            // Create the same account again. The method should return false this time.
-            result = await accountManager.CreateAccount(accountName, accountPayload);
+            result = await accountManager.UpdateAccount(accountName, "second_version", 2);
+            Assert.True(result);
+
+            result = await accountManager.UpdateAccount(accountName, "second_version_alt", 2);
             Assert.False(result);
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static async Task TestConcurrentAccountCreation()
+        public static async Task TestConcurrentAccountUpdate()
         {
             // Initialize the mock in-memory DB and account manager.
             var dbCollection = new InMemoryDbCollection();
             var accountManager = new AccountManager(dbCollection);
 
-            // Create some dummy data.
             string accountName = "MyAccount";
-            string accountPayload = "...";
 
-            // Call CreateAccount twice without awaiting, which makes both methods run
+            // Create the account, it should complete successfully and return true.
+            var result = await accountManager.CreateAccount(accountName, "first_version", 1);
+            Assert.True(result);
+
+            // Call UpdateAccount twice without awaiting, which makes both methods run
             // asynchronously with each other.
-            var task1 = accountManager.CreateAccount(accountName, accountPayload);
-            // await Task.Delay(1); // Enable artificial delay to make bug harder to manifest.
-            var task2 = accountManager.CreateAccount(accountName, accountPayload);
+            var task1 = accountManager.UpdateAccount(accountName, "second_version", 2);
+            var task2 = accountManager.UpdateAccount(accountName, "second_version_alt", 2);
 
             // Then wait both requests to complete.
             await Task.WhenAll(task1, task2);
@@ -57,6 +58,33 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
             // failed. Note that we do not know which one of the two succeeded as the
             // requests ran concurrently (this is why we use an exclusive OR).
             Assert.True(task1.Result ^ task2.Result);
+        }
+
+        [Microsoft.Coyote.SystematicTesting.Test]
+        public static async Task TestGetAccountAfterConcurrentUpdate()
+        {
+            // Initialize the mock in-memory DB and account manager.
+            var dbCollection = new InMemoryDbCollection();
+            var accountManager = new AccountManager(dbCollection);
+
+            string accountName = "MyAccount";
+
+            // Create the account, it should complete successfully and return true.
+            var result = await accountManager.CreateAccount(accountName, "first_version", 1);
+            Assert.True(result);
+
+            // Call UpdateAccount twice without awaiting, which makes both methods run
+            // asynchronously with each other.
+            var task1 = accountManager.UpdateAccount(accountName, "second_version", 2);
+            var task2 = accountManager.UpdateAccount(accountName, "third_version", 3);
+
+            // Then wait both requests to complete.
+            await Task.WhenAll(task1, task2);
+
+            // Finally, get the account and assert that the version is always 3,
+            // which is the latest updated version.
+            var account = await accountManager.GetAccount(accountName);
+            Assert.True(account.Version == 3);
         }
     }
 }
