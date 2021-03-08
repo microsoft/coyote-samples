@@ -129,7 +129,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
         }
 
         [Microsoft.Coyote.SystematicTesting.Test]
-        public static async Task TestConcurrentAccountMixedCreationAndDeletion()
+        public static async Task TestConcurrentAccountCreationAndDeletion()
         {
             // Initialize the mock in-memory DB and account manager.
             var dbCollection = new InMemoryDbCollection();

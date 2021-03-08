@@ -1,7 +1,6 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
   <Import Project="../Common/build.props" />
   <PropertyGroup>
-    <Description>Coyote sample using Timers.</Description>
     <AssemblyName>Timers</AssemblyName>
     <RootNamespace>Timers</RootNamespace>
     <OutputPath>..\bin\</OutputPath>
