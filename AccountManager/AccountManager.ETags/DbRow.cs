@@ -5,9 +5,9 @@ using System;
 
 namespace Microsoft.Coyote.Samples.AccountManager.ETags
 {
-    public class AccountEntity
+    public class DbRow
     {
-        public string Account { get; set; }
+        public string Value { get; set; }
 
         public Guid ETag { get; set; }
     }

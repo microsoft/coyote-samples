@@ -9,24 +9,25 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
 {
     public class InMemoryDbCollection : IDbCollection
     {
-        private readonly ConcurrentDictionary<string, AccountEntity> Collection;
+        private readonly ConcurrentDictionary<string, DbRow> Collection;
 
         public InMemoryDbCollection()
         {
-            this.Collection = new ConcurrentDictionary<string, AccountEntity>();
+            this.Collection = new ConcurrentDictionary<string, DbRow>();
         }
 
         public Task<bool> CreateRow(string key, string value)
         {
             return Task.Run(() =>
             {
-                var entity = new AccountEntity()
+                // Generate a new ETag when creating a brand new row.
+                var dbRow = new DbRow()
                 {
-                    Account = value,
+                    Value = value,
                     ETag = Guid.NewGuid()
                 };
 
-                bool success = this.Collection.TryAdd(key, entity);
+                bool success = this.Collection.TryAdd(key, dbRow);
                 if (!success)
                 {
                     throw new RowAlreadyExistsException();
@@ -48,13 +49,13 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.TryGetValue(key, out AccountEntity entity);
+                bool success = this.Collection.TryGetValue(key, out DbRow dbRow);
                 if (!success)
                 {
                     throw new RowNotFoundException();
                 }
 
-                return (entity.Account, entity.ETag);
+                return (dbRow.Value, dbRow.ETag);
             });
         }
 
@@ -64,23 +65,24 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
             {
                 lock (this.Collection)
                 {
-                    bool success = this.Collection.TryGetValue(key, out AccountEntity existingEntity);
+                    bool success = this.Collection.TryGetValue(key, out DbRow existingDbRow);
                     if (!success)
                     {
                         throw new RowNotFoundException();
                     }
-                    else if (success && etag != existingEntity.ETag)
+                    else if (etag != existingDbRow.ETag)
                     {
                         throw new MismatchedETagException();
                     }
 
-                    var entity = new AccountEntity()
+                    // Update the Etag value when updating the row.
+                    var dbRow = new DbRow()
                     {
-                        Account = value,
+                        Value = value,
                         ETag = Guid.NewGuid()
                     };
 
-                    this.Collection[key] = entity;
+                    this.Collection[key] = dbRow;
                     return true;
                 }
             });
@@ -90,7 +92,7 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.TryRemove(key, out AccountEntity _);
+                bool success = this.Collection.TryRemove(key, out DbRow _);
                 if (!success)
                 {
                     throw new RowNotFoundException();
