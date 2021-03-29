@@ -7,7 +7,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
 {
     public interface IDbCollection
     {
-        Task CreateRow(string key, string value);
+        Task<string> CreateRow(string key, string value);
 
         Task<bool> DoesRowExist(string key);
 
