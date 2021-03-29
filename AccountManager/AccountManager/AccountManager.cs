@@ -22,7 +22,8 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 return false;
             }
 
-            return await this.AccountCollection.CreateRow(accountName, accountPayload);
+            await this.AccountCollection.CreateRow(accountName, accountPayload);
+            return true;
         }
 
         // Returns the accountPayload if the account is found, else null.
@@ -44,7 +45,8 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 return false;
             }
 
-            return await this.AccountCollection.DeleteRow(accountName);
+            await this.AccountCollection.DeleteRow(accountName);
+            return true;
         }
     }
 }

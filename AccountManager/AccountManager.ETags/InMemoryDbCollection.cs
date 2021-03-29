@@ -16,7 +16,7 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
             this.Collection = new ConcurrentDictionary<string, DbRow>();
         }
 
-        public Task<bool> CreateRow(string key, string value)
+        public Task CreateRow(string key, string value)
         {
             return Task.Run(() =>
             {
@@ -32,8 +32,6 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
                 {
                     throw new RowAlreadyExistsException();
                 }
-
-                return true;
             });
         }
 
@@ -59,7 +57,7 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
             });
         }
 
-        public Task<bool> UpdateRow(string key, string value, Guid etag)
+        public Task UpdateRow(string key, string value, Guid etag)
         {
             return Task.Run(() =>
             {
@@ -83,12 +81,11 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
                     };
 
                     this.Collection[key] = dbRow;
-                    return true;
                 }
             });
         }
 
-        public Task<bool> DeleteRow(string key)
+        public Task DeleteRow(string key)
         {
             return Task.Run(() =>
             {
@@ -97,8 +94,6 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
                 {
                     throw new RowNotFoundException();
                 }
-
-                return true;
             });
         }
     }

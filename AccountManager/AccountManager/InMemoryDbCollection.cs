@@ -15,7 +15,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
             this.Collection = new ConcurrentDictionary<string, string>();
         }
 
-        public Task<bool> CreateRow(string key, string value)
+        public Task CreateRow(string key, string value)
         {
             return Task.Run(() =>
             {
@@ -24,8 +24,6 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 {
                     throw new RowAlreadyExistsException();
                 }
-
-                return true;
             });
         }
 
@@ -51,7 +49,7 @@ namespace Microsoft.Coyote.Samples.AccountManager
             });
         }
 
-        public Task<bool> DeleteRow(string key)
+        public Task DeleteRow(string key)
         {
             return Task.Run(() =>
             {
@@ -60,8 +58,6 @@ namespace Microsoft.Coyote.Samples.AccountManager
                 {
                     throw new RowNotFoundException();
                 }
-
-                return true;
             });
         }
     }

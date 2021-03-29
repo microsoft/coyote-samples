@@ -28,7 +28,8 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
 
             try
             {
-                return await this.AccountCollection.CreateRow(accountName, JsonSerializer.Serialize(account));
+                await this.AccountCollection.CreateRow(accountName, JsonSerializer.Serialize(account));
+                return true;
             }
             catch (RowAlreadyExistsException)
             {
@@ -70,8 +71,11 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
 
                 try
                 {
-                    return await this.AccountCollection.UpdateRow(accountName,
-                        JsonSerializer.Serialize(updatedAccount), existingAccountETag);
+                    await this.AccountCollection.UpdateRow(
+                        accountName,
+                        JsonSerializer.Serialize(updatedAccount),
+                        existingAccountETag);
+                    return true;
                 }
                 catch (MismatchedETagException)
                 {
@@ -103,7 +107,8 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             try
             {
-                return await this.AccountCollection.DeleteRow(accountName);
+                await this.AccountCollection.DeleteRow(accountName);
+                return true;
             }
             catch (RowNotFoundException)
             {
