@@ -37,7 +37,16 @@ to build reliable applications and services:
 - [Timers in Actors](./Timers): demonstrates how to use the timer API of the Coyote actor
   programming model.
 
-To get started, clone this repository and build the samples by running the following PowerShell script:
+## Get started
+
+To build and run the samples, you will need to:
+
+- Install the [.NET 5.0 SDK](https://dotnet.microsoft.com/download/dotnet).
+- Install the [.NET 5.0 version of the coyote
+  tool](https://microsoft.github.io/coyote/get-started/install/).
+
+Once you are ready, clone this repository and build the samples by running the following PowerShell
+script:
 ```
 .\build.ps1
 ```
@@ -54,4 +63,7 @@ a CLA and decorate the PR appropriately (e.g., status check, comment). Simply fo
 provided by the bot. You will only need to do this once across all repositories using our CLA.
 
 ## Code of Conduct
-This project has adopted the [Microsoft Open Source Code of Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact [opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
+This project has adopted the [Microsoft Open Source Code of
+Conduct](https://opensource.microsoft.com/codeofconduct/). For more information see the [Code of
+Conduct FAQ](https://opensource.microsoft.com/codeofconduct/faq/) or contact
+[opencode@microsoft.com](mailto:opencode@microsoft.com) with any additional questions or comments.
