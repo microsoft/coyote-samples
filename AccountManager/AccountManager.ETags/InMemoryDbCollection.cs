@@ -9,11 +9,11 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
 {
     public class InMemoryDbCollection : IDbCollection
     {
-        private readonly ConcurrencyDictionary<string, DbRow> Collection;
+        private readonly ConcurrentDictionary<string, DbRow> Collection;
 
         public InMemoryDbCollection()
         {
-            this.Collection = new ConcurrencyDictionary<string, DbRow>();
+            this.Collection = new ConcurrentDictionary<string, DbRow>();
         }
 
         public Task<bool> CreateRow(string key, string value)
@@ -92,7 +92,7 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.Remove(key, out DbRow _);
+                bool success = this.Collection.TryRemove(key, out DbRow _);
                 if (!success)
                 {
                     throw new RowNotFoundException();
