@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>ImageGalleryTests</AssemblyName>
     <RootNamespace>ImageGallery.Tests</RootNamespace>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">

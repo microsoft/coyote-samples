@@ -2,38 +2,41 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.AccountManager.ETags
 {
     public class InMemoryDbCollection : IDbCollection
     {
-        private readonly ConcurrentDictionary<string, DbRow> Collection;
+        private readonly Dictionary<string, DbRow> Collection;
 
         public InMemoryDbCollection()
         {
-            this.Collection = new ConcurrentDictionary<string, DbRow>();
+            this.Collection = new Dictionary<string, DbRow>();
         }
 
         public Task<bool> CreateRow(string key, string value)
         {
             return Task.Run(() =>
             {
-                // Generate a new ETag when creating a brand new row.
-                var dbRow = new DbRow()
+                lock (this.Collection)
                 {
-                    Value = value,
-                    ETag = Guid.NewGuid()
-                };
+                    // Generate a new ETag when creating a brand new row.
+                    var dbRow = new DbRow()
+                    {
+                        Value = value,
+                        ETag = Guid.NewGuid()
+                    };
 
-                bool success = this.Collection.TryAdd(key, dbRow);
-                if (!success)
-                {
-                    throw new RowAlreadyExistsException();
+                    bool success = this.Collection.TryAdd(key, dbRow);
+                    if (!success)
+                    {
+                        throw new RowAlreadyExistsException();
+                    }
+
+                    return true;
                 }
-
-                return true;
             });
         }
 
@@ -41,7 +44,10 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                return this.Collection.ContainsKey(key);
+                lock (this.Collection)
+                {
+                    return this.Collection.ContainsKey(key);
+                }
             });
         }
 
@@ -49,13 +55,16 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.TryGetValue(key, out DbRow dbRow);
-                if (!success)
+                lock (this.Collection)
                 {
-                    throw new RowNotFoundException();
-                }
+                    bool success = this.Collection.TryGetValue(key, out DbRow dbRow);
+                    if (!success)
+                    {
+                        throw new RowNotFoundException();
+                    }
 
-                return (dbRow.Value, dbRow.ETag);
+                    return (dbRow.Value, dbRow.ETag);
+                }
             });
         }
 
@@ -92,13 +101,16 @@ namespace Microsoft.Coyote.Samples.AccountManager.ETags
         {
             return Task.Run(() =>
             {
-                bool success = this.Collection.TryRemove(key, out DbRow _);
-                if (!success)
+                lock (this.Collection)
                 {
-                    throw new RowNotFoundException();
-                }
+                    bool success = this.Collection.Remove(key, out DbRow _);
+                    if (!success)
+                    {
+                        throw new RowNotFoundException();
+                    }
 
-                return true;
+                    return true;
+                }
             });
         }
     }

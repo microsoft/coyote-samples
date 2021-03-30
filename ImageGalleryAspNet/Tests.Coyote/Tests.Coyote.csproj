@@ -2,7 +2,7 @@
   <PropertyGroup>
     <AssemblyName>ImageGalleryTests.Coyote</AssemblyName>
     <RootNamespace>ImageGallery.Tests</RootNamespace>
-    <TargetFramework>netcoreapp3.1</TargetFramework>
+    <TargetFramework>net5.0</TargetFramework>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
   <Import Project="..\..\Common\version.props" />
