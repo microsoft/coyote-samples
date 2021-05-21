@@ -2,7 +2,6 @@
 // Licensed under the MIT License.
 
 using System;
-using System.Linq;
 using ImageGallery.Filters;
 using ImageGallery.Logging;
 using ImageGallery.Middleware;

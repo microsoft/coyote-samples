@@ -3,9 +3,7 @@
   "OutputPath": "./bin/coyote",
   "Assemblies": [
       "ImageGalleryService.dll",
-      "ImageGalleryClient.dll",
       "ImageGalleryTests.dll",
-      "Microsoft.AspNetCore.Mvc.Testing.dll",
-      "Microsoft.AspNetCore.TestHost.dll"
+      "TraceReplayer.dll"
   ]
 }

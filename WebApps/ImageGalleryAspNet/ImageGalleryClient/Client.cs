@@ -12,8 +12,8 @@ namespace ImageGallery.Client
 {
     public class ImageGalleryClient : IDisposable
     {
-        private HttpClient Client;
-        private string BaseUrl;
+        private readonly HttpClient Client;
+        private readonly string BaseUrl;
 
         public ImageGalleryClient(HttpClient client, string baseUrl = null)
         {
@@ -21,12 +21,7 @@ namespace ImageGallery.Client
             this.BaseUrl = baseUrl;
         }
 
-        public void Dispose()
-        {
-            using var c = this.Client;
-        }
-
-        public async Task<bool> CreateAccountAsync(Account account)
+        public virtual async Task<bool> CreateAccountAsync(Account account)
         {
             var res = await this.Client.PutAsJsonAsync(new Uri($"{this.BaseUrl}api/account/create", UriKind.RelativeOrAbsolute), account);
 
@@ -38,27 +33,7 @@ namespace ImageGallery.Client
             return true;
         }
 
-        public async Task<bool> DeleteAccountAsync(string id)
-        {
-            var res = await this.Client.DeleteAsync(new Uri($"{this.BaseUrl}api/account/delete?id={id}", UriKind.RelativeOrAbsolute));
-            if (res.StatusCode == HttpStatusCode.OK)
-            {
-                return true;
-            }
-            else if (res.StatusCode == HttpStatusCode.NotFound)
-            {
-                return false;
-            }
-
-            if (!(res.StatusCode == HttpStatusCode.OK || res.StatusCode == HttpStatusCode.NotFound))
-            {
-                throw new Exception($"Found unexpected error code: {res.StatusCode}");
-            }
-
-            return true;
-        }
-
-        public async Task<bool> UpdateAccountAsync(Account updatedAccount)
+        public virtual async Task<bool> UpdateAccountAsync(Account updatedAccount)
         {
             var res = await this.Client.PutAsJsonAsync(new Uri($"{this.BaseUrl}api/account/update", UriKind.RelativeOrAbsolute), updatedAccount);
             if (res.StatusCode == HttpStatusCode.OK)
@@ -78,7 +53,39 @@ namespace ImageGallery.Client
             return true;
         }
 
-        public async Task<bool> CreateOrUpdateImageAsync(Image image)
+        public virtual async Task<Account> GetAccountAsync(string id)
+        {
+            try
+            {
+                return await this.Client.GetFromJsonAsync<Account>(new Uri($"{this.BaseUrl}api/account/get?id={id}", UriKind.RelativeOrAbsolute));
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        public virtual async Task<bool> DeleteAccountAsync(string id)
+        {
+            var res = await this.Client.DeleteAsync(new Uri($"{this.BaseUrl}api/account/delete?id={id}", UriKind.RelativeOrAbsolute));
+            if (res.StatusCode == HttpStatusCode.OK)
+            {
+                return true;
+            }
+            else if (res.StatusCode == HttpStatusCode.NotFound)
+            {
+                return false;
+            }
+
+            if (!(res.StatusCode == HttpStatusCode.OK || res.StatusCode == HttpStatusCode.NotFound))
+            {
+                throw new Exception($"Found unexpected error code: {res.StatusCode}");
+            }
+
+            return true;
+        }
+
+        public virtual async Task<bool> CreateOrUpdateImageAsync(Image image)
         {
             var res = await this.Client.PutAsJsonAsync(new Uri($"{this.BaseUrl}api/gallery/store", UriKind.RelativeOrAbsolute), image);
             if (res.StatusCode == HttpStatusCode.OK)
@@ -98,7 +105,7 @@ namespace ImageGallery.Client
             return true;
         }
 
-        public async Task<Image> GetImageAsync(string accountId, string imageId)
+        public virtual async Task<Image> GetImageAsync(string accountId, string imageId)
         {
             try
             {
@@ -110,7 +117,7 @@ namespace ImageGallery.Client
             }
         }
 
-        public async Task<bool> DeleteImageAsync(string accountId, string imageId)
+        public virtual async Task<bool> DeleteImageAsync(string accountId, string imageId)
         {
             try
             {                
@@ -123,7 +130,7 @@ namespace ImageGallery.Client
             }
         }
 
-        public async Task<bool> DeleteAllImagesAsync(string accountId)
+        public virtual async Task<bool> DeleteAllImagesAsync(string accountId)
         {
             try
             {
@@ -136,7 +143,7 @@ namespace ImageGallery.Client
             }
         }
 
-        public async Task<ImageList> GetNextImageListAsync(string accountId, string continuationId = null)
+        public virtual async Task<ImageList> GetNextImageListAsync(string accountId, string continuationId = null)
         {
             try
             {
@@ -148,16 +155,9 @@ namespace ImageGallery.Client
             }
         }
 
-        public async Task<Account> GetAccountAsync(string id)
+        public void Dispose()
         {
-            try
-            {
-                return await this.Client.GetFromJsonAsync<Account>(new Uri($"{this.BaseUrl}api/account/get?id={id}", UriKind.RelativeOrAbsolute));
-            }
-            catch 
-            {
-                return null;
-            }
+            this.Client?.Dispose();
         }
     }
 }

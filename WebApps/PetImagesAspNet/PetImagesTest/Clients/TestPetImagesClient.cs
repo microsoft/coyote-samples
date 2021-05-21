@@ -102,10 +102,12 @@ namespace PetImagesTest.Clients
             });
         }
 
+        /// <summary>
+        /// Simulate middleware by wrapping invocation of controller in exception handling
+        /// code which runs in middleware in production.
+        /// </summary>
         private static async Task<ActionResult<T>> InvokeControllerAction<T>(Func<Task<ActionResult<T>>> lambda)
         {
-            // Simulate middleware by wrapping invocation of controller in exception handling
-            // code which runs in middleware in production.
             try
             {
                 return await lambda();
@@ -119,7 +121,6 @@ namespace PetImagesTest.Clients
         private static ServiceResponse<T> ExtractServiceResponse<T>(ActionResult<T> actionResult)
         {
             var response = actionResult.Result;
-
             if (response is OkObjectResult okObjectResult)
             {
                 return new ServiceResponse<T>()

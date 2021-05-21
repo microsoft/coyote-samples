@@ -8,6 +8,7 @@ using System.Linq;
 using System.Net;
 using System.Threading.Tasks;
 using Microsoft.Coyote;
+using Microsoft.Coyote.SystematicTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PetImages;
 using PetImages.Contracts;
@@ -154,26 +155,30 @@ namespace PetImagesTest
         [TestMethod]
         public void SystematicTestFirstScenario()
         {
-            RunCoyoteTest(TestFirstScenario);
+            RunSystematicTest(TestFirstScenario);
         }
 
         [TestMethod]
         public void SystematicTestSecondScenario()
         {
-            RunCoyoteTest(TestSecondScenario);
+            RunSystematicTest(TestSecondScenario);
         }
 
         [TestMethod]
         public void SystematicTestThirdScenario()
         {
-            RunCoyoteTest(TestThirdScenario);
+            RunSystematicTest(TestThirdScenario);
         }
 
         /// <summary>
-        /// Helper to run a concurrency unit test with Coyote from inside another unit testing framework.
-        /// Learn more: https://microsoft.github.io/coyote/how-to/unit-testing/.
+        /// Invoke the Coyote systematic testing engine to run the specified test multiple iterations,
+        /// each iteration exploring potentially different interleavings using some underlying program
+        /// exploration strategy (by default a uniform probabilistic strategy).
         /// </summary>
-        private static void RunCoyoteTest(Func<Task> test, string reproducibleScheduleFilePath = null)
+        /// <remarks>
+        /// Learn more in our documentation: https://microsoft.github.io/coyote/how-to/unit-testing
+        /// </remarks>
+        private static void RunSystematicTest(Func<Task> test, string reproducibleScheduleFilePath = null)
         {
             // Configuration for how to run a concurrency unit test with Coyote.
             // This configuration will run the test 1000 times exploring different paths each time.
@@ -185,7 +190,7 @@ namespace PetImagesTest
                 config = config.WithReplayStrategy(trace);
             }
 
-            var testingEngine = Microsoft.Coyote.SystematicTesting.TestingEngine.Create(config, test);
+            var testingEngine = TestingEngine.Create(config, test);
 
             try
             {
@@ -205,10 +210,9 @@ namespace PetImagesTest
                 if (testingEngine.TestReport.NumOfFoundBugs > 0)
                 {
                     var timeStamp = DateTime.UtcNow.ToString("yyyy-MM-ddTHH-mm-ssZ", CultureInfo.InvariantCulture);
-                    var reproducibleTraceFileName = $"buggy.schedule.{timeStamp}";
-                    assertionText +=
-                        Environment.NewLine +
-                        $"Reproducible schedule which lead to the bug can be found at {Path.Combine(Directory.GetCurrentDirectory(), reproducibleTraceFileName)}";
+                    var reproducibleTraceFileName = $"buggy-{timeStamp}.schedule";
+                    assertionText += Environment.NewLine + "Reproducible trace which leads to the bug can be found at " +
+                        $"{Path.Combine(Directory.GetCurrentDirectory(), reproducibleTraceFileName)}";
 
                     File.WriteAllText(reproducibleTraceFileName, testingEngine.ReproducibleTrace);
                 }

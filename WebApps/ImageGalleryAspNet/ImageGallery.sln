@@ -13,9 +13,9 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TraceReplayer", "TraceRepla
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Tests.Coyote", "Tests.Coyote\Tests.Coyote.csproj", "{E676A4C6-98AA-47B5-B257-FBF4855FEE0A}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGallery", "ImageGallery\ImageGallery.csproj", "{C1CA4FB9-7C59-425F-B437-04CC48BA1988}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageGallery", "ImageGallery\ImageGallery.csproj", "{C1CA4FB9-7C59-425F-B437-04CC48BA1988}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ImageGalleryClient", "ImageGalleryClient\ImageGalleryClient.csproj", "{A5B18C87-5523-45CA-AD7C-BA9F9CD970F0}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "ImageGalleryClient", "ImageGalleryClient\ImageGalleryClient.csproj", "{A5B18C87-5523-45CA-AD7C-BA9F9CD970F0}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

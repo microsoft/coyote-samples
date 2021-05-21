@@ -9,7 +9,6 @@ using Microsoft.AspNetCore.Mvc;
 using ImageGallery.Client;
 using System.Net.Http;
 using ImageGallery.Models;
-using Microsoft.Extensions.Configuration;
 using System;
 
 namespace ImageGallery.Controllers

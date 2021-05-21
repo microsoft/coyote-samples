@@ -3,7 +3,6 @@
 
 using System.Collections.Concurrent;
 using System.Collections.Generic;
-using System.Text;
 using System.Threading.Tasks;
 using ImageGallery.Logging;
 using ImageGallery.Store.AzureStorage;

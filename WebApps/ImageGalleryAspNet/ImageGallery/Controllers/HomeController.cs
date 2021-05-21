@@ -11,7 +11,6 @@ using System;
 using System.IO;
 using ImageGallery.Client;
 using System.Net.Http;
-using Microsoft.Extensions.Configuration;
 
 namespace ImageGallery.Controllers
 {

@@ -39,10 +39,6 @@ namespace ImageGallery.Tests
         /// </remarks>
         private static void RunSystematicTest(Func<Task> test, string testName)
         {
-            // Note: this can become MSTest and Coyote rewrites it to convert to a "coyote test" to minimize boilerplate
-            // code, but we leave it as it is in this sample to show how the Coyote testing engine API looks like, and
-            // to allow tweaking the configuration.
-
             Console.WriteLine($"Starting systematic test...");
             var configuration = Configuration.Create().
                 WithTestingIterations(1000). // Change this to tweak the number of iterations.
