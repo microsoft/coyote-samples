@@ -5,7 +5,7 @@
     <TargetFramework>net5.0</TargetFramework>
     <OutputPath>..\bin\</OutputPath>
   </PropertyGroup>
-  <Import Project="..\..\Common\version.props" />
+  <Import Project="..\..\..\Common\version.props" />
   <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
     <DebugType>full</DebugType>
