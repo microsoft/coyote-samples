@@ -1,24 +1,27 @@
-﻿namespace PetImagesTest.MessagingMocks
-{
-    using Microsoft.Coyote.Specifications;
-    using PetImages.Messaging;
-    using PetImages.Storage;
-    using PetImages.Worker;
-    using System;
-    using System.Collections.Generic;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System;
+using System.Threading.Tasks;
+using Microsoft.Coyote.Specifications;
+using PetImages.Messaging;
+using PetImages.Storage;
+using PetImages.Worker;
+
+namespace PetImagesTest.MessagingMocks
+{
     public class MockMessagingClient : IMessagingClient
     {
-        private IWorker generateThumbnailWorker;
+        private readonly IWorker GenerateThumbnailWorker;
 
         public MockMessagingClient(IBlobContainer blobContainer)
         {
-            generateThumbnailWorker = new GenerateThumbnailWorker(blobContainer);
+            this.GenerateThumbnailWorker = new GenerateThumbnailWorker(blobContainer);
         }
 
         public Task SubmitMessage(Message message)
         {
+            // Fire-and-forget the task to model sending an asynchronous message over the network.
             _ = Task.Run(async () =>
             {
                 try
@@ -26,7 +29,7 @@
                     if (message.Type == Message.GenerateThumbnailMessageType)
                     {
                         var clonedMessage = TestHelper.Clone((GenerateThumbnailMessage)message);
-                        await generateThumbnailWorker.ProcessMessage(clonedMessage);
+                        await this.GenerateThumbnailWorker.ProcessMessage(clonedMessage);
                     }
                     else
                     {

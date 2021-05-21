@@ -1,25 +1,27 @@
-﻿namespace PetImagesTest.StorageMocks
-{
-    using Microsoft.Coyote.Random;
-    using PetImages.Entities;
-    using PetImages.Exceptions;
-    using PetImages.Storage;
-    using PetImagesTest.Exceptions;
-    using System.Collections.Concurrent;
-    using System.Text.Json;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System.Threading.Tasks;
+using Microsoft.Coyote.Random;
+using PetImages.Entities;
+using PetImages.Storage;
+using PetImagesTest.Exceptions;
+
+namespace PetImagesTest.StorageMocks
+{
     public class MockCosmosContainer : ICosmosContainer
     {
-        private string containerName;
-        private MockCosmosState state = new MockCosmosState();
-        private bool emitRandomizedFaults = false;
-        private Generator generator = Generator.Create();
+        private readonly string ContainerName;
+        private readonly MockCosmosState State;
+        private readonly Generator Generator;
+        private bool EmitRandomizedFaults;
 
         public MockCosmosContainer(string containerName, MockCosmosState state)
         {
-            this.containerName = containerName;
-            this.state = state;
+            this.ContainerName = containerName;
+            this.State = state;
+            this.Generator = Generator.Create();
+            this.EmitRandomizedFaults = false;
         }
 
         public Task<T> CreateItem<T>(T item)
@@ -29,12 +31,12 @@
 
             return Task.Run(() =>
             {
-                if (emitRandomizedFaults && generator.NextBoolean())
+                if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
                     throw new SimulatedDatabaseFaultException();
                 }
 
-                state.CreateItem(containerName, itemCopy);
+                this.State.CreateItem(this.ContainerName, itemCopy);
                 return itemCopy;
             });
         }
@@ -44,12 +46,12 @@
         {
             return Task.Run(() =>
             {
-                if (emitRandomizedFaults && generator.NextBoolean())
+                if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
                     throw new SimulatedDatabaseFaultException();
                 }
 
-                var item = state.GetItem(containerName, partitionKey, id);
+                var item = this.State.GetItem(this.ContainerName, partitionKey, id);
 
                 var itemCopy = TestHelper.Clone((T)item);
 
@@ -62,13 +64,13 @@
         {
             return Task.Run(() =>
             {
-                if (emitRandomizedFaults && generator.NextBoolean())
+                if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
                     throw new SimulatedDatabaseFaultException();
                 }
 
                 var itemCopy = TestHelper.Clone(item);
-                state.UpsertItem(containerName, itemCopy);
+                this.State.UpsertItem(this.ContainerName, itemCopy);
                 return itemCopy;
             });
         }
@@ -77,23 +79,23 @@
         {
             return Task.Run(() =>
             {
-                if (emitRandomizedFaults && generator.NextBoolean())
+                if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
                     throw new SimulatedDatabaseFaultException();
                 }
 
-                state.DeleteItem(containerName, partitionKey, id);
+                this.State.DeleteItem(this.ContainerName, partitionKey, id);
             });
         }
 
         public void EnableRandomizedFaults()
         {
-            emitRandomizedFaults = true;
+            this.EmitRandomizedFaults = true;
         }
 
         public void DisableRandomizedFaults()
         {
-            emitRandomizedFaults = false;
+            this.EmitRandomizedFaults = false;
         }
 
     }

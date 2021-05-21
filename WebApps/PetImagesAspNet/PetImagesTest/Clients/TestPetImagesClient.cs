@@ -1,44 +1,44 @@
-﻿namespace PetImagesTest.Clients
-{
-    using Microsoft.AspNetCore.Mvc;
-    using PetImages.Contracts;
-    using PetImages.Controllers;
-    using PetImages.Messaging;
-    using PetImages.Storage;
-    using PetImagesTest.Exceptions;
-    using System;
-    using System.Net;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using PetImages.Contracts;
+using PetImages.Controllers;
+using PetImages.Messaging;
+using PetImages.Storage;
+using PetImagesTest.Exceptions;
+
+namespace PetImagesTest.Clients
+{
     public class TestPetImagesClient : IPetImagesClient
     {
-        private ICosmosContainer accountContainer;
-        private ICosmosContainer imageContainer;
-        private IBlobContainer blobContainer;
-        private IMessagingClient messagingClient;
+        private readonly ICosmosContainer AccountContainer;
+        private readonly ICosmosContainer ImageContainer;
+        private readonly IBlobContainer BlobContainer;
+        private readonly IMessagingClient MessagingClient;
 
         public TestPetImagesClient(ICosmosContainer accountContainer)
         {
-            this.accountContainer = accountContainer;
-        }
-
-        public TestPetImagesClient(
-            ICosmosContainer accountContainer,
-            ICosmosContainer imageContainer,
-            IBlobContainer blobContainer,
-            IMessagingClient messagingClient)
-        {
-            this.accountContainer = accountContainer;
-            this.imageContainer = imageContainer;
-            this.blobContainer = blobContainer;
-            this.messagingClient = messagingClient;
+            this.AccountContainer = accountContainer;
         }
 
         public TestPetImagesClient(ICosmosContainer accountContainer, ICosmosContainer imageContainer, IBlobContainer blobContainer)
         {
-            this.accountContainer = accountContainer;
-            this.imageContainer = imageContainer;
-            this.blobContainer = blobContainer;
+            this.AccountContainer = accountContainer;
+            this.ImageContainer = imageContainer;
+            this.BlobContainer = blobContainer;
+        }
+
+        public TestPetImagesClient(ICosmosContainer accountContainer, ICosmosContainer imageContainer,
+            IBlobContainer blobContainer, IMessagingClient messagingClient)
+        {
+            this.AccountContainer = accountContainer;
+            this.ImageContainer = imageContainer;
+            this.BlobContainer = blobContainer;
+            this.MessagingClient = messagingClient;
         }
 
         public async Task<ServiceResponse<Account>> CreateAccountAsync(Account account)
@@ -47,9 +47,9 @@
 
             return await Task.Run(async () =>
             {
-                var controller = new AccountController(accountContainer);
+                var controller = new AccountController(this.AccountContainer);
 
-                var actionResult = await InvokeControllerAction(async () => await controller.PutAsync(accountCopy));
+                var actionResult = await InvokeControllerAction(async () => await controller.CreateAccountAsync(accountCopy));
                 return ExtractServiceResponse<Account>(actionResult.Result);
             });
         }
@@ -60,9 +60,9 @@
 
             return await Task.Run(async () =>
             {
-                var controller = new ImageController(accountContainer, imageContainer, blobContainer, messagingClient);
+                var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
 
-                var actionResult = await InvokeControllerAction(async () => await controller.PutAsync(accountName, imageCopy));
+                var actionResult = await InvokeControllerAction(async () => await controller.CreateImageAsync(accountName, imageCopy));
                 return ExtractServiceResponse<Image>(actionResult.Result);
             });
         }
@@ -73,9 +73,9 @@
 
             return await Task.Run(async () =>
             {
-                var controller = new ImageController(accountContainer, imageContainer, blobContainer, messagingClient);
+                var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
 
-                var actionResult = await InvokeControllerAction(async () => await controller.CreateOrUpdateAsync(accountName, imageCopy));
+                var actionResult = await InvokeControllerAction(async () => await controller.CreateOrUpdateImageAsync(accountName, imageCopy));
                 return ExtractServiceResponse<Image>(actionResult.Result);
             });
         }
@@ -84,7 +84,7 @@
         {
             return await Task.Run(async () =>
             {
-                var controller = new ImageController(accountContainer, imageContainer, blobContainer, messagingClient);
+                var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
 
                 var actionResult = await InvokeControllerAction(async () => await controller.GetImageContentsAsync(accountName, imageName));
                 return ExtractServiceResponse<byte[]>(actionResult.Result);
@@ -95,7 +95,7 @@
         {
             return await Task.Run(async () =>
             {
-                var controller = new ImageController(accountContainer, imageContainer, blobContainer, messagingClient);
+                var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
 
                 var actionResult = await InvokeControllerAction(async () => await controller.GetImageThumbnailAsync(accountName, imageName));
                 return ExtractServiceResponse<byte[]>(actionResult.Result);
@@ -105,7 +105,7 @@
         private static async Task<ActionResult<T>> InvokeControllerAction<T>(Func<Task<ActionResult<T>>> lambda)
         {
             // Simulate middleware by wrapping invocation of controller in exception handling
-            // code which runs in middleware in production
+            // code which runs in middleware in production.
             try
             {
                 return await lambda();

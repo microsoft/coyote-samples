@@ -1,12 +1,12 @@
-﻿using PetImages.Storage;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
 using System.Collections.Concurrent;
 using System.Threading.Tasks;
+using PetImages.Storage;
 
 namespace PetImagesTest.StorageMocks
 {
-    /// <summary>
-    /// Mock implementation of an Azure Storage blob container provider.
-    /// </summary>
     internal class MockBlobContainerProvider : IBlobContainer
     {
         private readonly ConcurrentDictionary<string, ConcurrentDictionary<string, byte[]>> Containers;

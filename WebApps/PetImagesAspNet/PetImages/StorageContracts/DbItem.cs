@@ -1,7 +1,10 @@
-﻿namespace PetImages.Entities
-{
-    using System.Text.Json.Serialization;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System.Text.Json.Serialization;
+
+namespace PetImages.Entities
+{
     public abstract class DbItem
     {
         [JsonPropertyName("id")]

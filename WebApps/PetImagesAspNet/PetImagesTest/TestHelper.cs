@@ -1,9 +1,10 @@
-﻿namespace PetImagesTest
-{
-    using System;
-    using System.Collections.Generic;
-    using System.Text.Json;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System.Text.Json;
+
+namespace PetImagesTest
+{
     public static class TestHelper
     {
         public static T Clone<T>(T obj)

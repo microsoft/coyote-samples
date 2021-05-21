@@ -1,25 +1,26 @@
-﻿namespace PetImagesTest.StorageMocks
-{
-    using PetImages.Entities;
-    using PetImages.Storage;
-    using System.Collections.Concurrent;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System.Threading.Tasks;
+using PetImages.Storage;
+
+namespace PetImagesTest.StorageMocks
+{
     public class MockCosmosDatabase : ICosmosDatabase
     {
-        private MockCosmosState state = new MockCosmosState();
+        private readonly MockCosmosState State;
 
         public MockCosmosDatabase(MockCosmosState state)
         {
-            this.state = state;
+            this.State = state;
         }
 
         public Task<ICosmosContainer> CreateContainerAsync(string containerName)
         {
             return Task.Run<ICosmosContainer>(() =>
             {
-                state.CreateContainer(containerName);
-                return new MockCosmosContainer(containerName, state);
+                this.State.CreateContainer(containerName);
+                return new MockCosmosContainer(containerName, this.State);
             });
         }
 
@@ -27,8 +28,8 @@
         {
             return Task.Run<ICosmosContainer>(() =>
             {
-                state.EnsureContainerExistsInDatabase(containerName);
-                return new MockCosmosContainer(containerName, state);
+                this.State.EnsureContainerExistsInDatabase(containerName);
+                return new MockCosmosContainer(containerName, this.State);
             });
         }
     }

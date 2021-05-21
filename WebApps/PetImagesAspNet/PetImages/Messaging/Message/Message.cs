@@ -1,4 +1,7 @@
-﻿namespace PetImages.Messaging
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+namespace PetImages.Messaging
 {
     public abstract class Message
     {

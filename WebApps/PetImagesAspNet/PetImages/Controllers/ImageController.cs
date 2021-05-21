@@ -1,91 +1,102 @@
-﻿namespace PetImages.Controllers
-{
-    using Microsoft.AspNetCore.Mvc;
-    using PetImages.Contracts;
-    using PetImages.Entities;
-    using PetImages.Exceptions;
-    using PetImages.Messaging;
-    using PetImages.Storage;
-    using System;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System;
+using System.Threading.Tasks;
+using Microsoft.AspNetCore.Mvc;
+using PetImages.Contracts;
+using PetImages.Entities;
+using PetImages.Exceptions;
+using PetImages.Messaging;
+using PetImages.Storage;
+
+namespace PetImages.Controllers
+{
     [ApiController]
     [Route("[controller]")]
     public class ImageController : ControllerBase
     {
-        private ICosmosContainer accountContainer;
-        private ICosmosContainer imageContainer;
-        private IBlobContainer blobContainer;
-        private IMessagingClient messagingClient;
+        private readonly ICosmosContainer AccountContainer;
+        private readonly ICosmosContainer ImageContainer;
+        private readonly IBlobContainer BlobContainer;
+        private readonly IMessagingClient MessagingClient;
 
-        public ImageController(
-            ICosmosContainer accountContainer,
-            ICosmosContainer imageContainer,
-            IBlobContainer blobContainer,
-            IMessagingClient messagingClient)
+        public ImageController(ICosmosContainer accountContainer, ICosmosContainer imageContainer,
+            IBlobContainer blobContainer, IMessagingClient messagingClient)
         {
-            this.accountContainer = accountContainer;
-            this.imageContainer = imageContainer;
-            this.blobContainer = blobContainer;
-            this.messagingClient = messagingClient;
+            this.AccountContainer = accountContainer;
+            this.ImageContainer = imageContainer;
+            this.BlobContainer = blobContainer;
+            this.MessagingClient = messagingClient;
         }
 
-        // Scenario 2 - Buggy PutAsync version
+        /// <summary>
+        /// Scenario 2 - Buggy CreateImageAsync version.
+        /// </summary>
         [HttpPost]
-        public async Task<ActionResult<Image>> PutAsync(string accountName, Image image)
+        public async Task<ActionResult<Image>> CreateImageAsync(string accountName, Image image)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
 
             var imageItem = image.ToItem();
 
-            await blobContainer.CreateContainerIfNotExistsAsync(accountName);
-            await blobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
+            // We upload the image to Azure Storage, before adding an entry to Cosmos DB
+            // so that it is guaranteed to be there when user does a GET request.
+            // Note: we're calling CreateOrUpdateBlobAsync because Azure Storage doesn't
+            // have a create-only API.
+            await this.BlobContainer.CreateContainerIfNotExistsAsync(accountName);
+            await this.BlobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
 
             try
             {
-                imageItem = await imageContainer.CreateItem(imageItem);
+                imageItem = await this.ImageContainer.CreateItem(imageItem);
             }
             catch (DatabaseItemAlreadyExistsException)
             {
                 return this.Conflict();
             }
-            catch (DatabaseException) // some, possibly intermittent exception thrown by cosmos db layer
+            catch (DatabaseException)
             {
-                await blobContainer.DeleteBlobIfExistsAsync(accountName, image.Name);
+                // We handle an exception thrown by Cosmos DB layer, perhaps due to some
+                // intermittent failure, by cleaning up the image to not waste resources.
+                await this.BlobContainer.DeleteBlobIfExistsAsync(accountName, image.Name);
                 return this.StatusCode(503);
             }
 
             return this.Ok(imageItem.ToImage());
         }
 
-        // Scenario 2 - Fixed PutAsync version
-        public async Task<ActionResult<Image>> PutAsyncFixed(string accountName, Image image)
+        /// <summary>
+        /// Scenario 2 - Fixed CreateImageAsync version.
+        /// </summary>
+        [HttpPost]
+        public async Task<ActionResult<Image>> CreateImageAsyncFixed(string accountName, Image image)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
 
             var imageItem = image.ToItem();
 
-            await blobContainer.CreateContainerIfNotExistsAsync(accountName);
-            await blobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
+            await this.BlobContainer.CreateContainerIfNotExistsAsync(accountName);
+            await this.BlobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
 
             try
             {
-                imageItem = await imageContainer.CreateItem(imageItem);
+                imageItem = await this.ImageContainer.CreateItem(imageItem);
             }
             catch (DatabaseItemAlreadyExistsException)
             {
                 return this.Conflict();
             }
 
-            // We don't delete the blob in the controller; orphaned blobs (i.e. blobs with no corresponding
-            // cosmos db entry) are cleaned up asynchronously by a background "garbage collector" worker (not
-            // shown in this sample)
+            // We don't delete the blob in the controller; orphaned blobs (i.e., blobs with no corresponding
+            // Cosmos DB entry) are cleaned up asynchronously by a background "garbage collector" worker
+            // (not shown in this sample).
 
             return this.Ok(imageItem.ToImage());
         }
@@ -93,7 +104,7 @@
         [HttpGet]
         public async Task<ActionResult<byte[]>> GetImageContentsAsync(string accountName, string imageName)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
@@ -101,25 +112,25 @@
             ImageItem imageItem;
             try
             {
-                imageItem = await this.imageContainer.GetItem<ImageItem>(partitionKey: imageName, id: imageName);
+                imageItem = await this.ImageContainer.GetItem<ImageItem>(partitionKey: imageName, id: imageName);
             }
             catch (DatabaseItemDoesNotExistException)
             {
                 return this.NotFound();
             }
 
-            if (!await blobContainer.ExistsBlobAsync(accountName, imageItem.StorageName))
+            if (!await this.BlobContainer.ExistsBlobAsync(accountName, imageItem.StorageName))
             {
                 return this.NotFound();
             }
 
-            return this.Ok(await blobContainer.GetBlobAsync(accountName, imageItem.StorageName));
+            return this.Ok(await this.BlobContainer.GetBlobAsync(accountName, imageItem.StorageName));
         }
 
         [HttpGet]
         public async Task<ActionResult<byte[]>> GetImageThumbnailAsync(string accountName, string imageName)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
@@ -127,7 +138,7 @@
             ImageItem imageItem;
             try
             {
-                imageItem = await this.imageContainer.GetItem<ImageItem>(partitionKey: imageName, id: imageName);
+                imageItem = await this.ImageContainer.GetItem<ImageItem>(partitionKey: imageName, id: imageName);
             }
             catch (DatabaseItemDoesNotExistException)
             {
@@ -137,31 +148,33 @@
             var containerName = accountName + Constants.ThumbnailContainerNameSuffix;
             var blobName = imageItem.StorageName + Constants.ThumbnailSuffix;
 
-            if (!await blobContainer.ExistsBlobAsync(containerName, blobName))
+            if (!await this.BlobContainer.ExistsBlobAsync(containerName, blobName))
             {
                 return this.NotFound();
             }
 
-            return this.Ok(await blobContainer.GetBlobAsync(containerName, blobName));
+            return this.Ok(await this.BlobContainer.GetBlobAsync(containerName, blobName));
         }
 
-        // Scenario 3 - Buggy CreateOrUpdateAsync version
+        /// <summary>
+        /// Scenario 3 - Buggy CreateOrUpdateImageAsync version.
+        /// </summary>
         [HttpPut]
-        public async Task<ActionResult<Image>> CreateOrUpdateAsync(string accountName, Image image)
+        public async Task<ActionResult<Image>> CreateOrUpdateImageAsync(string accountName, Image image)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
 
             var imageItem = image.ToItem();
 
-            await blobContainer.CreateContainerIfNotExistsAsync(accountName);
-            await blobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
+            await this.BlobContainer.CreateContainerIfNotExistsAsync(accountName);
+            await this.BlobContainer.CreateOrUpdateBlobAsync(accountName, image.Name, image.Content);
 
-            imageItem = await imageContainer.UpsertItem(imageItem);
+            imageItem = await this.ImageContainer.UpsertItem(imageItem);
 
-            await messagingClient.SubmitMessage(new GenerateThumbnailMessage()
+            await this.MessagingClient.SubmitMessage(new GenerateThumbnailMessage()
             {
                 AccountName = accountName,
                 ImageStorageName = image.Name
@@ -170,10 +183,13 @@
             return this.Ok(imageItem.ToImage());
         }
 
-        // Scenario 3 - Fixed CreateOrUpdateAsync version
-        public async Task<ActionResult<Image>> CreateOrUpdateAsyncFixed(string accountName, Image image)
+        /// <summary>
+        /// Scenario 3 - Fixed CreateOrUpdateImageAsync version.
+        /// </summary>
+        [HttpPut]
+        public async Task<ActionResult<Image>> CreateOrUpdateImageAsyncFixed(string accountName, Image image)
         {
-            if (!await StorageHelper.DoesItemExist<AccountItem>(accountContainer, partitionKey: accountName, id: accountName))
+            if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
             }
@@ -183,12 +199,12 @@
             var uniqueId = Guid.NewGuid().ToString();
             imageItem.StorageName = uniqueId;
 
-            await blobContainer.CreateContainerIfNotExistsAsync(accountName);
-            await blobContainer.CreateOrUpdateBlobAsync(accountName, imageItem.StorageName, image.Content);
+            await this.BlobContainer.CreateContainerIfNotExistsAsync(accountName);
+            await this.BlobContainer.CreateOrUpdateBlobAsync(accountName, imageItem.StorageName, image.Content);
 
-            imageItem = await imageContainer.UpsertItem(imageItem);
+            imageItem = await this.ImageContainer.UpsertItem(imageItem);
 
-            await messagingClient.SubmitMessage(new GenerateThumbnailMessage()
+            await this.MessagingClient.SubmitMessage(new GenerateThumbnailMessage()
             {
                 AccountName = accountName,
                 ImageStorageName = imageItem.StorageName

@@ -1,24 +1,26 @@
-﻿
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Net;
+using System.Threading.Tasks;
+using Microsoft.Coyote;
+using Microsoft.VisualStudio.TestTools.UnitTesting;
+using PetImages;
+using PetImages.Contracts;
+using PetImagesTest.Clients;
+using PetImagesTest.MessagingMocks;
+using PetImagesTest.StorageMocks;
+
 namespace PetImagesTest
 {
-    using Microsoft.Coyote;
-    using NUnit.Framework;
-    using PetImages;
-    using PetImages.Contracts;
-    using PetImages.Controllers;
-    using PetImagesTest.Clients;
-    using PetImagesTest.MessagingMocks;
-    using PetImagesTest.StorageMocks;
-    using System;
-    using System.Globalization;
-    using System.IO;
-    using System.Linq;
-    using System.Net;
-    using System.Threading.Tasks;
-
+    [TestClass]
     public class Tests
     {
-        [Test]
+        [TestMethod]
         public async Task TestFirstScenario()
         {
             // Initialize the mock in-memory DB and account manager.
@@ -47,12 +49,12 @@ namespace PetImagesTest
             // Finally, assert that only one of the two requests succeeded and the other
             // failed. Note that we do not know which one of the two succeeded as the
             // requests ran concurrently (this is why we use an exclusive OR).
-            Assert.True(
+            Assert.IsTrue(
                 (statusCode1 == HttpStatusCode.OK && statusCode2 == HttpStatusCode.Conflict) ||
                 (statusCode1 == HttpStatusCode.Conflict && statusCode2 == HttpStatusCode.OK));
         }
 
-        [Test]
+        [TestMethod]
         public async Task TestSecondScenario()
         {
             var cosmosState = new MockCosmosState();
@@ -98,7 +100,7 @@ namespace PetImagesTest
             }
         }
 
-        [Test]
+        [TestMethod]
         public async Task TestThirdScenario()
         {
             var cosmosState = new MockCosmosState();
@@ -149,30 +151,33 @@ namespace PetImagesTest
                 (IsCatImage(image) && IsCatThumbnail(thumbnail)));
         }
 
-        [Test]
+        [TestMethod]
         public void SystematicTestFirstScenario()
         {
             RunCoyoteTest(TestFirstScenario);
         }
 
-        [Test]
+        [TestMethod]
         public void SystematicTestSecondScenario()
         {
             RunCoyoteTest(TestSecondScenario);
         }
 
-        [Test]
+        [TestMethod]
         public void SystematicTestThirdScenario()
         {
             RunCoyoteTest(TestThirdScenario);
         }
 
-
+        /// <summary>
+        /// Helper to run a concurrency unit test with Coyote from inside another unit testing framework.
+        /// Learn more: https://microsoft.github.io/coyote/how-to/unit-testing/.
+        /// </summary>
         private static void RunCoyoteTest(Func<Task> test, string reproducibleScheduleFilePath = null)
         {
-            var config = Configuration
-                .Create()
-                .WithTestingIterations(100);
+            // Configuration for how to run a concurrency unit test with Coyote.
+            // This configuration will run the test 1000 times exploring different paths each time.
+            var config = Configuration.Create().WithTestingIterations(1000);
 
             if (reproducibleScheduleFilePath != null)
             {
@@ -216,34 +221,13 @@ namespace PetImagesTest
             }
         }
 
-        private static byte[] GetDogImageBytes()
-        {
-            return new byte[] { 1, 2, 3 };
-        }
+        private static byte[] GetDogImageBytes() => new byte[] { 1, 2, 3 };
+        private static byte[] GetCatImageBytes() => new byte[] { 4, 5, 6 };
 
-        private static byte[] GetCatImageBytes()
-        {
-            return new byte[] { 4, 5, 6 };
-        }
+        private static bool IsDogImage(byte[] imageBytes) => imageBytes.SequenceEqual(GetDogImageBytes());
+        private static bool IsCatImage(byte[] imageBytes) => imageBytes.SequenceEqual(GetCatImageBytes());
 
-        private static bool IsDogImage(byte[] imageBytes)
-        {
-            return imageBytes.SequenceEqual(GetDogImageBytes());
-        }
-
-        private static bool IsCatImage(byte[] imageBytes)
-        {
-            return imageBytes.SequenceEqual(GetCatImageBytes());
-        }
-
-        private static bool IsDogThumbnail(byte[] thumbnailBytes)
-        {
-            return thumbnailBytes.SequenceEqual(GetDogImageBytes());
-        }
-
-        private static bool IsCatThumbnail(byte[] thumbnailBytes)
-        {
-            return thumbnailBytes.SequenceEqual(GetCatImageBytes());
-        }
+        private static bool IsDogThumbnail(byte[] thumbnailBytes) => thumbnailBytes.SequenceEqual(GetDogImageBytes());
+        private static bool IsCatThumbnail(byte[] thumbnailBytes) => thumbnailBytes.SequenceEqual(GetCatImageBytes());
     }
 }

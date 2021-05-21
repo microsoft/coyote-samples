@@ -1,4 +1,7 @@
-﻿using PetImages.Contracts;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using PetImages.Contracts;
 
 namespace PetImages.Entities
 {

@@ -1,4 +1,7 @@
-﻿using System.Net;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
+
+using System.Net;
 
 namespace PetImagesTest.Clients
 {

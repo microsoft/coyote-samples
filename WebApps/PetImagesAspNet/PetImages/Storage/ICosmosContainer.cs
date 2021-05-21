@@ -1,8 +1,15 @@
-﻿namespace PetImages.Storage
-{
-    using PetImages.Entities;
-    using System.Threading.Tasks;
+﻿// Copyright (c) Microsoft Corporation.
+// Licensed under the MIT License.
 
+using System.Threading.Tasks;
+using PetImages.Entities;
+
+namespace PetImages.Storage
+{
+    /// <summary>
+    /// Interface of a Cosmos DB container. This can be implemented
+    /// for production or with a mock for (systematic) testing.
+    /// </summary>
     public interface ICosmosContainer
     {
         public Task<T> CreateItem<T>(T row)
