@@ -1,0 +1,26 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+  <PropertyGroup>
+    <AssemblyName>PetImagesTest</AssemblyName>
+    <TargetFramework>net5.0</TargetFramework>
+    <OutputPath>.\bin\</OutputPath>
+  </PropertyGroup>
+  <Import Project="..\..\..\Common\version.props" />
+  <ItemGroup>
+    <ProjectReference Include="..\PetImages\PetImages.csproj" />
+  </ItemGroup>
+  <ItemGroup>
+    <PackageReference Include="Microsoft.Coyote" Version="$(Version)" />
+    <PackageReference Include="Microsoft.Coyote.Test" Version="$(Version)" />
+    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
+    <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
+    <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Update="coyote.runtimeconfig.json">
+      <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+    </None>
+  </ItemGroup>
+  <Target Name="CoyoteRewriteWindows" AfterTargets="AfterBuild" Condition="'$(OS)'=='Windows_NT'">
+    <Exec Command="dotnet ../../../packages/microsoft.coyote.test/$(Version)/lib/$(TargetFramework)/coyote.dll rewrite ../rewrite.coyote.json" />
+  </Target>
+</Project>
