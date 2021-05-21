@@ -12,7 +12,7 @@ coyote rewrite rewrite.coyote.json
 
 To run the tests with Coyote do:
 ```
-dotnet test bin/coyote/PetImagesTests.dll
+dotnet test
 ```
 
 More details on this sample are coming soon.
