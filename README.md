@@ -14,7 +14,7 @@ task-based applications and services:
 - [AccountManager](./AccountManager): demonstrates how to write a simple task-based C# application
   to create, get and delete account records in a backend NoSQL database and then systematically test
   this application using Coyote to find a race condition.
-- [ImageGalleryAspNet](./ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
+- [ImageGalleryAspNet](./WebApps/ImageGalleryAspNet): demonstrates how to use Coyote to test an ASP.NET Core
   service.
 - [Coffee Machine Failover](./CoffeeMachineTasks): demonstrates how to systematically test
   the failover logic in your task-based applications.
