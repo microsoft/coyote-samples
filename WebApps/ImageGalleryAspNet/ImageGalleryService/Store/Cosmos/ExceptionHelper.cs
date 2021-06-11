@@ -29,9 +29,9 @@ namespace ImageGallery.Store.Cosmos
             }
 
             var innerExceptions = new List<Exception>();
-            if (exception is AggregateException)
+            if (exception is AggregateException aex)
             {
-                innerExceptions.AddRange(((AggregateException)exception).Flatten().InnerExceptions);
+                innerExceptions.AddRange(aex.Flatten().InnerExceptions);
             }
             else if (exception.InnerException != null)
             {

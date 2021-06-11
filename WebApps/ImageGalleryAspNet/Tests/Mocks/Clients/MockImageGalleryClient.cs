@@ -12,6 +12,7 @@ using ImageGallery.Models;
 using ImageGallery.Store.AzureStorage;
 using ImageGallery.Store.Cosmos;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Azure.Cosmos;
 
 namespace ImageGallery.Tests.Mocks.Clients
 {
@@ -45,8 +46,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new AccountController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Create(accountCopy);
+                var actionResult = await InvokeControllerAction(async () => await controller.Create(accountCopy));
                 var res = ExtractServiceResponse<Account>(actionResult.Result);
 
                 if (!(res.StatusCode == HttpStatusCode.OK || res.StatusCode == HttpStatusCode.NotFound))
@@ -65,8 +65,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new AccountController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Update(accountCopy);
+                var actionResult = await InvokeControllerAction(async () => await controller.Update(accountCopy));
                 var res = ExtractServiceResponse<Account>(actionResult.Result);
                 if (res.StatusCode == HttpStatusCode.OK)
                 {
@@ -91,8 +90,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new AccountController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Get(id);
+                var actionResult = await InvokeControllerAction(async () => await controller.Get(id));
                 var res = ExtractServiceResponse<Account>(actionResult.Result);
                 if (res.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -113,8 +111,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new AccountController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Delete(id);
+                var actionResult = await InvokeControllerAction(async () => await controller.Delete(id));
                 var statusCode = ExtractHttpStatusCode(actionResult);
 
                 if (statusCode == HttpStatusCode.OK)
@@ -142,8 +139,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new GalleryController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Store(imageCopy);
+                var actionResult = await InvokeControllerAction(async () => await controller.Store(imageCopy));
                 var statusCode = ExtractHttpStatusCode(actionResult);
 
                 if (statusCode == HttpStatusCode.OK)
@@ -169,8 +165,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new GalleryController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Get(accountId, imageId);
+                var actionResult = await InvokeControllerAction(async () => await controller.Get(accountId, imageId));
                 var res = ExtractServiceResponse<Image>(actionResult.Result);
                 if (res.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -191,8 +186,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new GalleryController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.Delete(accountId, imageId);
+                var actionResult = await InvokeControllerAction(async () => await controller.Delete(accountId, imageId));
                 var statusCode = ExtractHttpStatusCode(actionResult);
 
                 if (statusCode == HttpStatusCode.OK)
@@ -218,8 +212,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new GalleryController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.DeleteAllImages(accountId);
+                var actionResult = await InvokeControllerAction(async () => await controller.DeleteAllImages(accountId));
                 var statusCode = ExtractHttpStatusCode(actionResult);
 
                 if (statusCode == HttpStatusCode.OK)
@@ -245,8 +238,7 @@ namespace ImageGallery.Tests.Mocks.Clients
             return Task.Run(async () =>
             {
                 var controller = new GalleryController(this.CosmosDbProvider, this.AzureStorageProvider, this.Logger);
-
-                var actionResult = await controller.GetList(accountId, continuationId);
+                var actionResult = await InvokeControllerAction(async () => await controller.GetList(accountId, continuationId));
                 var res = ExtractServiceResponse<ImageList>(actionResult.Result);
                 if (res.StatusCode == HttpStatusCode.NotFound)
                 {
@@ -260,6 +252,38 @@ namespace ImageGallery.Tests.Mocks.Clients
 
                 return Clone(res.Resource);
             });
+        }
+
+        /// <summary>
+        /// Simulate middleware by wrapping invocation of controller in exception handling
+        /// code which runs in middleware in production.
+        /// </summary>
+        private static async Task<ActionResult> InvokeControllerAction(Func<Task<ActionResult>> lambda)
+        {
+            try
+            {
+                return await lambda();
+            }
+            catch (CosmosException)
+            {
+                return new StatusCodeResult((int)HttpStatusCode.ServiceUnavailable);
+            }
+        }
+
+        /// <summary>
+        /// Simulate middleware by wrapping invocation of controller in exception handling
+        /// code which runs in middleware in production.
+        /// </summary>
+        private static async Task<ActionResult<T>> InvokeControllerAction<T>(Func<Task<ActionResult<T>>> lambda)
+        {
+            try
+            {
+                return await lambda();
+            }
+            catch (CosmosException)
+            {
+                return new ActionResult<T>(new StatusCodeResult((int)HttpStatusCode.ServiceUnavailable));
+            }
         }
 
         private static HttpStatusCode ExtractHttpStatusCode(ActionResult actionResult)
