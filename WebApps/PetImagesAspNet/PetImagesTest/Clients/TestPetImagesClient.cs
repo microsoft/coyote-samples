@@ -48,7 +48,6 @@ namespace PetImagesTest.Clients
             return await Task.Run(async () =>
             {
                 var controller = new AccountController(this.AccountContainer);
-
                 var actionResult = await InvokeControllerAction(async () => await controller.CreateAccountAsync(accountCopy));
                 return ExtractServiceResponse<Account>(actionResult.Result);
             });
@@ -61,7 +60,6 @@ namespace PetImagesTest.Clients
             return await Task.Run(async () =>
             {
                 var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-
                 var actionResult = await InvokeControllerAction(async () => await controller.CreateImageAsync(accountName, imageCopy));
                 return ExtractServiceResponse<Image>(actionResult.Result);
             });
@@ -74,7 +72,6 @@ namespace PetImagesTest.Clients
             return await Task.Run(async () =>
             {
                 var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-
                 var actionResult = await InvokeControllerAction(async () => await controller.CreateOrUpdateImageAsync(accountName, imageCopy));
                 return ExtractServiceResponse<Image>(actionResult.Result);
             });
@@ -85,7 +82,6 @@ namespace PetImagesTest.Clients
             return await Task.Run(async () =>
             {
                 var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-
                 var actionResult = await InvokeControllerAction(async () => await controller.GetImageContentsAsync(accountName, imageName));
                 return ExtractServiceResponse<byte[]>(actionResult.Result);
             });
@@ -96,7 +92,6 @@ namespace PetImagesTest.Clients
             return await Task.Run(async () =>
             {
                 var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-
                 var actionResult = await InvokeControllerAction(async () => await controller.GetImageThumbnailAsync(accountName, imageName));
                 return ExtractServiceResponse<byte[]>(actionResult.Result);
             });
