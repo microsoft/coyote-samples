@@ -83,12 +83,7 @@ namespace BoundedBufferExample
             int x = 0;
             for (int i = 0; i < writers; i++)
             {
-                int w = writerIterations;
-                if (i == writers - 1)
-                {
-                    w += remainder;
-                }
-
+                int w = writerIterations + ((i == (writers - 1)) ? remainder : 0);
                 x += w;
                 tasks.Add(Task.Run(() => Writer(buffer, w)));
             }
