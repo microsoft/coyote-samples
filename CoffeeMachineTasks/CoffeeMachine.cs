@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
-using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
@@ -295,7 +295,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     this.Log.WriteLine("Shot count is {0}", this.PreviousShotCount);
 
                     // so we can wait for async event to come back from the sensors.
-                    var completion = TaskCompletionSource.Create<bool>();
+                    var completion = new TaskCompletionSource<bool>();
                     this.ShotCompleteSource = completion;
 
                     // request another shot!

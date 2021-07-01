@@ -4,7 +4,6 @@
 using System;
 using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Samples.Common;
-using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
