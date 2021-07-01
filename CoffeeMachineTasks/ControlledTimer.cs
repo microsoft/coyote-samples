@@ -3,7 +3,7 @@
 
 using System;
 using System.Threading;
-using Microsoft.Coyote.Tasks;
+using System.Threading.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {

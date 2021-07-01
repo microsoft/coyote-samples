@@ -2,10 +2,10 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
-using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {

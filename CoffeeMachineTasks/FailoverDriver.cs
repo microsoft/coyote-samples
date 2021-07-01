@@ -2,9 +2,9 @@
 // Licensed under the MIT License.
 
 using System;
+using System.Threading.Tasks;
 using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Samples.Common;
-using Microsoft.Coyote.Tasks;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
