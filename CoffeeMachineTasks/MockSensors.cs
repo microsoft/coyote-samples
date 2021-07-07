@@ -6,7 +6,6 @@ using System.Threading.Tasks;
 using Microsoft.Coyote.Random;
 using Microsoft.Coyote.Samples.Common;
 using Microsoft.Coyote.Specifications;
-using AsyncLock = Microsoft.Coyote.Tasks.AsyncLock;
 
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
@@ -113,7 +112,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         public MockSensors(bool runSlowly)
         {
-            this.Lock = AsyncLock.Create();
+            this.Lock = new AsyncLock();
             this.RunSlowly = runSlowly;
             this.RandomGenerator = Generator.Create();
 
