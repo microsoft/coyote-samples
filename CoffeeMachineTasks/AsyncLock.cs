@@ -9,8 +9,10 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
     /// <summary>
     /// A non-reentrant mutual exclusion lock that can be acquired asynchronously
-    /// in a first-in first-out order. During testing, the lock is automatically
-    /// replaced with a controlled mocked version.
+    /// in a first-in first-out order. During testing, Coyote will automatically
+    /// take control of it and explore various interleavings. This is possible
+    /// because the lock is implemented on top of a TaskCompletionSource, which
+    /// Coyote knows how to rewrite and control during testing.
     /// </summary>
     public class AsyncLock
     {
