@@ -1,16 +1,14 @@
 ﻿<Project Sdk="Microsoft.NET.Sdk">
+  <Import Project="..\..\..\Common\build.props" />
   <PropertyGroup>
     <AssemblyName>PetImagesTest</AssemblyName>
-    <TargetFramework>net5.0</TargetFramework>
     <OutputPath>.\bin\</OutputPath>
+    <RunAnalyzersDuringBuild>false</RunAnalyzersDuringBuild>
   </PropertyGroup>
-  <Import Project="..\..\..\Common\version.props" />
   <ItemGroup>
     <ProjectReference Include="..\PetImages\PetImages.csproj" />
   </ItemGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Coyote" Version="$(Version)" />
-    <PackageReference Include="Microsoft.Coyote.Test" Version="$(Version)" />
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="16.9.4" />
     <PackageReference Include="MSTest.TestAdapter" Version="2.2.3" />
     <PackageReference Include="MSTest.TestFramework" Version="2.2.3" />

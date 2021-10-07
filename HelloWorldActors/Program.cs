@@ -7,7 +7,7 @@ using Microsoft.Coyote.Actors;
 
 namespace Microsoft.Coyote.Samples.HelloWorldActors
 {
-    public static class HostProgram
+    public static class Program
     {
         public static void Main()
         {

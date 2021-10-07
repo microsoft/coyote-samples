@@ -12,7 +12,7 @@ namespace PetImagesTest.StorageMocks
 {
     public class MockCosmosState
     {
-        private readonly Database Database = new ();
+        private readonly Database Database = new Database();
 
         public void CreateContainer(string containerName)
         {
