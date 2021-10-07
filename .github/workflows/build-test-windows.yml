@@ -19,6 +19,9 @@ jobs:
           dotnet-version: '5.0.x' 
       
       - name: Build Coyote samples
-        run: .\build.ps1
+        run: ./Scripts/build-tests.ps1
         shell: pwsh
       
+      - name: Test Coyote samples
+        run: dotnet ./Common/bin/net5.0/TestDriver.dll
+        shell: pwsh
