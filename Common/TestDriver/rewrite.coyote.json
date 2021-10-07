@@ -8,6 +8,7 @@
     "CoffeeMachineTasks.dll",
     "DrinksServingRobotActors.dll",
     "HelloWorldActors.dll",
+    "ImageGalleryClient.dll",
     "ImageGalleryService.dll",
     "ImageGalleryTests.dll",
     "Monitors.dll",

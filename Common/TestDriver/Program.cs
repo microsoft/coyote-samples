@@ -48,12 +48,12 @@ namespace Microsoft.Coyote.Samples.TestDriver
                 "Deadlock detected.");
 
             // CloudMessaging tests.
-            configuration = Configuration.Create().WithTestingIterations(1000)
-                .WithMaxSchedulingSteps(500);
-            RunTest(Samples.CloudMessaging.Mocking.Program.Execute, configuration,
-                "CloudMessaging.TestWithMocking");
-            RunTest(Samples.CloudMessaging.Nondeterminism.Program.Execute, configuration,
-                "CloudMessaging.TestWithNondeterminism");
+            // configuration = Configuration.Create().WithTestingIterations(1000)
+            //     .WithMaxSchedulingSteps(500);
+            // RunTest(Samples.CloudMessaging.Mocking.Program.Execute, configuration,
+            //     "CloudMessaging.TestWithMocking");
+            // RunTest(Samples.CloudMessaging.Nondeterminism.Program.Execute, configuration,
+            //     "CloudMessaging.TestWithNondeterminism");
 
             // CoffeeMachineActors tests.
             configuration = Configuration.Create().WithTestingIterations(1000)
@@ -90,31 +90,29 @@ namespace Microsoft.Coyote.Samples.TestDriver
                 "ping count must be <= 3");
 
             // ImageGallery tests.
-            configuration = Configuration.Create().WithTestingIterations(1000);
-            var imageGalleryTests = new ImageGallery.Tests.UnitTests();
-            RunTest(imageGalleryTests.TestConcurrentAccountRequestsAsync, configuration,
-                "ImageGallery.TestConcurrentAccountRequests",
-                "Found unexpected error code: ServiceUnavailable",
-                "Deadlock detected");
-            RunTest(imageGalleryTests.TestConcurrentAccountAndImageRequestsAsync, configuration,
-                "ImageGallery.TestConcurrentAccountAndImageRequests",
-                "The given key 'gallery-0' was not present in the dictionary",
-                "The image was not deleted from Azure Blob Storage",
-                "Deadlock detected");
+            // configuration = Configuration.Create().WithTestingIterations(1000);
+            // var imageGalleryTests = new ImageGallery.Tests.UnitTests();
+            // RunTest(imageGalleryTests.TestConcurrentAccountRequestsAsync, configuration,
+            //     "ImageGallery.TestConcurrentAccountRequests",
+            //     "Found unexpected error code: ServiceUnavailable");
+            // RunTest(imageGalleryTests.TestConcurrentAccountAndImageRequestsAsync, configuration,
+            //     "ImageGallery.TestConcurrentAccountAndImageRequests",
+            //     "The given key 'gallery-0' was not present in the dictionary",
+            //     "The image was not deleted from Azure Blob Storage");
 
             // PetImages tests.
-            configuration = Configuration.Create().WithTestingIterations(1000);
-            var petImagesTests = new PetImagesTest.Tests();
-            RunTest(petImagesTests.TestFirstScenario, configuration,
-                "PetImages.TestFirstScenario",
-                "PetImages.Exceptions.DatabaseItemAlreadyExistsException",
-                "Assert.IsTrue failed");
-            RunTest(petImagesTests.TestSecondScenario, configuration,
-                "PetImages.TestSecondScenario",
-                "Assert.IsTrue failed");
-            RunTest(petImagesTests.TestThirdScenario, configuration,
-                "PetImages.TestThirdScenario",
-                "Assert.IsTrue failed");
+            // configuration = Configuration.Create().WithTestingIterations(1000);
+            // var petImagesTests = new PetImagesTest.Tests();
+            // RunTest(petImagesTests.TestFirstScenario, configuration,
+            //     "PetImages.TestFirstScenario",
+            //     "PetImages.Exceptions.DatabaseItemAlreadyExistsException",
+            //     "Assert.IsTrue failed");
+            // RunTest(petImagesTests.TestSecondScenario, configuration,
+            //     "PetImages.TestSecondScenario",
+            //     "Assert.IsTrue failed");
+            // RunTest(petImagesTests.TestThirdScenario, configuration,
+            //     "PetImages.TestThirdScenario",
+            //     "Assert.IsTrue failed");
 
             stopWatch.Stop();
             Console.WriteLine($"Done testing in {stopWatch.ElapsedMilliseconds}ms. All expected bugs found.");
