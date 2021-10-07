@@ -7,7 +7,7 @@ using System.Threading.Tasks;
 using Microsoft.Coyote.IO;
 using Microsoft.Coyote.Runtime;
 
-namespace BoundedBufferExample
+namespace Microsoft.Coyote.Samples.BoundedBuffer
 {
     public static class Program
     {

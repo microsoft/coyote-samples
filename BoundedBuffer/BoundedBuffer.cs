@@ -6,7 +6,7 @@
 
 using System.Threading;
 
-namespace BoundedBufferExample
+namespace Microsoft.Coyote.Samples.BoundedBuffer
 {
     public class BoundedBuffer
     {

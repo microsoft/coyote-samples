@@ -4,6 +4,7 @@
   "Assemblies": [
       "ImageGalleryService.dll",
       "ImageGalleryTests.dll",
+      "ImageGalleryTests.Coyote.dll",
       "TraceReplayer.dll"
   ]
 }

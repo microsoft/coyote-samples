@@ -1,0 +1,20 @@
+{
+  "AssembliesPath": "../bin/net5.0",
+  "Assemblies": [
+    "AccountManager.dll",
+    "AccountManager.ETags.dll",
+    "BoundedBuffer.dll",
+    "CoffeeMachineActors.dll",
+    "CoffeeMachineTasks.dll",
+    "DrinksServingRobotActors.dll",
+    "HelloWorldActors.dll",
+    "ImageGalleryService.dll",
+    "ImageGalleryTests.dll",
+    "Monitors.dll",
+    "Raft.dll",
+    "Raft.Mocking.dll",
+    "Raft.Nondeterminism.dll",
+    "PetImages.dll",
+    "PetImagesTest.dll"
+  ]
+}

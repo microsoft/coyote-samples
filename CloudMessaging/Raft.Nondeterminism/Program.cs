@@ -5,7 +5,7 @@ using Microsoft.Coyote.Actors;
 using Microsoft.Coyote.Runtime;
 using Microsoft.Coyote.SystematicTesting;
 
-namespace Microsoft.Coyote.Samples.CloudMessaging
+namespace Microsoft.Coyote.Samples.CloudMessaging.Nondeterminism
 {
     public static class Program
     {

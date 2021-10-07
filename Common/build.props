@@ -8,21 +8,40 @@
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation.</Copyright>
     <LangVersion>8.0</LangVersion>
+    <TargetFrameworks>net5.0</TargetFrameworks>
+    <UseLocalCoyote>false</UseLocalCoyote>
+    <LocalCoyotePath>$([System.Environment]::GetEnvironmentVariable("LOCAL_COYOTE_PATH"))</LocalCoyotePath>
+    <UseLocalCoyote Condition="'$(LocalCoyotePath)'!=''">true</UseLocalCoyote>
     <CodeAnalysisRuleSetLocation>$(MSBuildThisFileDirectory)</CodeAnalysisRuleSetLocation>
     <CodeAnalysisRuleSet>$(CodeAnalysisRuleSetLocation)\codeanalysis.ruleset</CodeAnalysisRuleSet>
   </PropertyGroup>
- <PropertyGroup>
-    <TargetFrameworks>net5.0</TargetFrameworks>
-  </PropertyGroup>
-  <PropertyGroup>
-    <DebugType>full</DebugType>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Debug|AnyCPU'">
     <DebugSymbols>true</DebugSymbols>
+    <DebugType>full</DebugType>
+    <Optimize>false</Optimize>
+    <DefineConstants></DefineConstants>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+  </PropertyGroup>
+  <PropertyGroup Condition=" '$(Configuration)|$(Platform)' == 'Release|AnyCPU'">
+    <DebugType>pdbonly</DebugType>
+    <Optimize>true</Optimize>
+    <DefineConstants>TRACE</DefineConstants>
   </PropertyGroup>
   <ItemGroup>
-    <PackageReference Include="Microsoft.Coyote" Version="$(Version)" />
-    <PackageReference Include="Microsoft.Coyote.Test" Version="$(Version)" />
     <PackageReference Include="Microsoft.CodeAnalysis.FxCopAnalyzers" Version="2.9.2" PrivateAssets="All" />
     <PackageReference Include="StyleCop.Analyzers" Version="1.0.2" PrivateAssets="All" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalCoyote)'=='false'">
+    <PackageReference Include="Microsoft.Coyote" Version="$(Version)" />
+    <PackageReference Include="Microsoft.Coyote.Test" Version="$(Version)" />
+  </ItemGroup>
+  <ItemGroup Condition="'$(UseLocalCoyote)'=='true'">
+    <Reference Include="Microsoft.Coyote">
+      <HintPath>$(LocalCoyotePath)\bin\$(TargetFramework)\Microsoft.Coyote.dll</HintPath>
+    </Reference>
+    <Reference Include="Microsoft.Coyote.Test">
+      <HintPath>$(LocalCoyotePath)\bin\$(TargetFramework)\Microsoft.Coyote.Test.dll</HintPath>
+    </Reference>
   </ItemGroup>
   <ItemGroup>
     <AdditionalFiles Include="$(MSBuildThisFileDirectory)\stylecop.json" />

@@ -45,10 +45,10 @@ To build and run the samples, you will need to:
 - Install the [.NET 5.0 version of the coyote
   tool](https://microsoft.github.io/coyote/get-started/install/).
 
-Once you are ready, clone this repository and build the samples by running the following PowerShell
-script:
+Once you are ready, clone this repository and build the samples by running the following script in
+`powershell`:
 ```
-.\build.ps1
+./Scripts/build.ps1
 ```
 
 Then, follow the instructions in each sample.
