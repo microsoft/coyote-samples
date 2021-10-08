@@ -60,7 +60,8 @@ namespace Microsoft.Coyote.Samples.TestDriver
                 .WithMaxSchedulingSteps(500).WithPCTStrategy(true);
             RunTest(Samples.CoffeeMachineActors.Program.Execute, configuration,
                 "CoffeeMachineActors.Test",
-                "Please do not turn on grinder if there are no beans in the hopper");
+                "Please do not turn on grinder if there are no beans in the hopper",
+                "received event 'Microsoft.Coyote.Samples.CoffeeMachineActors.WaterHotEvent' that cannot be handled");
 
             // CoffeeMachineTasks tests.
             configuration = Configuration.Create().WithTestingIterations(1000)
