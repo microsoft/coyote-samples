@@ -16,7 +16,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         /// <summary>
         /// Initialize the coffee machine, checking the Sensors to make sure we're good to go.
         /// </summary>
-        /// <param name="sensors">The persistent sensor state</param>
+        /// <param name="sensors">The persistent sensor state.</param>
         /// <returns>True if everything looks good, false if we cannot make coffee at this time.</returns>
         Task<bool> InitializeAsync(ISensors sensors);
 
@@ -30,7 +30,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         /// <summary>
         /// Reboot the coffee machine!
         /// </summary>
-        /// <returns>An async task</returns>
+        /// <returns>An async task.</returns>
         Task TerminateAsync();
     }
 
@@ -89,17 +89,15 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
             if (!this.RefillRequired && !this.Halted)
             {
-                // make sure water is hot enough.
+                // Make sure water is hot enough.
                 await this.StartHeatingWater();
             }
 
             this.Log.WriteLine($"Coffee requested, shots={shots}");
             this.ShotsRequested = shots;
 
-            // grind beans until porta filter is full.
-            // turn on shot button for desired time
-            // dump the grinds, while checking for error conditions
-            // like out of water or coffee beans.
+            // Grind beans until porta filter is full. Turn on shot button for desired time dump the
+            // grinds, while checking for error conditions, e.g. out of water or coffee beans.
             if (!this.RefillRequired && !this.Halted)
             {
                 await this.GrindBeans();
@@ -124,19 +122,20 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             this.Log.WriteLine("checking initial state of sensors...");
 
-            // when this state machine starts it has to figure out the state of the sensors.
+            // When this state machine starts it has to figure out the state of the sensors.
             if (!await this.Sensors.GetPowerSwitchAsync())
             {
-                // coffee machine was off, so this is the easy case, simply turn it on!
+                // Coffee machine was off, so this is the easy case, simply turn it on!
                 await this.Sensors.SetPowerSwitchAsync(true);
             }
 
-            // make sure grinder, shot maker and water heater are off.
+            // Make sure grinder, shot maker and water heater are off.
             await this.Sensors.SetGrinderButtonAsync(false);
             await this.Sensors.SetShotButtonAsync(false);
             await this.Sensors.SetWaterHeaterButtonAsync(false);
 
-            // need to check water and hopper levels and if the porta filter has coffee in it we need to dump those grinds.
+            // Need to check water and hopper levels and if the porta filter
+            // has coffee in it we need to dump those grinds.
             await this.CheckWaterLevelAsync();
             await this.CheckHopperLevelAsync();
             await this.CheckPortaFilterCoffeeLevelAsync();
@@ -168,7 +167,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             this.PortaFilterCoffeeLevel = await this.Sensors.GetPortaFilterCoffeeLevelAsync();
             if (this.PortaFilterCoffeeLevel > 0)
             {
-                // dump these grinds because they could be old, we have no idea how long the coffee machine was off (no real time clock sensor).
+                // Dump these grinds because they could be old, we have no idea how long
+                // the coffee machine was off (no real time clock sensor).
                 this.Log.WriteLine("Dumping old smelly grinds!");
                 await this.Sensors.SetDumpGrindsButtonAsync(true);
             }
@@ -205,7 +205,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             if (this.Heating)
             {
                 this.Heating = false;
-                // turn off the heater so we don't overheat it!
+                // Turn off the heater so we don't overheat it!
                 await this.Sensors.SetWaterHeaterButtonAsync(false);
                 this.Log.WriteLine("Turning off the water heater");
             }
@@ -222,14 +222,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 if (this.WaterTemperature.Value >= 100)
                 {
                     await this.OnWaterHot();
-                    break; // done!
+                    break;
                 }
                 else
                 {
                     if (!this.Heating)
                     {
                         this.Heating = true;
-                        // turn on the heater and wait for WaterHotEvent.
+                        // Turn on the heater and wait for WaterHotEvent.
                         this.Log.WriteLine("Turning on the water heater");
                         await this.Sensors.SetWaterHeaterButtonAsync(true);
                     }
@@ -249,14 +249,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         private async Task GrindBeans()
         {
-            // grind beans until porta filter is full.
+            // Grind beans until porta filter is full.
             this.Log.WriteLine("Grinding beans...");
 
-            // turn on the grinder!
+            // Turn on the grinder!
             await this.Sensors.SetGrinderButtonAsync(true);
 
-            // we now receive a stream of PortaFilterCoffeeLevelChanged events
-            // so we keep monitoring the portafilter till it is full, and the bean level in case we get empty
+            // We now receive a stream of PortaFilterCoffeeLevelChanged events so we keep monitoring
+            // the porta filter till it is full, and the bean level in case we get empty.
             await this.MonitorPortaFilter();
         }
 
@@ -276,13 +276,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
         private Task MakeShotsAsync()
         {
-            // pour the shots.
+            // Pour the shots.
             this.Log.WriteLine("Making shots...");
 
-            // first we assume user placed a new cup in the machine, and so the shot count is zero.
+            // First we assume user placed a new cup in the machine, and so the shot count is zero.
             this.PreviousShotCount = 0;
 
-            // wait for shots to be completed.
+            // Wait for shots to be completed.
             return this.MonitorShotsAsync();
         }
 
@@ -294,11 +294,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 {
                     this.Log.WriteLine("Shot count is {0}", this.PreviousShotCount);
 
-                    // so we can wait for async event to come back from the sensors.
+                    // So we can wait for async event to come back from the sensors.
                     var completion = new TaskCompletionSource<bool>();
                     this.ShotCompleteSource = completion;
 
-                    // request another shot!
+                    // Request another shot!
                     await this.Sensors.SetShotButtonAsync(true);
 
                     if (!this.IsBroken)
@@ -316,7 +316,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                                     Specification.Assert(false, "Made the wrong number of shots");
                                 }
 
-                                break; // done!
+                                break;
                             }
                         }
                     }
@@ -324,13 +324,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
             catch (OperationCanceledException)
             {
-                // cancelled.
+                // Cancelled.
             }
         }
 
         private Task CleanupAsync()
         {
-            // dump the grinds
+            // Dump the grinds.
             this.Log.WriteLine("Dumping the grinds!");
             return this.Sensors.SetDumpGrindsButtonAsync(true);
         }
@@ -414,7 +414,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             if (!this.IsBroken)
             {
-                // turn off the water pump
+                // Turn off the water pump.
                 Task.Run(async () =>
                 {
                     await this.Sensors.SetShotButtonAsync(false);
@@ -433,7 +433,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 }
                 catch (InvalidOperationException)
                 {
-                    // cancelled.
+                    // Cancelled.
                 }
             }
         }

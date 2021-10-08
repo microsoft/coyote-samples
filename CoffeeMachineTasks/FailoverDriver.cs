@@ -10,9 +10,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
     /// <summary>
     /// This interface is designed to test how the CoffeeMachine handles "failover" or specifically,
-    /// can it correctly "restart after failure" without getting into a bad state.  The CoffeeMachine
-    /// will be randomly terminated.  The only thing the CoffeeMachine can depend on is
-    /// the persistence of the state provided by the MockSensors.
+    /// can it correctly "restart after failure" without getting into a bad state. The CoffeeMachine
+    /// will be randomly terminated. The only thing the CoffeeMachine can depend on is the persistence
+    /// of the state provided by the MockSensors.
     /// </summary>
     internal interface IFailoverDriver
     {
@@ -47,7 +47,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             {
                 this.Log.WriteLine("#################################################################");
 
-                // Create a new CoffeeMachine instance
+                // Create a new CoffeeMachine instance.
                 string error = null;
                 if (halted)
                 {
@@ -64,8 +64,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (error == null)
                 {
-                    // Setup a timer to randomly kill the coffee machine.   When the timer fires
-                    // we will restart the coffee machine and this is testing that the machine can
+                    // Setup a timer to randomly kill the coffee machine. When the timer fires we
+                    // will restart the coffee machine and this is testing that the machine can
                     // recover gracefully when that happens.
                     this.HaltTimer = new ControlledTimer("HaltTimer", TimeSpan.FromSeconds(this.RandomGenerator.NextInteger(7) + 1), new Action(this.OnStopTest));
 
@@ -76,19 +76,20 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (string.Compare(error, "<halted>", StringComparison.OrdinalIgnoreCase) == 0)
                 {
-                    // then OnStopTest did it's thing, so it is time to create new coffee machine.
+                    // Then OnStopTest did it's thing, so it is time to create new coffee machine.
                     this.Log.WriteWarning("CoffeeMachine is halted.");
                     halted = true;
                 }
                 else if (!string.IsNullOrEmpty(error))
                 {
                     this.Log.WriteWarning("CoffeeMachine reported an error.");
-                    this.RunForever = false; // no point trying to make more coffee.
+                    // No point trying to make more coffee.
+                    this.RunForever = false;
                     this.Iterations = 10;
                 }
                 else
                 {
-                    // in this case we let the same CoffeeMachine continue on then.
+                    // In this case we let the same CoffeeMachine continue on then.
                     this.Log.WriteLine("CoffeeMachine completed the job.");
                 }
 
@@ -104,7 +105,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             if (!this.IsInitialized)
             {
-                // not ready!
+                // Not ready!
                 return;
             }
 
@@ -114,11 +115,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 this.HaltTimer = null;
             }
 
-            // Halt the CoffeeMachine.  HaltEvent is async and we must ensure the
-            // CoffeeMachine is really halted before we create a new one because MockSensors
-            // will get confused if two CoffeeMachines are running at the same time.
-            // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
-            // to terminate, and it sends back a HaltedEvent when it really has been halted.
+            // Halt the CoffeeMachine. HaltEvent is async and we must ensure the CoffeeMachine
+            // is really halted before we create a new one because MockSensors will get confused
+            // if two CoffeeMachines are running at the same time. So we've implemented a terminate
+            // handshake here. We send event to the CoffeeMachine to terminate, and it sends back
+            // a HaltedEvent when it really has been halted.
             this.Log.WriteLine("forcing termination of CoffeeMachine.");
             Task.Run(this.CoffeeMachine.TerminateAsync);
         }
