@@ -14,8 +14,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
     public class BusyEvent : Event { }
 
     /// <summary>
-    /// This safety monitor ensure nothing bad happens while a door is open on the
-    /// coffee machine.
+    /// This safety monitor ensure nothing bad happens while a door is open on the coffee machine.
     /// </summary>
     internal class DoorSafetyMonitor : Monitor
     {
@@ -75,7 +74,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
     /// <summary>
     /// This Actor models is a mock implementation of a the water tank inside the coffee machine.
     /// It can heat the water, and run a water pump which runs pressurized water through the
-    /// portafilter when making an espresso shot.
+    /// porta filter when making an espresso shot.
     /// </summary>
     [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
     [OnEventDoAction(typeof(ReadWaterLevelEvent), nameof(OnReadWaterLevel))]
@@ -106,7 +105,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         public MockWaterTank()
         {
-            this.WaterHeaterButton = false; // assume heater is off by default.
+            // Assume heater is off by default.
+            this.WaterHeaterButton = false;
             this.WaterPump = false;
         }
 
@@ -118,7 +118,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
 
             // Since this is a mock, we randomly initialize the water temperature to
-            // some sort of room temperature between 20 and 50 degrees celcius.
+            // some sort of room temperature between 20 and 50 degrees celsius.
             this.WaterTemperature = this.RandomInteger(30) + 20;
             // Since this is a mock, we randomly initialize the water level to some value
             // between 0 and 100% full.
@@ -150,26 +150,24 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         private void OnWaterHeaterButton(Event e)
         {
-            if (e is WaterHeaterButtonEvent we)
+            var evt = e as WaterHeaterButtonEvent;
+            this.WaterHeaterButton = evt.PowerOn;
+
+            // Should never turn on the heater when there is no water to heat.
+            if (this.WaterHeaterButton && this.WaterLevel <= 0)
             {
-                this.WaterHeaterButton = we.PowerOn;
+                this.Assert(false, "Please do not turn on heater if there is no water");
+            }
 
-                // should never turn on the heater when there is no water to heat
-                if (this.WaterHeaterButton && this.WaterLevel <= 0)
-                {
-                    this.Assert(false, "Please do not turn on heater if there is no water");
-                }
-
-                if (this.WaterHeaterButton)
-                {
-                    this.Monitor<DoorSafetyMonitor>(new BusyEvent());
-                    this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
-                }
-                else if (this.WaterHeaterTimer != null)
-                {
-                    this.StopTimer(this.WaterHeaterTimer);
-                    this.WaterHeaterTimer = null;
-                }
+            if (this.WaterHeaterButton)
+            {
+                this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                this.WaterHeaterTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new HeaterTimerEvent());
+            }
+            else if (this.WaterHeaterTimer != null)
+            {
+                this.StopTimer(this.WaterHeaterTimer);
+                this.WaterHeaterTimer = null;
             }
         }
 
@@ -178,16 +176,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             double temp = this.WaterTemperature;
             if (this.WaterHeaterButton)
             {
-                // Note: when running in production mode we run forever, and it is fun
-                // to watch the water heat up and cool down.   But in test mode this creates
-                // too many async events to explore which makes the test slow.  So in test
-                // mode we short circuit this process and jump straight to the boundry conditions.
+                // Note: when running in production mode we run forever, and it is fun to
+                // watch the water heat up and cool down. But in test mode this creates too
+                // many async events to explore which makes the test slow. So in test mode
+                // we short circuit this process and jump straight to the boundary conditions.
                 if (!this.RunSlowly && temp < 99)
                 {
                     temp = 99;
                 }
 
-                // every time interval the temperature increases by 10 degrees up to 100 degrees
+                // Every time interval the temperature increases by 10 degrees up to 100 degrees.
                 if (temp < 100)
                 {
                     temp = (int)temp + 10;
@@ -207,7 +205,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
             else
             {
-                // then it is cooling down to room temperature, more slowly.
+                // Then it is cooling down to room temperature, more slowly.
                 if (temp > 70)
                 {
                     temp -= 0.1;
@@ -218,33 +216,31 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         private void OnPumpWater(Event e)
         {
-            if (e is PumpWaterEvent se)
+            var evt = e as PumpWaterEvent;
+            this.WaterPump = evt.PowerOn;
+
+            if (this.WaterPump)
             {
-                this.WaterPump = se.PowerOn;
-
-                if (this.WaterPump)
+                this.Monitor<DoorSafetyMonitor>(new BusyEvent());
+                // Should never turn on the make shots button when there is no water.
+                if (this.WaterLevel <= 0)
                 {
-                    this.Monitor<DoorSafetyMonitor>(new BusyEvent());
-                    // should never turn on the make shots button when there is no water
-                    if (this.WaterLevel <= 0)
-                    {
-                        this.Assert(false, "Please do not turn on shot maker if there is no water");
-                    }
+                    this.Assert(false, "Please do not turn on shot maker if there is no water");
+                }
 
-                    // time the shot then send shot complete event.
-                    this.WaterPumpTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new WaterPumpTimerEvent());
-                }
-                else if (this.WaterPumpTimer != null)
-                {
-                    this.StopTimer(this.WaterPumpTimer);
-                    this.WaterPumpTimer = null;
-                }
+                // Time the shot then send shot complete event.
+                this.WaterPumpTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(1), TimeSpan.FromSeconds(1), new WaterPumpTimerEvent());
+            }
+            else if (this.WaterPumpTimer != null)
+            {
+                this.StopTimer(this.WaterPumpTimer);
+                this.WaterPumpTimer = null;
             }
         }
 
         private void MonitorWaterPump()
         {
-            // one second of running water completes the shot.
+            // One second of running water completes the shot.
             this.WaterLevel -= 1;
             if (this.WaterLevel > 0)
             {
@@ -255,14 +251,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 this.SendEvent(this.Client, new WaterEmptyEvent());
             }
 
-            // automatically stop the water when shot is completed.
+            // Automatically stop the water when shot is completed.
             if (this.WaterPumpTimer != null)
             {
                 this.StopTimer(this.WaterPumpTimer);
                 this.WaterPumpTimer = null;
             }
 
-            // turn off the water.
+            // Turn off the water.
             this.WaterPump = false;
         }
 
@@ -275,7 +271,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
     /// <summary>
     /// This Actor models is a mock implementation of the coffee grinder in the coffee machine.
-    /// This is connected to the hopper containing beans, and the portafilter that stores the ground
+    /// This is connected to the hopper containing beans, and the porta filter that stores the ground
     /// coffee before pouring a shot.
     /// </summary>
     [OnEventDoAction(typeof(RegisterClientEvent), nameof(OnRegisterClient))]
@@ -327,11 +323,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         private void OnGrinderButton(Event e)
         {
-            if (e is GrinderButtonEvent ge)
-            {
-                this.GrinderButton = ge.PowerOn;
-                this.OnGrinderButtonChanged();
-            }
+            var evt = e as GrinderButtonEvent;
+            this.GrinderButton = evt.PowerOn;
+            this.OnGrinderButtonChanged();
         }
 
         private void OnReadHopperLevel()
@@ -347,13 +341,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             if (this.GrinderButton)
             {
                 this.Monitor<DoorSafetyMonitor>(new BusyEvent());
-                // should never turn on the grinder when there is no coffee to grind
+                // Should never turn on the grinder when there is no coffee to grind.
                 if (this.HopperLevel <= 0)
                 {
                     this.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
                 }
 
-                // start monitoring the coffee level.
+                // Start monitoring the coffee level.
                 this.GrinderTimer = this.StartPeriodicTimer(TimeSpan.FromSeconds(0.1), TimeSpan.FromSeconds(0.1), new GrinderTimerEvent());
             }
             else if (this.GrinderTimer != null)
@@ -365,18 +359,17 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         private void MonitorGrinder()
         {
-            // Every time interval the portafilter fills 10%.
-            // When it's full the grinder turns off automatically, unless the hopper is empty in which case
-            // grinding does nothing!
+            // In each time interval the porta filter fills 10%. When it's full the grinder turns
+            // off automatically, unless the hopper is empty in which case grinding does nothing!
             double hopperLevel = this.HopperLevel;
             if (hopperLevel > 0)
             {
                 double level = this.PortaFilterCoffeeLevel;
 
                 // Note: when running in production mode we run in real time, and it is fun
-                // to watch the portafilter filling up.   But in test mode this creates
-                // too many async events to explore which makes the test slow.  So in test
-                // mode we short circuit this process and jump straight to the boundry conditions.
+                // to watch the porta filter filling up. But in test mode this creates too
+                // many async events to explore which makes the test slow. So in test mode
+                // we short circuit this process and jump straight to the boundary conditions.
                 if (!this.RunSlowly && level < 99)
                 {
                     hopperLevel -= 98 - (int)level;
@@ -394,13 +387,13 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
                     if (level == 100)
                     {
-                        // turning off the grinder is automatic
+                        // Turning off the grinder is automatic.
                         this.GrinderButton = false;
                         this.OnGrinderButtonChanged();
                     }
                 }
 
-                // and the hopper level drops by 0.1 percent
+                // And the hopper level drops by 0.1 percent.
                 hopperLevel -= 1;
 
                 this.HopperLevel = hopperLevel;
@@ -430,10 +423,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         private void OnDumpGrindsButton(Event e)
         {
-            if (e is DumpGrindsButtonEvent de && de.PowerOn)
+            var evt = e as DumpGrindsButtonEvent;
+            if (evt.PowerOn)
             {
                 this.Monitor<DoorSafetyMonitor>(new BusyEvent());
-                // this is a toggle button, in no time grinds are dumped (just for simplicity)
+                // This is a toggle button, in no time grinds are dumped (just for simplicity).
                 this.PortaFilterCoffeeLevel = 0;
             }
         }

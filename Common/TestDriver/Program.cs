@@ -61,7 +61,7 @@ namespace Microsoft.Coyote.Samples.TestDriver
             RunTest(Samples.CoffeeMachineActors.Program.Execute, configuration,
                 "CoffeeMachineActors.Test",
                 "Please do not turn on grinder if there are no beans in the hopper",
-                "received event 'Microsoft.Coyote.Samples.CoffeeMachineActors.WaterHotEvent' that cannot be handled");
+                "detected liveness bug in hot state 'Busy'");
 
             // CoffeeMachineTasks tests.
             configuration = Configuration.Create().WithTestingIterations(1000)
@@ -183,6 +183,8 @@ namespace Microsoft.Coyote.Samples.TestDriver
 
                     Environment.Exit(1);
                 }
+
+                Console.WriteLine($"Found expected '{actualBug}' bug.");
             }
             else if (engine.TestReport.NumOfFoundBugs > 0)
             {

@@ -10,10 +10,10 @@ using Microsoft.Coyote.Samples.Common;
 namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 {
     /// <summary>
-    /// This class is designed to test how the CoffeeMachine handles "failover" or specifically,
-    /// can it correctly "restart after failure" without getting into a bad state.  The CoffeeMachine
-    /// will be randomly terminated.  The only thing the CoffeeMachine can depend on is
-    /// the persistence of the state provided by the MockSensors.
+    /// This class is designed to test how the CoffeeMachine handles "failover" or specifically, can it
+    /// correctly "restart after failure" without getting into a bad state. The CoffeeMachine will be
+    /// randomly terminated. The only thing the CoffeeMachine can depend on is the persistence of the
+    /// state provided by the MockSensors.
     /// </summary>
     internal class FailoverDriver : StateMachine
     {
@@ -35,10 +35,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         internal void OnInit(Event e)
         {
-            if (e is ConfigEvent ce)
-            {
-                this.RunForever = ce.RunSlowly;
-            }
+            var evt = e as ConfigEvent;
+            this.RunForever = evt.RunSlowly;
 
             // Create the persistent sensor state.
             this.WaterTankId = this.CreateActor(typeof(MockWaterTank), new ConfigEvent(this.RunForever));
@@ -63,8 +61,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             var shots = this.RandomInteger(3) + 1;
             this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.MakeCoffeeEvent(shots));
 
-            // Setup a timer to randomly kill the coffee machine.   When the timer fires
-            // we will restart the coffee machine and this is testing that the machine can
+            // Setup a timer to randomly kill the coffee machine. When the timer fires we
+            // will restart the coffee machine and this is testing that the machine can
             // recover gracefully when that happens.
             this.HaltTimer = this.StartTimer(TimeSpan.FromSeconds(this.RandomInteger(7) + 1));
         }
@@ -88,7 +86,8 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
                 {
                     this.Log.WriteWarning("CoffeeMachine reported an error.");
                     this.Log.WriteWarning("Test is complete, press ENTER to continue...");
-                    this.RunForever = false; // no point trying to make more coffee.
+                    // No point trying to make more coffee.
+                    this.RunForever = false;
                 }
                 else
                 {
@@ -99,11 +98,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
             }
             else
             {
-                // Halt the CoffeeMachine.  HaltEvent is async and we must ensure the
-                // CoffeeMachine is really halted before we create a new one because MockSensors
-                // will get confused if two CoffeeMachines are running at the same time.
-                // So we've implemented a terminate handshake here.  We send event to the CoffeeMachine
-                // to terminate, and it sends back a HaltedEvent when it really has been halted.
+                // Halt the CoffeeMachine. HaltEvent is async and we must ensure the CoffeeMachine
+                // is really halted before we create a new one because MockSensors will get confused
+                // if two CoffeeMachines are running at the same time. So we've implemented a terminate
+                // handshake here. We send event to the CoffeeMachine to terminate, and it sends back
+                // a HaltedEvent when it really has been halted.
                 this.Log.WriteLine("forcing termination of CoffeeMachine.");
                 this.SendEvent(this.CoffeeMachineId, new CoffeeMachine.TerminateEvent());
             }
@@ -116,7 +115,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
 
         internal void OnCoffeeMachineHalted()
         {
-            // ok, the CoffeeMachine really is halted now, so we can go to the stopped state.
+            // OK, the CoffeeMachine really is halted now, so we can go to the stopped state.
             this.RaiseGotoStateEvent<Stopped>();
         }
 

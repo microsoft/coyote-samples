@@ -10,12 +10,12 @@ using Microsoft.Coyote.Specifications;
 namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 {
     /// <summary>
-    /// This interface represents the state of the sensors in the coffee machine.  This is
+    /// This interface represents the state of the sensors in the coffee machine. This is
     /// designed as an async interface to show how one might design a distributed system where
-    /// messaging could be cross-process, or cross-device.  Perhaps there is a board in the
+    /// messaging could be cross-process, or cross-device. Perhaps there is a board in the
     /// coffee machine that contains the sensors, and another board somewhere else in the machine
-    /// that runs the brain, so each sensor read/write is an async operation.  In the case of
-    /// a cloud service you would also have async interface for messaging.  This async nature is
+    /// that runs the brain, so each sensor read/write is an async operation. In the case of
+    /// a cloud service you would also have async interface for messaging. This async nature is
     /// where interesting bugs can show up and is where Coyote testing can be extremely useful.
     /// </summary>
     internal interface ISensors
@@ -185,7 +185,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 this.PowerOn = value;
                 if (!this.PowerOn)
                 {
-                    // master power override then also turns everything else off for safety!
+                    // Master power override then also turns everything else off for safety!
                     this.WaterHeaterButton = false;
                     this.GrinderButton = false;
                     this.ShotButton = false;
@@ -207,7 +207,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             {
                 this.WaterHeaterButton = value;
 
-                // should never turn on the heater when there is no water to heat
+                // Should never turn on the heater when there is no water to heat.
                 if (this.WaterHeaterButton && this.WaterLevel <= 0)
                 {
                     Specification.Assert(false, "Please do not turn on heater if there is no water");
@@ -228,7 +228,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 this.GrinderButton = value;
                 if (this.GrinderButton)
                 {
-                    // should never turn on the grinder when there is no coffee to grind
+                    // Should never turn on the grinder when there is no coffee to grind.
                     if (this.HopperLevel <= 0)
                     {
                         Specification.Assert(false, "Please do not turn on grinder if there are no beans in the hopper");
@@ -237,7 +237,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (value && this.CoffeeLevelTimer == null)
                 {
-                    // start monitoring the coffee level.
+                    // Start monitoring the coffee level.
                     this.CoffeeLevelTimer = new ControlledTimer("CoffeeLevelTimer", TimeSpan.FromSeconds(0.1), this.MonitorGrinder);
                 }
                 else if (!value && this.CoffeeLevelTimer != null)
@@ -258,7 +258,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (this.ShotButton)
                 {
-                    // should never turn on the make shots button when there is no water
+                    // Should never turn on the make shots button when there is no water.
                     if (this.WaterLevel <= 0)
                     {
                         Specification.Assert(false, "Please do not turn on shot maker if there is no water");
@@ -267,7 +267,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (value && this.ShotTimer == null)
                 {
-                    // start monitoring the coffee level.
+                    // Start monitoring the coffee level.
                     this.ShotTimer = new ControlledTimer("ShotTimer", TimeSpan.FromSeconds(1), this.MonitorShot);
                 }
                 else if (!value && this.ShotTimer != null)
@@ -283,7 +283,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             await Task.Delay(1);
             if (value)
             {
-                // this is a toggle button, in no time grinds are dumped (just for simplicity)
+                // This is a toggle button, in no time grinds are dumped (just for simplicity).
                 this.PortaFilterCoffeeLevel = 0;
             }
         }
@@ -293,16 +293,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             double temp = this.WaterTemperature;
             if (this.WaterHeaterButton)
             {
-                // Note: when running in production mode we run forever, and it is fun
-                // to watch the water heat up and cool down.   But in test mode this creates
-                // too many async events to explore which makes the test slow.  So in test
-                // mode we short circuit this process and jump straight to the boundry conditions.
+                // Note: when running in production mode we run forever, and it is fun to
+                // watch the water heat up and cool down. But in test mode this creates too
+                // many async events to explore which makes the test slow. So in test mode
+                // we short circuit this process and jump straight to the boundary conditions.
                 if (!this.RunSlowly && temp < 99)
                 {
                     temp = 99;
                 }
 
-                // every time interval the temperature increases by 10 degrees up to 100 degrees
+                // Every time interval the temperature increases by 10 degrees up to 100 degrees.
                 if (temp < 100)
                 {
                     temp = (int)temp + 10;
@@ -316,7 +316,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
             }
             else
             {
-                // then it is cooling down to room temperature, more slowly.
+                // Then it is cooling down to room temperature, more slowly.
                 if (temp > 70)
                 {
                     temp -= 0.1;
@@ -324,15 +324,14 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                 }
             }
 
-            // start another callback.
+            // Start another callback.
             this.WaterHeaterTimer = new ControlledTimer("WaterHeaterTimer", TimeSpan.FromSeconds(0.1), this.MonitorWaterTemperature);
         }
 
         private void MonitorGrinder()
         {
-            // Every time interval the portafilter fills 10%.
-            // When it's full the grinder turns off automatically, unless the hopper is empty in which case
-            // grinding does nothing!
+            // Every time interval the porta filter fills 10%. When it's full the grinder turns off
+            // automatically, unless the hopper is empty in which case grinding does nothing!
 
             Task.Run(async () =>
             {
@@ -348,9 +347,9 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                         double level = this.PortaFilterCoffeeLevel;
 
                         // Note: when running in production mode we run in real time, and it is fun
-                        // to watch the portafilter filling up.   But in test mode this creates
-                        // too many async events to explore which makes the test slow.  So in test
-                        // mode we short circuit this process and jump straight to the boundry conditions.
+                        // to watch the porta filter filling up. But in test mode this creates too
+                        // many async events to explore which makes the test slow. So in test mode
+                        // we short circuit this process and jump straight to the boundary conditions.
                         if (!this.RunSlowly && level < 99)
                         {
                             hopperLevel -= 98 - (int)level;
@@ -369,7 +368,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                             }
                         }
 
-                        // and the hopper level drops by 0.1 percent
+                        // And the hopper level drops by 0.1 percent.
                         hopperLevel -= 1;
 
                         this.HopperLevel = hopperLevel;
@@ -387,11 +386,11 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
 
                 if (turnOffGrinder)
                 {
-                    // turning off the grinder is automatic
+                    // Turning off the grinder is automatic.
                     await this.OnGrinderButtonChanged(false);
                 }
 
-                // event callbacks should not be inside the lock otherwise we could get deadlocks.
+                // Event callbacks should not be inside the lock otherwise we could get deadlocks.
                 if (notifyEmpty && this.HopperEmpty != null)
                 {
                     this.HopperEmpty(this, true);
@@ -407,7 +406,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
                     this.HopperEmpty(this, true);
                 }
 
-                // start another callback.
+                // Start another callback.
                 this.CoffeeLevelTimer = new ControlledTimer("WaterHeaterTimer", TimeSpan.FromSeconds(0.1), this.MonitorGrinder);
             });
         }
@@ -416,16 +415,16 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         {
             Task.Run(async () =>
             {
-                // one second of running water completes the shot.
+                // One second of running water completes the shot.
                 using (await this.Lock.AcquireAsync())
                 {
                     this.WaterLevel -= 1;
-                    // turn off the water.
+                    // Turn off the water.
                     this.ShotButton = false;
                     this.ShotTimer = null;
                 }
 
-                // event callbacks should not be inside the lock otherwise we could get deadlocks.
+                // Event callbacks should not be inside the lock otherwise we could get deadlocks.
                 if (this.WaterLevel > 0)
                 {
                     this.ShotComplete?.Invoke(this, true);

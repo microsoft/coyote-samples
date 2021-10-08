@@ -14,7 +14,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineActors
         public static void Main()
         {
             RunForever = true;
-            IActorRuntime runtime = RuntimeFactory.Create(); // Configuration.Create().WithVerbosityEnabled());
+            IActorRuntime runtime = RuntimeFactory.Create();
             Execute(runtime);
             Console.ReadLine();
             Console.WriteLine("User cancelled the test by pressing ENTER");
