@@ -12,15 +12,15 @@ namespace PetImages.Storage
     /// </summary>
     public interface ICosmosContainer
     {
-        public Task<T> CreateItem<T>(T row)
+        Task<T> CreateItem<T>(T row)
             where T : DbItem;
 
-        public Task<T> GetItem<T>(string partitionKey, string id)
+        Task<T> GetItem<T>(string partitionKey, string id)
            where T : DbItem;
 
-        public Task<T> UpsertItem<T>(T row)
+        Task<T> UpsertItem<T>(T row)
             where T : DbItem;
 
-        public Task DeleteItem(string partitionKey, string id);
+        Task DeleteItem(string partitionKey, string id);
     }
 }

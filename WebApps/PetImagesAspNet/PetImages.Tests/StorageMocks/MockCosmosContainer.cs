@@ -5,9 +5,9 @@ using System.Threading.Tasks;
 using Microsoft.Coyote.Random;
 using PetImages.Entities;
 using PetImages.Storage;
-using PetImagesTest.Exceptions;
+using PetImages.Tests.Exceptions;
 
-namespace PetImagesTest.StorageMocks
+namespace PetImages.Tests.StorageMocks
 {
     public class MockCosmosContainer : ICosmosContainer
     {

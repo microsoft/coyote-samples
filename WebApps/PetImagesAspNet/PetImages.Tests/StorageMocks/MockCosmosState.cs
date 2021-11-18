@@ -8,7 +8,7 @@ using Container = System.Collections.Concurrent.ConcurrentDictionary<string, Pet
 using Database = System.Collections.Concurrent.ConcurrentDictionary<
     string, System.Collections.Concurrent.ConcurrentDictionary<string, PetImages.Entities.DbItem>>;
 
-namespace PetImagesTest.StorageMocks
+namespace PetImages.Tests.StorageMocks
 {
     public class MockCosmosState
     {

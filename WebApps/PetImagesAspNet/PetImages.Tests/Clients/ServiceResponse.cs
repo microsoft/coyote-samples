@@ -3,7 +3,7 @@
 
 using System.Net;
 
-namespace PetImagesTest.Clients
+namespace PetImages.Tests.Clients
 {
     public class ServiceResponse<T>
     {

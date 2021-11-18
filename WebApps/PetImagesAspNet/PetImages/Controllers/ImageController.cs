@@ -13,7 +13,7 @@ using PetImages.Storage;
 namespace PetImages.Controllers
 {
     [ApiController]
-    [Route("[controller]")]
+    [Route("api/[controller]")]
     public class ImageController : ControllerBase
     {
         private readonly ICosmosContainer AccountContainer;
@@ -33,7 +33,7 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 2 - Buggy CreateImageAsync version.
         /// </summary>
-        [HttpPost]
+        [HttpPost("create")]
         public async Task<ActionResult<Image>> CreateImageAsync(string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
@@ -72,7 +72,7 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 2 - Fixed CreateImageAsync version.
         /// </summary>
-        [HttpPost]
+        [HttpPost("create-fixed")]
         public async Task<ActionResult<Image>> CreateImageAsyncFixed(string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
@@ -101,7 +101,7 @@ namespace PetImages.Controllers
             return this.Ok(imageItem.ToImage());
         }
 
-        [HttpGet]
+        [HttpGet("contents")]
         public async Task<ActionResult<byte[]>> GetImageContentsAsync(string accountName, string imageName)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
@@ -127,7 +127,7 @@ namespace PetImages.Controllers
             return this.Ok(await this.BlobContainer.GetBlobAsync(accountName, imageItem.StorageName));
         }
 
-        [HttpGet]
+        [HttpGet("thumbnail")]
         public async Task<ActionResult<byte[]>> GetImageThumbnailAsync(string accountName, string imageName)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
@@ -159,7 +159,7 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 3 - Buggy CreateOrUpdateImageAsync version.
         /// </summary>
-        [HttpPut]
+        [HttpPost("update")]
         public async Task<ActionResult<Image>> CreateOrUpdateImageAsync(string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
@@ -186,7 +186,7 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 3 - Fixed CreateOrUpdateImageAsync version.
         /// </summary>
-        [HttpPut]
+        [HttpPost("update-fixed")]
         public async Task<ActionResult<Image>> CreateOrUpdateImageAsyncFixed(string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))

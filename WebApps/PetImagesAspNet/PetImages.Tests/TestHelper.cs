@@ -3,7 +3,7 @@
 
 using System.Text.Json;
 
-namespace PetImagesTest
+namespace PetImages.Tests
 {
     public static class TestHelper
     {

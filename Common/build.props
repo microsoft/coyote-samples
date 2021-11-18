@@ -1,7 +1,4 @@
 <Project>
-  <PropertyGroup>
-    <UseLocalCoyoteBuild>False</UseLocalCoyoteBuild>
-  </PropertyGroup>
   <Import Project="$(MSBuildThisFileDirectory)version.props" />
   <PropertyGroup>
     <Product>CoyoteExamples</Product>

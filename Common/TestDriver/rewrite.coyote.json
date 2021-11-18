@@ -16,6 +16,6 @@
     "Raft.Mocking.dll",
     "Raft.Nondeterminism.dll",
     "PetImages.dll",
-    "PetImagesTest.dll"
+    "PetImages.Tests.dll"
   ]
 }

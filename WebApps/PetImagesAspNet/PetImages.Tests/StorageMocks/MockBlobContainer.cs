@@ -5,7 +5,7 @@ using System.Collections.Concurrent;
 using System.Threading.Tasks;
 using PetImages.Storage;
 
-namespace PetImagesTest.StorageMocks
+namespace PetImages.Tests.StorageMocks
 {
     internal class MockBlobContainerProvider : IBlobContainer
     {

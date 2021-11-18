@@ -4,7 +4,7 @@
 using System.Threading.Tasks;
 using PetImages.Storage;
 
-namespace PetImagesTest.StorageMocks
+namespace PetImages.Tests.StorageMocks
 {
     public class MockCosmosDatabase : ICosmosDatabase
     {
