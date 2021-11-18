@@ -14,11 +14,11 @@ jobs:
       COYOTE_CLI_TELEMETRY_OPTOUT: 1
     steps:
       - uses: actions/checkout@v2
-      - name: Setup .NET 5.x SDK
+      - name: Setup .NET 6.x SDK
         uses: actions/setup-dotnet@v1
       - name: Build Coyote samples
         run: ./Scripts/build-tests.ps1
         shell: pwsh
       - name: Test Coyote samples
-        run: dotnet ./Common/bin/net5.0/TestDriver.dll
+        run: dotnet ./Common/bin/net6.0/TestDriver.dll
         shell: pwsh
