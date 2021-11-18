@@ -16,7 +16,7 @@ namespace Microsoft.Coyote.Samples.CoffeeMachineTasks
         public static void Main()
         {
             RunForever = true;
-            ICoyoteRuntime runtime = RuntimeFactory.Create();
+            ICoyoteRuntime runtime = RuntimeProvider.Create();
             _ = Execute(runtime);
             Console.ReadLine();
             Console.WriteLine("User cancelled the test by pressing ENTER");
