@@ -13,7 +13,6 @@ using Microsoft.Coyote.SystematicTesting;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 using PetImages;
 using PetImages.Contracts;
-using PetImages.Tests.Clients;
 using PetImages.Tests.MessagingMocks;
 using PetImages.Tests.StorageMocks;
 
@@ -27,21 +26,11 @@ namespace PetImages.Tests
         public async Task TestFirstScenario()
         {
             // Initialize the in-memory service factory.
-            // var cosmosState = new MockCosmosState();
-            // var database = new MockCosmosDatabase(cosmosState);
-            // var accountContainer = await database.CreateContainerAsync(Constants.AccountContainerName);
-            // var petImagesClient = new TestPetImagesClient(accountContainer);
             using var factory = new ServiceFactory();
             await factory.InitializeAccountContainerAsync();
             await factory.InitializeImageContainerAsync();
 
-            using var client = factory.CreateClient(new WebApplicationFactoryClientOptions()
-            {
-                AllowAutoRedirect = false,
-                HandleCookies = false
-            });
-
-            var petImagesClient = new TestPetImagesClient(client);
+            using var client = new ServiceClient(factory);
 
             // Create an account request payload.
             var account = new Account()
@@ -49,82 +38,73 @@ namespace PetImages.Tests
                 Name = "MyAccount"
             };
 
-            // Call CreateAccount twice without awaiting, which makes both methods run
+            // Call 'CreateAccount' twice without awaiting, which makes both methods run
             // asynchronously with each other.
-            var task1 = petImagesClient.CreateAccountAsync(account);
-            await task1;
+            var task1 = client.CreateAccountAsync(account);
+            var task2 = client.CreateAccountAsync(account);
 
-            //var task2 = petImagesClient.CreateAccountAsync(account);
+            // Then wait both requests to complete.
+            await Task.WhenAll(task1, task2);
 
-            //// Then wait both requests to complete.
-            //await Task.WhenAll(task1, task2);
-
-            Console.WriteLine($"=== WAIT DONE");
-            //var statusCode1 = task1.Result.StatusCode;
-            //var statusCode2 = task2.Result.StatusCode;
-
-            //// Finally, assert that only one of the two requests succeeded and the other
-            //// failed. Note that we do not know which one of the two succeeded as the
-            //// requests ran concurrently (this is why we use an exclusive OR).
-            //Assert.IsTrue(
-            //    (statusCode1 == HttpStatusCode.OK && statusCode2 == HttpStatusCode.Conflict) ||
-            //    (statusCode1 == HttpStatusCode.Conflict && statusCode2 == HttpStatusCode.OK));
+            // Finally, assert that only one of the two requests succeeded and the other
+            // failed. Note that we do not know which one of the two succeeded as the
+            // requests ran concurrently (this is why we use an exclusive OR).
+            Assert.IsTrue(
+               (task1.Result == HttpStatusCode.OK && task2.Result == HttpStatusCode.Conflict) ||
+               (task1.Result == HttpStatusCode.Conflict && task2.Result == HttpStatusCode.OK));
         }
 
-        //[TestMethod]
-        //public async Task TestSecondScenario()
-        //{
-        //    // Initialize the in-memory service factory.
-        //    // var cosmosState = new MockCosmosState();
-        //    // var database = new MockCosmosDatabase(cosmosState);
-        //    // var accountContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.AccountContainerName);
-        //    // var imageContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.ImageContainerName);
-        //    // var blobContainer = new MockBlobContainerProvider();
-        //    // var messagingClient = new MockMessagingClient(blobContainer);
-        //    // var petImagesClient = new TestPetImagesClient(accountContainer, imageContainer, blobContainer, messagingClient);
-        //    using var factory = new ServiceFactory();
-        //    await factory.InitializeAccountContainerAsync();
-        //    var imageContainer = await factory.InitializeImageContainerAsync();
+        [TestMethod]
+        public async Task TestSecondScenario()
+        {
+           // Initialize the in-memory service factory.
+           // var cosmosState = new MockCosmosState();
+           // var database = new MockCosmosDatabase(cosmosState);
+           // var accountContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.AccountContainerName);
+           // var imageContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.ImageContainerName);
+           // var blobContainer = new MockBlobContainerProvider();
+           // var messagingClient = new MockMessagingClient(blobContainer);
+           // var petImagesClient = new ServiceClient(accountContainer, imageContainer, blobContainer, messagingClient);
+           using var factory = new ServiceFactory();
+           await factory.InitializeAccountContainerAsync();
+           var imageContainer = await factory.InitializeImageContainerAsync();
 
-        //    using var client = factory.CreateClient(new WebApplicationFactoryClientOptions()
-        //    {
-        //        AllowAutoRedirect = false,
-        //        HandleCookies = false
-        //    });
+           using var client = new ServiceClient(factory);
 
-        //    string accountName = "MyAccount";
-        //    string imageName = "pet.jpg";
+           string accountName = "MyAccount";
+           string imageName = "pet.jpg";
 
-        //    // Create an account request payload
-        //    var account = new Account()
-        //    {
-        //        Name = accountName
-        //    };
+           // Create an account request payload
+           var account = new Account()
+           {
+               Name = accountName
+           };
 
-        //    var accountResult = await petImagesClient.CreateAccountAsync(account);
-        //    Assert.IsTrue(accountResult.StatusCode == HttpStatusCode.OK);
+           var accountResult = await client.CreateAccountAsync(account);
+           Assert.IsTrue(accountResult == HttpStatusCode.OK);
 
-        //    imageContainer.EnableRandomizedFaults();
+           imageContainer.EnableRandomizedFaults();
 
-        //    var task1 = petImagesClient.CreateImageAsync(accountName, new Image() { Name = imageName, Content = GetDogImageBytes() });
-        //    var task2 = petImagesClient.CreateImageAsync(accountName, new Image() { Name = imageName, Content = GetDogImageBytes() });
-        //    await Task.WhenAll(task1, task2);
+           var task1 = client.CreateImageAsync(accountName,
+               new Image() { Name = imageName, Content = GetDogImageBytes() });
+           var task2 = client.CreateImageAsync(accountName,
+               new Image() { Name = imageName, Content = GetDogImageBytes() });
+           await Task.WhenAll(task1, task2);
 
-        //    var statusCode1 = task1.Result.StatusCode;
-        //    var statusCode2 = task2.Result.StatusCode;
+           imageContainer.DisableRandomizedFaults();
 
-        //    imageContainer.DisableRandomizedFaults();
+           Assert.IsTrue(task1.Result == HttpStatusCode.OK || task1.Result == HttpStatusCode.Conflict ||
+               task1.Result == HttpStatusCode.ServiceUnavailable);
+           Assert.IsTrue(task2.Result == HttpStatusCode.OK || task2.Result == HttpStatusCode.Conflict ||
+               task2.Result == HttpStatusCode.ServiceUnavailable);
 
-        //    Assert.IsTrue(statusCode1 == HttpStatusCode.OK || statusCode1 == HttpStatusCode.Conflict || statusCode1 == HttpStatusCode.ServiceUnavailable);
-        //    Assert.IsTrue(statusCode2 == HttpStatusCode.OK || statusCode2 == HttpStatusCode.Conflict || statusCode2 == HttpStatusCode.ServiceUnavailable);
-
-        //    if (task1.Result.StatusCode == HttpStatusCode.OK || task2.Result.StatusCode == HttpStatusCode.OK)
-        //    {
-        //        var imageContentResult = await petImagesClient.GetImageAsync(accountName, imageName);
-        //        Assert.IsTrue(imageContentResult.StatusCode == HttpStatusCode.OK);
-        //        Assert.IsTrue(IsDogImage(imageContentResult.Resource));
-        //    }
-        //}
+           if (task1.Result == HttpStatusCode.OK || task2.Result == HttpStatusCode.OK)
+           {
+               var (statusCode, content) = await client.GetImageAsync(accountName, imageName);
+               Assert.IsTrue(statusCode == HttpStatusCode.OK);
+               Assert.IsTrue(IsDogImage(content));
+           }
+        }
 
         //[TestMethod]
         //public async Task TestThirdScenario()
@@ -136,7 +116,7 @@ namespace PetImages.Tests
         //    // var imageContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.ImageContainerName);
         //    // var blobContainer = new MockBlobContainerProvider();
         //    // var messagingClient = new MockMessagingClient(blobContainer);
-        //    // var petImagesClient = new TestPetImagesClient(accountContainer, imageContainer, blobContainer, messagingClient);
+        //    // var petImagesClient = new ServiceClient(accountContainer, imageContainer, blobContainer, messagingClient);
         //    using var factory = new ServiceFactory();
         //    await factory.InitializeAccountContainerAsync();
         //    await factory.InitializeImageContainerAsync();

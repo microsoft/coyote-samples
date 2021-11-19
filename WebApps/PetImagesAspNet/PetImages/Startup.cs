@@ -23,6 +23,7 @@ namespace PetImages
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.Use(Microsoft.Coyote.Rewriting.Types.WebApplication.ControlRequest);
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {

@@ -33,9 +33,10 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 2 - Buggy CreateImageAsync version.
         /// </summary>
-        [HttpPost("create")]
-        public async Task<ActionResult<Image>> CreateImageAsync(string accountName, Image image)
+        [HttpPost("create/{accountName}")]
+        public async Task<ActionResult<Image>> CreateImageAsync([FromRoute] string accountName, Image image)
         {
+            Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] ImageController.CreateImageAsync: {accountName}");
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();
@@ -72,8 +73,8 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 2 - Fixed CreateImageAsync version.
         /// </summary>
-        [HttpPost("create-fixed")]
-        public async Task<ActionResult<Image>> CreateImageAsyncFixed(string accountName, Image image)
+        [HttpPost("create-fixed/{accountName}")]
+        public async Task<ActionResult<Image>> CreateImageAsyncFixed([FromRoute] string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
@@ -101,9 +102,10 @@ namespace PetImages.Controllers
             return this.Ok(imageItem.ToImage());
         }
 
-        [HttpGet("contents")]
-        public async Task<ActionResult<byte[]>> GetImageContentsAsync(string accountName, string imageName)
+        [HttpGet("contents/{accountName}/{imageName}")]
+        public async Task<ActionResult<byte[]>> GetImageContentsAsync([FromRoute] string accountName, [FromRoute] string imageName)
         {
+            Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] ImageController.GetImageContentsAsync: {accountName}");
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
                 return this.NotFound();

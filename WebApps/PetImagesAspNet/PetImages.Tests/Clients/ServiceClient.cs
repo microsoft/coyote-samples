@@ -8,6 +8,7 @@ using System.Net.Http.Json;
 using System.Text.Json;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc.Testing;
 using PetImages.Contracts;
 using PetImages.Controllers;
 using PetImages.Messaging;
@@ -15,34 +16,34 @@ using PetImages.Storage;
 using PetImages.Tests.Exceptions;
 
 #pragma warning disable SA1005
-namespace PetImages.Tests.Clients
+namespace PetImages.Tests
 {
-    public class TestPetImagesClient : IPetImagesClient
+    internal class ServiceClient : IClient
     {
         private readonly HttpClient Client;
 
-        public TestPetImagesClient(HttpClient client)
+        internal ServiceClient(ServiceFactory factory)
         {
-            this.Client = client;
+            this.Client = factory.CreateClient(new WebApplicationFactoryClientOptions()
+            {
+                AllowAutoRedirect = false,
+                HandleCookies = false
+            });
         }
 
-        public async Task<HttpResponseMessage> CreateAccountAsync(Account account)
+        public async Task<HttpStatusCode> CreateAccountAsync(Account account)
         {
-            var content = JsonContent.Create(account);
-            return await this.Client.PostAsync(new Uri($"/api/account/create", UriKind.RelativeOrAbsolute), content);
+            var response = await this.Client.PostAsync(new Uri($"/api/account/create", UriKind.RelativeOrAbsolute),
+                JsonContent.Create(account));
+            return response.StatusCode;
         }
 
-        // public async Task<ServiceResponse<Image>> CreateImageAsync(string accountName, Image image)
-        // {
-        //     var imageCopy = TestHelper.Clone(image);
-
-        //     return await Task.Run(async () =>
-        //     {
-        //         var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-        //         var actionResult = await InvokeControllerAction(async () => await controller.CreateImageAsync(accountName, imageCopy));
-        //         return ExtractServiceResponse<Image>(actionResult.Result);
-        //     });
-        // }
+        public async Task<HttpStatusCode> CreateImageAsync(string accountName, Image image)
+        {
+            var response = await this.Client.PostAsync(new Uri($"/api/image/create/{accountName}",
+                UriKind.RelativeOrAbsolute), JsonContent.Create(image));
+            return response.StatusCode;
+        }
 
         // public async Task<ServiceResponse<Image>> CreateOrUpdateImageAsync(string accountName, Image image)
         // {
@@ -56,15 +57,14 @@ namespace PetImages.Tests.Clients
         //     });
         // }
 
-        // public async Task<ServiceResponse<byte[]>> GetImageAsync(string accountName, string imageName)
-        // {
-        //     return await Task.Run(async () =>
-        //     {
-        //         var controller = new ImageController(this.AccountContainer, this.ImageContainer, this.BlobContainer, this.MessagingClient);
-        //         var actionResult = await InvokeControllerAction(async () => await controller.GetImageContentsAsync(accountName, imageName));
-        //         return ExtractServiceResponse<byte[]>(actionResult.Result);
-        //     });
-        // }
+        public async Task<(HttpStatusCode, byte[])> GetImageAsync(string accountName, string imageName)
+        {
+            var response = await this.Client.GetAsync(new Uri($"/api/image/contents/{accountName}/{imageName}",
+                UriKind.RelativeOrAbsolute));
+            var stream = await response.Content.ReadAsStreamAsync();
+            var content = await JsonSerializer.DeserializeAsync<byte[]>(stream);
+            return (response.StatusCode, content);
+        }
 
         // public async Task<ServiceResponse<byte[]>> GetImageThumbnailAsync(string accountName, string imageName)
         // {
@@ -115,5 +115,10 @@ namespace PetImages.Tests.Clients
         //         throw new InvalidOperationException();
         //     }
         // }
+
+        public void Dispose()
+        {
+            this.Client.Dispose();
+        }
     }
 }

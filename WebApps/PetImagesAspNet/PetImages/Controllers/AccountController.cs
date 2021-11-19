@@ -29,22 +29,19 @@ namespace PetImages.Controllers
         [Produces(typeof(ActionResult<Account>))]
         public async Task<ActionResult<Account>> CreateAccountAsync(Account account)
         {
-            Console.WriteLine($"[1] CreateAccountAsync: thread '{System.Threading.Thread.CurrentThread.ManagedThreadId}' - '{System.Threading.SynchronizationContext.Current}': {new System.Diagnostics.StackTrace()}");
             var accountItem = account.ToItem();
-
-            Console.WriteLine($"[2] CreateAccountAsync");
+            Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] AccountController.CreateAccountAsync: {accountItem.Id}");
             if (await StorageHelper.DoesItemExist<AccountItem>(
                 this.AccountContainer,
                 accountItem.PartitionKey,
                 accountItem.Id))
             {
+                Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] conflict");
                 return this.Conflict();
             }
 
-            Console.WriteLine($"[3] CreateAccountAsync");
+            Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] trying to create ...");
             var createdAccountItem = await this.AccountContainer.CreateItem(accountItem);
-
-            Console.WriteLine($"[4] CreateAccountAsync");
             return this.Ok(createdAccountItem.ToAccount());
         }
 

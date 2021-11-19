@@ -14,9 +14,12 @@ namespace PetImages.Tests
         {
             var tests = new Tests();
             var config = Configuration.Create()
+                .WithTestingIterations(1)
+                // .WithTestIterationsRunToCompletion();
+                // .WithRandomGeneratorSeed(2156141611)
                 .WithDebugLoggingEnabled()
                 .WithVerbosityEnabled();
-            var engine = TestingEngine.Create(config, tests.TestFirstScenario);
+            var engine = TestingEngine.Create(config, tests.TestSecondScenario);
             engine.Run();
             Console.WriteLine($"Bugs found: {engine.TestReport.NumOfFoundBugs}");
         }

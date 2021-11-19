@@ -15,6 +15,7 @@ namespace PetImages.Tests.StorageMocks
         private readonly MockCosmosState State;
         private readonly Generator Generator;
         private bool EmitRandomizedFaults;
+        private object SyncObject;
 
         public MockCosmosContainer(string containerName, MockCosmosState state)
         {
@@ -22,29 +23,30 @@ namespace PetImages.Tests.StorageMocks
             this.State = state;
             this.Generator = Generator.Create();
             this.EmitRandomizedFaults = false;
+            this.SyncObject = new object();
         }
 
         public Task<T> CreateItem<T>(T item)
             where T : DbItem
         {
-            var itemCopy = TestHelper.Clone(item);
-
-            return Task.Run(() =>
+            lock (this.SyncObject)
             {
                 if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
                     throw new SimulatedDatabaseFaultException();
                 }
 
+                System.Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] trying to create inner ...");
+                var itemCopy = TestHelper.Clone(item);
                 this.State.CreateItem(this.ContainerName, itemCopy);
-                return itemCopy;
-            });
+                return Task.FromResult(itemCopy);
+            }
         }
 
         public Task<T> GetItem<T>(string partitionKey, string id)
             where T : DbItem
         {
-            return Task.Run(() =>
+            lock (this.SyncObject)
             {
                 if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
@@ -52,17 +54,15 @@ namespace PetImages.Tests.StorageMocks
                 }
 
                 var item = this.State.GetItem(this.ContainerName, partitionKey, id);
-
                 var itemCopy = TestHelper.Clone((T)item);
-
-                return itemCopy;
-            });
+                return Task.FromResult(itemCopy);
+            }
         }
 
         public Task<T> UpsertItem<T>(T item)
             where T : DbItem
         {
-            return Task.Run(() =>
+            lock (this.SyncObject)
             {
                 if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
@@ -71,13 +71,13 @@ namespace PetImages.Tests.StorageMocks
 
                 var itemCopy = TestHelper.Clone(item);
                 this.State.UpsertItem(this.ContainerName, itemCopy);
-                return itemCopy;
-            });
+                return Task.FromResult(itemCopy);
+            }
         }
 
         public Task DeleteItem(string partitionKey, string id)
         {
-            return Task.Run(() =>
+            lock (this.SyncObject)
             {
                 if (this.EmitRandomizedFaults && this.Generator.NextBoolean())
                 {
@@ -85,7 +85,8 @@ namespace PetImages.Tests.StorageMocks
                 }
 
                 this.State.DeleteItem(this.ContainerName, partitionKey, id);
-            });
+                return Task.CompletedTask;
+            }
         }
 
         public void EnableRandomizedFaults()

@@ -34,10 +34,12 @@ namespace PetImages.Tests.StorageMocks
         {
             EnsureItemDoesNotExistInDatabase(containerName, item.PartitionKey, item.Id);
 
+            System.Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] {containerName} adding {GetCombinedKey(item.PartitionKey, item.Id)}");
             var container = this.Database[containerName];
             _ = container.TryAdd(
                 GetCombinedKey(item.PartitionKey, item.Id),
                 item);
+            System.Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] {containerName} added {GetCombinedKey(item.PartitionKey, item.Id)}");
         }
 
         public void UpsertItem(string containerName, DbItem item)
@@ -99,6 +101,7 @@ namespace PetImages.Tests.StorageMocks
             EnsureContainerExistsInDatabase(containerName);
             var container = this.Database[containerName];
 
+            System.Console.WriteLine($"[{System.Threading.Thread.CurrentThread.ManagedThreadId}] {containerName} item {GetCombinedKey(partitionKey, id)} exists ? {container.ContainsKey(GetCombinedKey(partitionKey, id))}");
             if (container.ContainsKey(GetCombinedKey(partitionKey, id)))
             {
                 throw new DatabaseItemAlreadyExistsException();
