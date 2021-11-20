@@ -58,13 +58,6 @@ namespace PetImages.Tests
         public async Task TestSecondScenario()
         {
            // Initialize the in-memory service factory.
-           // var cosmosState = new MockCosmosState();
-           // var database = new MockCosmosDatabase(cosmosState);
-           // var accountContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.AccountContainerName);
-           // var imageContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.ImageContainerName);
-           // var blobContainer = new MockBlobContainerProvider();
-           // var messagingClient = new MockMessagingClient(blobContainer);
-           // var petImagesClient = new ServiceClient(accountContainer, imageContainer, blobContainer, messagingClient);
            using var factory = new ServiceFactory();
            await factory.InitializeAccountContainerAsync();
            var imageContainer = await factory.InitializeImageContainerAsync();

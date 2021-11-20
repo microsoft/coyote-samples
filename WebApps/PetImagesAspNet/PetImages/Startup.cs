@@ -41,8 +41,8 @@ namespace PetImages
 
             services.AddControllers();
 
-            services.AddSingleton<ICosmosContainer, CosmosContainer>();
-            services.AddSingleton<ICosmosContainer, CosmosContainer>();
+            services.AddSingleton<IAccountContainer, CosmosContainer>();
+            services.AddSingleton<IImageContainer, CosmosContainer>();
             services.AddSingleton<IBlobContainer, BlobContainer>();
             services.AddSingleton<IMessagingClient, MessagingClient>();
         }

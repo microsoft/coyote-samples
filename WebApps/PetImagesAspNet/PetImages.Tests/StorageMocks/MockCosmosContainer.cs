@@ -9,21 +9,21 @@ using PetImages.Tests.Exceptions;
 
 namespace PetImages.Tests.StorageMocks
 {
-    public class MockCosmosContainer : ICosmosContainer
+    internal class MockCosmosContainer : IAccountContainer, IImageContainer
     {
         private readonly string ContainerName;
         private readonly MockCosmosState State;
         private readonly Generator Generator;
         private bool EmitRandomizedFaults;
-        private object SyncObject;
+        private readonly object SyncObject;
 
-        public MockCosmosContainer(string containerName, MockCosmosState state)
+        internal MockCosmosContainer(string containerName, MockCosmosState state)
         {
             this.ContainerName = containerName;
             this.State = state;
             this.Generator = Generator.Create();
             this.EmitRandomizedFaults = false;
-            this.SyncObject = new object();
+            this.SyncObject = new();
         }
 
         public Task<T> CreateItem<T>(T item)
@@ -98,6 +98,5 @@ namespace PetImages.Tests.StorageMocks
         {
             this.EmitRandomizedFaults = false;
         }
-
     }
 }

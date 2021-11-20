@@ -15,9 +15,9 @@ namespace PetImages.Controllers
     [Route("api/[controller]")]
     public class AccountController : ControllerBase
     {
-        private readonly ICosmosContainer AccountContainer;
+        private readonly IAccountContainer AccountContainer;
 
-        public AccountController(ICosmosContainer accountContainer)
+        public AccountController(IAccountContainer accountContainer)
         {
             this.AccountContainer = accountContainer;
         }

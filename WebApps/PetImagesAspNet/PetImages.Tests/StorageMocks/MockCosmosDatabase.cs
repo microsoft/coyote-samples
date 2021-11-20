@@ -6,31 +6,35 @@ using PetImages.Storage;
 
 namespace PetImages.Tests.StorageMocks
 {
-    public class MockCosmosDatabase : ICosmosDatabase
+    internal class MockCosmosDatabase : ICosmosDatabase
     {
         private readonly MockCosmosState State;
+        private readonly object SyncObject;
 
-        public MockCosmosDatabase(MockCosmosState state)
+        internal MockCosmosDatabase(MockCosmosState state)
         {
             this.State = state;
+            this.SyncObject = new();
         }
 
         public Task<ICosmosContainer> CreateContainerAsync(string containerName)
         {
-            return Task.Run<ICosmosContainer>(() =>
+            lock (this.SyncObject)
             {
                 this.State.CreateContainer(containerName);
-                return new MockCosmosContainer(containerName, this.State);
-            });
+                ICosmosContainer container = new MockCosmosContainer(containerName, this.State);
+                return Task.FromResult(container);
+            }
         }
 
         public Task<ICosmosContainer> GetContainer(string containerName)
         {
-            return Task.Run<ICosmosContainer>(() =>
+            lock (this.SyncObject)
             {
                 this.State.EnsureContainerExistsInDatabase(containerName);
-                return new MockCosmosContainer(containerName, this.State);
-            });
+                ICosmosContainer container = new MockCosmosContainer(containerName, this.State);
+                return Task.FromResult(container);
+            }
         }
     }
 }

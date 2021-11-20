@@ -23,4 +23,20 @@ namespace PetImages.Storage
 
         Task DeleteItem(string partitionKey, string id);
     }
+
+    /// <summary>
+    /// Interface of a Cosmos DB account container. This can be implemented
+    /// for production or with a mock for (systematic) testing.
+    /// </summary>
+    public interface IAccountContainer : ICosmosContainer
+    {
+    }
+
+    /// <summary>
+    /// Interface of a Cosmos DB image container. This can be implemented
+    /// for production or with a mock for (systematic) testing.
+    /// </summary>
+    public interface IImageContainer : ICosmosContainer
+    {
+    }
 }

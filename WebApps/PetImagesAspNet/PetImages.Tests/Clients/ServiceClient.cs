@@ -62,7 +62,8 @@ namespace PetImages.Tests
             var response = await this.Client.GetAsync(new Uri($"/api/image/contents/{accountName}/{imageName}",
                 UriKind.RelativeOrAbsolute));
             var stream = await response.Content.ReadAsStreamAsync();
-            var content = await JsonSerializer.DeserializeAsync<byte[]>(stream);
+            byte[] content = response.StatusCode == HttpStatusCode.OK ?
+                await JsonSerializer.DeserializeAsync<byte[]>(stream) : Array.Empty<byte>();
             return (response.StatusCode, content);
         }
 

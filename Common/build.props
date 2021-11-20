@@ -4,7 +4,7 @@
     <Product>CoyoteExamples</Product>
     <Company>Microsoft Corporation</Company>
     <Copyright>Copyright © Microsoft Corporation.</Copyright>
-    <LangVersion>8.0</LangVersion>
+    <LangVersion>10.0</LangVersion>
     <TargetFrameworks>net6.0</TargetFrameworks>
     <UseLocalCoyote>false</UseLocalCoyote>
     <LocalCoyotePath>$([System.Environment]::GetEnvironmentVariable("LOCAL_COYOTE_PATH"))</LocalCoyotePath>

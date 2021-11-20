@@ -7,7 +7,7 @@ using PetImages.Entities;
 
 namespace PetImages.Storage
 {
-    internal class CosmosContainer : ICosmosContainer
+    internal class CosmosContainer : IAccountContainer, IImageContainer
     {
         public Task<T> CreateItem<T>(T row)
             where T : DbItem =>

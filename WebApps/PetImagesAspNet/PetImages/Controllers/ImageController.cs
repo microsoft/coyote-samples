@@ -16,12 +16,12 @@ namespace PetImages.Controllers
     [Route("api/[controller]")]
     public class ImageController : ControllerBase
     {
-        private readonly ICosmosContainer AccountContainer;
-        private readonly ICosmosContainer ImageContainer;
+        private readonly IAccountContainer AccountContainer;
+        private readonly IImageContainer ImageContainer;
         private readonly IBlobContainer BlobContainer;
         private readonly IMessagingClient MessagingClient;
 
-        public ImageController(ICosmosContainer accountContainer, ICosmosContainer imageContainer,
+        public ImageController(IAccountContainer accountContainer, IImageContainer imageContainer,
             IBlobContainer blobContainer, IMessagingClient messagingClient)
         {
             this.AccountContainer = accountContainer;

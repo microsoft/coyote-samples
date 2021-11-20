@@ -45,8 +45,8 @@ namespace PetImages.Tests
             builder.ConfigureTestServices(services =>
             {
                 // Inject the mocks.
-                services.AddSingleton<ICosmosContainer, MockCosmosContainer>(container => this.AccountContainer);
-                services.AddSingleton<ICosmosContainer, MockCosmosContainer>(container => this.ImageContainer);
+                services.AddSingleton<IAccountContainer, MockCosmosContainer>(container => this.AccountContainer);
+                services.AddSingleton<IImageContainer, MockCosmosContainer>(container => this.ImageContainer);
                 services.AddSingleton<IBlobContainer, MockBlobContainerProvider>(provider => this.BlobContainer);
                 services.AddSingleton<IMessagingClient, MockMessagingClient>(provider => this.MessagingClient);
             });
