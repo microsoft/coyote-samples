@@ -99,65 +99,56 @@ namespace PetImages.Tests
            }
         }
 
-        //[TestMethod]
-        //public async Task TestThirdScenario()
-        //{
-        //    // Initialize the in-memory service factory.
-        //    // var cosmosState = new MockCosmosState();
-        //    // var database = new MockCosmosDatabase(cosmosState);
-        //    // var accountContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.AccountContainerName);
-        //    // var imageContainer = (MockCosmosContainer)await database.CreateContainerAsync(Constants.ImageContainerName);
-        //    // var blobContainer = new MockBlobContainerProvider();
-        //    // var messagingClient = new MockMessagingClient(blobContainer);
-        //    // var petImagesClient = new ServiceClient(accountContainer, imageContainer, blobContainer, messagingClient);
-        //    using var factory = new ServiceFactory();
-        //    await factory.InitializeAccountContainerAsync();
-        //    await factory.InitializeImageContainerAsync();
+        [TestMethod]
+        public async Task TestThirdScenario()
+        {
+           // Initialize the in-memory service factory.
+           using var factory = new ServiceFactory();
+           await factory.InitializeAccountContainerAsync();
+           var imageContainer = await factory.InitializeImageContainerAsync();
 
-        //    using var client = factory.CreateClient(new WebApplicationFactoryClientOptions()
-        //    {
-        //        AllowAutoRedirect = false,
-        //        HandleCookies = false
-        //    });
+           using var client = new ServiceClient(factory);
 
-        //    string accountName = "MyAccount";
-        //    string imageName = "pet.jpg";
+           string accountName = "MyAccount";
+           string imageName = "pet.jpg";
 
-        //    // Create an account request payload
-        //    var account = new Account()
-        //    {
-        //        Name = accountName
-        //    };
+           // Create an account request payload
+           var account = new Account()
+           {
+               Name = accountName
+           };
 
-        //    var accountResult = await petImagesClient.CreateAccountAsync(account);
-        //    Assert.IsTrue(accountResult.StatusCode == HttpStatusCode.OK);
+           var accountResult = await client.CreateAccountAsync(account);
+           Assert.IsTrue(accountResult == HttpStatusCode.OK);
 
-        //    var task1 = petImagesClient.CreateOrUpdateImageAsync(accountName, new Image() { Name = imageName, Content = GetDogImageBytes() });
-        //    var task2 = petImagesClient.CreateOrUpdateImageAsync(accountName, new Image() { Name = imageName, Content = GetCatImageBytes() });
-        //    await Task.WhenAll(task1, task2);
+           var task1 = client.CreateOrUpdateImageAsync(accountName,
+               new Image() { Name = imageName, Content = GetDogImageBytes() });
+           var task2 = client.CreateOrUpdateImageAsync(accountName,
+               new Image() { Name = imageName, Content = GetCatImageBytes() });
+           await Task.WhenAll(task1, task2);
 
-        //    Assert.IsTrue(task1.Result.StatusCode == HttpStatusCode.OK);
-        //    Assert.IsTrue(task1.Result.StatusCode == HttpStatusCode.OK);
+           Assert.IsTrue(task1.Result.Item1 == HttpStatusCode.OK);
+           Assert.IsTrue(task2.Result.Item1 == HttpStatusCode.OK);
 
-        //    var imageResult = await petImagesClient.GetImageAsync(accountName, imageName);
-        //    Assert.IsTrue(imageResult.StatusCode == HttpStatusCode.OK);
-        //    byte[] image = imageResult.Resource;
+           var (imageStatusCode, imageContent) = await client.GetImageAsync(accountName, imageName);
+           Assert.IsTrue(imageStatusCode == HttpStatusCode.OK);
+           byte[] image = imageContent;
 
-        //    byte[] thumbnail;
-        //    while (true)
-        //    {
-        //        var thumbnailResult = await petImagesClient.GetImageThumbnailAsync(accountName, imageName);
-        //        if (thumbnailResult.StatusCode == HttpStatusCode.OK)
-        //        {
-        //            thumbnail = thumbnailResult.Resource;
-        //            break;
-        //        }
-        //    }
+           byte[] thumbnail;
+           while (true)
+           {
+               var (thumbnailStatusCode, thumbnailContent) = await client.GetImageThumbnailAsync(accountName, imageName);
+               if (thumbnailStatusCode == HttpStatusCode.OK)
+               {
+                   thumbnail = thumbnailContent;
+                   break;
+               }
+           }
 
-        //    Assert.IsTrue(
-        //        (IsDogImage(image) && IsDogThumbnail(thumbnail)) ||
-        //        (IsCatImage(image) && IsCatThumbnail(thumbnail)));
-        //}
+           Assert.IsTrue(
+               (IsDogImage(image) && IsDogThumbnail(thumbnail)) ||
+               (IsCatImage(image) && IsCatThumbnail(thumbnail)));
+        }
 
         [TestMethod]
         public void SystematicTestFirstScenario()
@@ -165,17 +156,17 @@ namespace PetImages.Tests
             RunSystematicTest(this.TestFirstScenario);
         }
 
-        //[TestMethod]
-        //public void SystematicTestSecondScenario()
-        //{
-        //    RunSystematicTest(this.TestSecondScenario);
-        //}
+        [TestMethod]
+        public void SystematicTestSecondScenario()
+        {
+           RunSystematicTest(this.TestSecondScenario);
+        }
 
-        //[TestMethod]
-        //public void SystematicTestThirdScenario()
-        //{
-        //    RunSystematicTest(this.TestThirdScenario);
-        //}
+        [TestMethod]
+        public void SystematicTestThirdScenario()
+        {
+           RunSystematicTest(this.TestThirdScenario);
+        }
 
         /// <summary>
         /// Invoke the Coyote systematic testing engine to run the specified test multiple iterations,

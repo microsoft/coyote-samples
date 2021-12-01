@@ -19,7 +19,7 @@ namespace PetImages.Tests
                 // .WithRandomGeneratorSeed(2156141611)
                 .WithDebugLoggingEnabled()
                 .WithVerbosityEnabled();
-            var engine = TestingEngine.Create(config, tests.TestSecondScenario);
+            var engine = TestingEngine.Create(config, tests.TestThirdScenario);
             engine.Run();
             Console.WriteLine($"Bugs found: {engine.TestReport.NumOfFoundBugs}");
         }

@@ -129,8 +129,8 @@ namespace PetImages.Controllers
             return this.Ok(await this.BlobContainer.GetBlobAsync(accountName, imageItem.StorageName));
         }
 
-        [HttpGet("thumbnail")]
-        public async Task<ActionResult<byte[]>> GetImageThumbnailAsync(string accountName, string imageName)
+        [HttpGet("thumbnail/{accountName}/{imageName}")]
+        public async Task<ActionResult<byte[]>> GetImageThumbnailAsync([FromRoute] string accountName, [FromRoute] string imageName)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
@@ -161,8 +161,8 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 3 - Buggy CreateOrUpdateImageAsync version.
         /// </summary>
-        [HttpPost("update")]
-        public async Task<ActionResult<Image>> CreateOrUpdateImageAsync(string accountName, Image image)
+        [HttpPost("update/{accountName}")]
+        public async Task<ActionResult<Image>> CreateOrUpdateImageAsync([FromRoute] string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {
@@ -188,8 +188,8 @@ namespace PetImages.Controllers
         /// <summary>
         /// Scenario 3 - Fixed CreateOrUpdateImageAsync version.
         /// </summary>
-        [HttpPost("update-fixed")]
-        public async Task<ActionResult<Image>> CreateOrUpdateImageAsyncFixed(string accountName, Image image)
+        [HttpPost("update-fixed/{accountName}")]
+        public async Task<ActionResult<Image>> CreateOrUpdateImageAsyncFixed([FromRoute] string accountName, Image image)
         {
             if (!await StorageHelper.DoesItemExist<AccountItem>(this.AccountContainer, partitionKey: accountName, id: accountName))
             {

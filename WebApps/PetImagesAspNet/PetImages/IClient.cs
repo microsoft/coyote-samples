@@ -15,10 +15,10 @@ namespace PetImages
 
         Task<HttpStatusCode> CreateImageAsync(string accountName, Image image);
 
-        //Task<ServiceResponse<Image>> CreateOrUpdateImageAsync(string accountName, Image image);
+        Task<(HttpStatusCode, Image)> CreateOrUpdateImageAsync(string accountName, Image image);
 
         Task<(HttpStatusCode, byte[])> GetImageAsync(string accountName, string imageName);
 
-        //Task<ServiceResponse<byte[]>> GetImageThumbnailAsync(string accountName, string imageName);
+        Task<(HttpStatusCode, byte[])> GetImageThumbnailAsync(string accountName, string imageName);
     }
 }
