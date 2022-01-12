@@ -22,7 +22,7 @@ Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\Timers\Timers.sln
 Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\Monitors\Monitors.sln" -config $configuration
 
 # Build the web app samples.
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\WebApps\ImageGalleryAspNet\ImageGallery.sln" -config $configuration
-Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\WebApps\PetImagesAspNet\PetImages.sln" -config $configuration
+# Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\WebApps\ImageGalleryAspNet\ImageGallery.sln" -config $configuration
+# Invoke-DotnetBuild -dotnet $dotnet -solution "$PSScriptRoot\..\WebApps\PetImagesAspNet\PetImages.sln" -config $configuration
 
 Write-Comment -prefix "." -text "Successfully built the Coyote samples" -color "green"
