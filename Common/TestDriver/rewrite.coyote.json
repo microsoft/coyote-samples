@@ -8,14 +8,9 @@
     "CoffeeMachineTasks.dll",
     "DrinksServingRobotActors.dll",
     "HelloWorldActors.dll",
-    "ImageGalleryClient.dll",
-    "ImageGalleryService.dll",
-    "ImageGalleryTests.dll",
     "Monitors.dll",
     "Raft.dll",
     "Raft.Mocking.dll",
-    "Raft.Nondeterminism.dll",
-    "PetImages.dll",
-    "PetImagesTest.dll"
+    "Raft.Nondeterminism.dll"
   ]
 }
